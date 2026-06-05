@@ -1,0 +1,533 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  status    TenantStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  organizations        Organization[]
+  users                User[]
+  sessions             Session[]
+  auditLogs            AuditLog[]
+  subscriptions        Subscription[]
+  complianceReports    ComplianceReport[]
+  payrollRuns          PayrollRun[]
+  zoikoPayTransactions ZoikoPayTransaction[]
+  zoikoCoreXWorkflows  ZoikoCoreXWorkflow[]
+  governancePolicies   GovernancePolicy[]
+  approvalWorkflows    ApprovalWorkflow[]
+  roles                Role[]
+  permissions          Permission[]
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model Organization {
+  id             String             @id @default(cuid())
+  tenantId       String
+  name           String
+  plan           Plan               @default(ENTERPRISE)
+  status         OrganizationStatus @default(ACTIVE)
+  employeesCount Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+enum Plan {
+  TRIAL
+  PREMIUM
+  ENTERPRISE
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  DELETED
+}
+
+model User {
+  id              String   @id @default(cuid())
+  tenantId        String
+  email           String
+  firstName       String
+  lastName        String
+  passwordHash    String
+  isActive        Boolean  @default(true)
+  isEmailVerified Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions          Session[]
+  auditLogs         AuditLog[]
+  roles             UserRole[]
+  permissions       UserPermission[]
+  approvalActions   ApprovalAction[]
+  assignedApprovals ApprovalWorkflow[] @relation("ApprovalAssignee")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Session {
+  id               String    @id @default(cuid())
+  tenantId         String
+  userId           String
+  accessTokenId    String?   @unique
+  refreshTokenHash String
+  expiresAt        DateTime
+  ipAddress        String?
+  userAgent        String?
+  createdAt        DateTime  @default(now())
+  revokedAt        DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id           String         @id @default(cuid())
+  tenantId     String
+  userId       String?
+  action       String
+  eventType    AuditEventType @default(SYSTEM_EVENT)
+  category     AuditCategory  @default(SYSTEM)
+  outcome      AuditOutcome   @default(SUCCESS)
+  resourceType String
+  resourceId   String?
+  resourceName String?
+  details      Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime       @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([category])
+  @@index([createdAt])
+}
+
+enum AuditEventType {
+  LOGIN
+  LOGOUT
+  USER_CHANGE
+  TENANT_CHANGE
+  ORGANIZATION_CHANGE
+  PAYROLL_EVENT
+  COMPLIANCE_EVENT
+  BILLING_EVENT
+  SECURITY_EVENT
+  SYSTEM_EVENT
+}
+
+enum AuditCategory {
+  AUTHENTICATION
+  AUTHORIZATION
+  GOVERNANCE
+  PAYROLL
+  COMPLIANCE
+  BILLING
+  SECURITY
+  SYSTEM
+}
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+  DENIED
+  PENDING
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  tenantId    String
+  key         RoleKey
+  name        String
+  description String?
+  isSystem    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+}
+
+enum RoleKey {
+  SUPER_ADMIN
+  PLATFORM_ADMIN
+  TENANT_ADMIN
+  HR_ADMIN
+  PAYROLL_ADMIN
+  COMPLIANCE_ADMIN
+  AUDITOR
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  tenantId    String
+  key         String
+  domain      PermissionDomain
+  action      String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roles  RolePermission[]
+  users  UserPermission[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+  @@index([domain])
+}
+
+enum PermissionDomain {
+  TENANTS
+  ORGANIZATIONS
+  USERS
+  PAYROLL
+  COMPLIANCE
+  BILLING
+  ANALYTICS
+  AUDIT
+  SYSTEM
+}
+
+model UserRole {
+  id           String   @id @default(cuid())
+  tenantId     String
+  userId       String
+  roleId       String
+  assignedAt   DateTime @default(now())
+  assignedById String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([tenantId])
+  @@index([roleId])
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  tenantId     String
+  roleId       String
+  permissionId String
+  assignedAt   DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([tenantId])
+  @@index([permissionId])
+}
+
+model UserPermission {
+  id           String   @id @default(cuid())
+  tenantId     String
+  userId       String
+  permissionId String
+  assignedAt   DateTime @default(now())
+  assignedById String?
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([tenantId])
+  @@index([permissionId])
+}
+
+model Subscription {
+  id            String             @id @default(cuid())
+  tenantId      String
+  product       ZoikoProduct
+  plan          Plan               @default(ENTERPRISE)
+  status        SubscriptionStatus @default(ACTIVE)
+  seats         Int                @default(0)
+  monthlyAmount Int                @default(0)
+  renewalDate   DateTime
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, product])
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum ZoikoProduct {
+  ZOIKO_HR
+  ZOIKO_TIME
+  ZOIKO_PAYROLL
+  ZOIKO_BILLING
+  ZOIKO_COMPLY
+  ZOIKO_INSIGHTS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  SUSPENDED
+  CANCELED
+}
+
+model ComplianceReport {
+  id           String           @id @default(cuid())
+  tenantId     String
+  packName     String
+  jurisdiction String
+  score        Int
+  alerts       Int              @default(0)
+  violations   Int              @default(0)
+  status       ComplianceStatus @default(COMPLIANT)
+  reviewedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum ComplianceStatus {
+  COMPLIANT
+  WATCHLIST
+  VIOLATION
+  REMEDIATION
+}
+
+model PayrollRun {
+  id               String           @id @default(cuid())
+  tenantId         String
+  runCode          String
+  scheduleName     String
+  payPeriod        String
+  grossAmount      Int              @default(0)
+  employeeCount    Int              @default(0)
+  approvalsPending Int              @default(0)
+  status           PayrollRunStatus @default(PENDING_APPROVAL)
+  failureReason    String?
+  processedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, runCode])
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum PayrollRunStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CORRECTION_REQUIRED
+}
+
+model ZoikoPayTransaction {
+  id               String                    @id @default(cuid())
+  tenantId         String
+  reference        String
+  amount           Int
+  currency         String                    @default("USD")
+  status           ZoikoPayTransactionStatus @default(PENDING)
+  settlementStatus SettlementStatus          @default(PENDING)
+  processedAt      DateTime?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, reference])
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum ZoikoPayTransactionStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REVERSED
+}
+
+enum SettlementStatus {
+  PENDING
+  SETTLED
+  DELAYED
+  FAILED
+}
+
+model ZoikoCoreXWorkflow {
+  id              String         @id @default(cuid())
+  tenantId        String
+  workflowKey     String
+  name            String
+  integrationName String
+  executions      Int            @default(0)
+  failures        Int            @default(0)
+  status          WorkflowStatus @default(HEALTHY)
+  lastRunAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, workflowKey])
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum WorkflowStatus {
+  HEALTHY
+  DEGRADED
+  FAILED
+  PAUSED
+}
+
+model GovernancePolicy {
+  id          String           @id @default(cuid())
+  tenantId    String
+  name        String
+  domain      GovernanceDomain
+  enforcement EnforcementMode  @default(MONITOR)
+  status      GovernanceStatus @default(ENABLED)
+  exceptions  Int              @default(0)
+  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime         @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([domain])
+}
+
+model ApprovalWorkflow {
+  id                String               @id @default(cuid())
+  tenantId          String
+  workflowType      ApprovalWorkflowType
+  resourceType      String
+  resourceId        String?
+  title             String
+  state             ApprovalState        @default(PENDING)
+  requestedById     String?
+  currentApproverId String?
+  escalationLevel   Int                  @default(0)
+  escalatedAt       DateTime?
+  dueAt             DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  currentApprover User?            @relation("ApprovalAssignee", fields: [currentApproverId], references: [id], onDelete: SetNull)
+  actions         ApprovalAction[]
+
+  @@index([tenantId])
+  @@index([workflowType])
+  @@index([state])
+}
+
+enum ApprovalWorkflowType {
+  PAYROLL_APPROVAL
+  COMPLIANCE_APPROVAL
+  SUBSCRIPTION_APPROVAL
+  TENANT_ACTIVATION_APPROVAL
+}
+
+enum ApprovalState {
+  PENDING
+  APPROVED
+  REJECTED
+  ESCALATED
+  CANCELED
+}
+
+model ApprovalAction {
+  id         String             @id @default(cuid())
+  workflowId String
+  tenantId   String
+  actorId    String?
+  action     ApprovalActionType
+  comment    String?
+  createdAt  DateTime           @default(now())
+
+  workflow ApprovalWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  actor    User?            @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([workflowId])
+  @@index([actorId])
+}
+
+enum ApprovalActionType {
+  REQUESTED
+  APPROVED
+  REJECTED
+  ESCALATED
+  REASSIGNED
+  COMMENTED
+}
+
+enum GovernanceDomain {
+  RBAC
+  PAYROLL
+  COMPLIANCE
+  BILLING
+  SECURITY
+  DATA_RETENTION
+}
+
+enum EnforcementMode {
+  MONITOR
+  WARN
+  BLOCK
+}
+
+enum GovernanceStatus {
+  ENABLED
+  DISABLED
+  REVIEW_REQUIRED
+}

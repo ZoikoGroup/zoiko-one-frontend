@@ -32,6 +32,22 @@ const statusClasses: Record<string, string> = {
   VIOLATION: "bg-rose-500/10 text-rose-300",
   WARN: "bg-amber-500/10 text-amber-300",
   WATCHLIST: "bg-amber-500/10 text-amber-300",
+  UPCOMING: "bg-sky-500/10 text-sky-300",
+  ARCHIVED: "bg-slate-700 text-slate-200",
+  SUBMITTED: "bg-blue-500/10 text-sky-300",
+  ACKNOWLEDGED: "bg-emerald-500/10 text-emerald-300",
+  NOT_STARTED: "bg-slate-700 text-slate-200",
+  IN_PROGRESS: "bg-blue-500/10 text-sky-300",
+  CANCELLED: "bg-rose-500/10 text-rose-300",
+  PEER: "bg-indigo-500/10 text-indigo-300",
+  MANAGER: "bg-amber-500/10 text-amber-300",
+  SELF: "bg-sky-500/10 text-sky-300",
+  SUBORDINATE: "bg-violet-500/10 text-violet-300",
+  PERFORMANCE: "bg-blue-500/10 text-blue-300",
+  DEVELOPMENT: "bg-emerald-500/10 text-emerald-300",
+  PROJECT: "bg-amber-500/10 text-amber-300",
+  BEHAVIORAL: "bg-rose-500/10 text-rose-300",
+  OTHER: "bg-slate-600 text-slate-200",
 };
 
 export default function StatusBadge({ status }: { status: string }) {

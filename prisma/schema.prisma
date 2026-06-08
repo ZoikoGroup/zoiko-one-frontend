@@ -51,6 +51,25 @@ model Tenant {
   leaveBalances              LeaveBalance[]
   leaveRequests              LeaveRequest[]
   leaveApprovals             LeaveApproval[]
+  shifts                     Shift[]
+  shiftAssignments           ShiftAssignment[]
+  attendances                Attendance[]
+  reviewCycles               ReviewCycle[]
+  performanceReviews         PerformanceReview[]
+  goals                      Goal[]
+  goalUpdates                GoalUpdate[]
+  feedbacks                  Feedback[]
+  performanceCycles          PerformanceCycle[]
+  reviewTemplates            ReviewTemplate[]
+  reviewQuestions            ReviewQuestion[]
+  selfReviews                SelfReview[]
+  managerReviews             ManagerReview[]
+  peerReviews                PeerReview[]
+  goalProgresses             GoalProgress[]
+  ratings                    Rating[]
+  calibrationSessions        CalibrationSession[]
+  ratingAdjustments          RatingAdjustment[]
+  performanceAudits          PerformanceAudit[]
 }
 
 enum TenantStatus {
@@ -77,6 +96,23 @@ model Organization {
   costCenters  CostCenter[]
   employees    Employee[]
   leaveTypes    LeaveType[]
+  shifts        Shift[]
+  attendances   Attendance[]
+  reviewCycles  ReviewCycle[]
+  performanceReviews PerformanceReview[]
+  goals         Goal[]
+  feedbacks     Feedback[]
+  performanceCycles PerformanceCycle[]
+  reviewTemplates   ReviewTemplate[]
+  reviewQuestions   ReviewQuestion[]
+  selfReviews       SelfReview[]
+  managerReviews    ManagerReview[]
+  peerReviews       PeerReview[]
+  goalProgresses    GoalProgress[]
+  ratings           Rating[]
+  calibrationSessions CalibrationSession[]
+  ratingAdjustments   RatingAdjustment[]
+  performanceAudits  PerformanceAudit[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -262,6 +298,8 @@ enum PermissionDomain {
   ANALYTICS
   AUDIT
   SYSTEM
+  WORKFORCE
+  PERFORMANCE
 }
 
 model UserRole {
@@ -517,6 +555,9 @@ enum ApprovalWorkflowType {
   SUBSCRIPTION_APPROVAL
   TENANT_ACTIVATION_APPROVAL
   LEAVE_APPROVAL
+  GOAL_APPROVAL
+  REVIEW_APPROVAL
+  CALIBRATION_APPROVAL
 }
 
 enum ApprovalState {
@@ -1139,6 +1180,21 @@ model Employee {
   documentReferences  EmployeeDocumentReference[]
   leaveRequests       LeaveRequest[]
   leaveBalances       LeaveBalance[]
+  attendances         Attendance[]
+  shiftAssignments    ShiftAssignment[]
+  performanceReviews  PerformanceReview[] @relation("EmployeePerformance")
+  reviewedReviews     PerformanceReview[] @relation("Reviewer")
+  goals               Goal[]
+  feedbackGiven       Feedback[]          @relation("FeedbackGiver")
+  feedbackReceived    Feedback[]          @relation("EmployeeFeedback")
+  selfReviews         SelfReview[]        @relation("SelfReviewEmployee")
+  managerReviews      ManagerReview[]     @relation("ManagerReviewEmployee")
+  managedReviews      ManagerReview[]     @relation("ManagerReviewer")
+  peerReviewsGiven    PeerReview[]        @relation("PeerReviewer")
+  peerReviewsReceived PeerReview[]        @relation("PeerReviewEmployee")
+  ratings             Rating[]            @relation("RatingEmployee")
+  ratingAdjustments   RatingAdjustment[]  @relation("CalibrationEmployee")
+  managedGoals        Goal[]              @relation("GoalManager")
 
   @@unique([tenantId, email])
   @@unique([organizationId, employeeId])
@@ -1780,4 +1836,741 @@ model LeaveApproval {
   @@index([tenantId])
   @@index([leaveRequestId])
   @@index([approverId])
+}
+
+// -----------------------------------------------------------
+// AttendanceDomain
+// -----------------------------------------------------------
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  WORK_FROM_HOME
+  ON_LEAVE
+  HOLIDAY
+}
+
+// -----------------------------------------------------------
+// Shift
+// -----------------------------------------------------------
+
+model Shift {
+  id           String   @id @default(cuid())
+  name         String
+  startTime    String
+  endTime      String
+  gracePeriod  Int      @default(15)
+  weeklyOff    Json?
+  organizationId String
+  tenantId     String
+  createdAt    DateTime @default(now())
+  createdBy    String?
+  updatedAt    DateTime @updatedAt
+  updatedBy    String?
+  deletedAt    DateTime?
+  deletedBy    String?
+  deletionReason String?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignments  ShiftAssignment[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([tenantId, deletedAt])
+}
+
+// -----------------------------------------------------------
+// ShiftAssignment
+// -----------------------------------------------------------
+
+model ShiftAssignment {
+  id            String    @id @default(cuid())
+  shiftId       String
+  employeeId    String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  tenantId      String
+  createdAt     DateTime  @default(now())
+  createdBy     String?
+  updatedAt     DateTime  @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  shift    Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([shiftId])
+  @@index([employeeId])
+  @@index([tenantId, deletedAt])
+}
+
+// -----------------------------------------------------------
+// Attendance
+// -----------------------------------------------------------
+
+model Attendance {
+  id            String           @id @default(cuid())
+  employeeId    String
+  date          DateTime
+  checkIn       DateTime?
+  checkOut      DateTime?
+  workingHours  Float?
+  overtimeHours Float?
+  status        AttendanceStatus
+  remarks       String?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime         @default(now())
+  createdBy     String?
+  updatedAt     DateTime         @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([date])
+  @@index([status])
+  @@index([tenantId, status, deletedAt])
+  @@index([tenantId, date, status])
+}
+
+// -----------------------------------------------------------
+// Performance Management
+// -----------------------------------------------------------
+
+enum ReviewCycleStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum ReviewStatus {
+  DRAFT
+  SUBMITTED
+  ACKNOWLEDGED
+}
+
+enum GoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum GoalCategory {
+  PERFORMANCE
+  DEVELOPMENT
+  PROJECT
+  BEHAVIORAL
+  OTHER
+}
+
+enum FeedbackType {
+  PEER
+  MANAGER
+  SELF
+  SUBORDINATE
+}
+
+model ReviewCycle {
+  id            String            @id @default(cuid())
+  name          String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime
+  status        ReviewCycleStatus @default(UPCOMING)
+  tenantId      String
+  organizationId String
+  createdAt     DateTime          @default(now())
+  createdBy     String?
+  updatedAt     DateTime          @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reviews      PerformanceReview[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+}
+
+model PerformanceReview {
+  id            String       @id @default(cuid())
+  employeeId    String
+  reviewerId    String?
+  cycleId       String
+  overallRating Int?
+  status        ReviewStatus @default(DRAFT)
+  strengths     String?
+  improvements  String?
+  notes         String?
+  submittedAt   DateTime?
+  acknowledgedAt DateTime?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime     @default(now())
+  createdBy     String?
+  updatedAt     DateTime     @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee       @relation("EmployeePerformance", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer     Employee?      @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  cycle        ReviewCycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, cycleId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([cycleId])
+  @@index([status])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+}
+
+model Goal {
+  id            String       @id @default(cuid())
+  employeeId    String
+  managerId     String?
+  title         String
+  description   String?
+  goalType      GoalType?    @default(KPI)
+  category      GoalCategory @default(PERFORMANCE)
+  weightage     Int          @default(1)
+  targetValue   Float?
+  currentValue  Float?
+  progressStatus GoalProgressStatus @default(DRAFT)
+  startDate     DateTime
+  targetDate    DateTime?
+  completedDate DateTime?
+  status        GoalStatus   @default(NOT_STARTED)
+  progress      Int          @default(0)
+  notes         String?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime     @default(now())
+  createdBy     String?
+  updatedAt     DateTime     @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  manager      Employee?      @relation("GoalManager", fields: [managerId], references: [id], onDelete: SetNull)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  updates      GoalUpdate[]
+  progressLogs GoalProgress[]
+
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([status])
+  @@index([category])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+  @@index([tenantId, employeeId, status])
+}
+
+model GoalUpdate {
+  id            String   @id @default(cuid())
+  goalId        String
+  updateText    String
+  previousProgress Int?
+  newProgress   Int?
+  tenantId      String
+  createdAt     DateTime @default(now())
+  createdBy     String?
+
+  goal   Goal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+model Feedback {
+  id            String       @id @default(cuid())
+  employeeId    String
+  giverId       String?
+  type          FeedbackType @default(PEER)
+  category      String?
+  content       String
+  isConfidential Boolean     @default(false)
+  tenantId      String
+  organizationId String
+  createdAt     DateTime     @default(now())
+  createdBy     String?
+  updatedAt     DateTime     @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee       @relation("EmployeeFeedback", fields: [employeeId], references: [id], onDelete: Cascade)
+  giver        Employee?      @relation("FeedbackGiver", fields: [giverId], references: [id], onDelete: SetNull)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([giverId])
+  @@index([type])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, employeeId, deletedAt])
+}
+
+// ============================================================
+// Performance Management Domain — ZoikoHR
+// ============================================================
+
+enum PerformanceCycleStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum PerformanceCycleType {
+  ANNUAL
+  HALF_YEARLY
+  QUARTERLY
+  PROBATION
+  CUSTOM
+}
+
+enum GoalType {
+  KPI
+  KRA
+  OKR
+}
+
+enum GoalProgressStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  OVERDUE
+}
+
+enum ReviewSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  ACKNOWLEDGED
+}
+
+enum CalibrationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PerformanceEventType {
+  PERFORMANCE_CYCLE_CREATED
+  PERFORMANCE_CYCLE_UPDATED
+  PERFORMANCE_CYCLE_ACTIVATED
+  PERFORMANCE_CYCLE_COMPLETED
+  GOAL_CREATED
+  GOAL_UPDATED
+  GOAL_PROGRESS_UPDATED
+  SELF_REVIEW_SUBMITTED
+  MANAGER_REVIEW_SUBMITTED
+  PEER_REVIEW_SUBMITTED
+  PEER_FEEDBACK_REQUESTED
+  PEER_FEEDBACK_ADDED
+  RATING_ASSIGNED
+  RATING_UPDATED
+  CALIBRATION_CREATED
+  CALIBRATION_COMPLETED
+  REVIEW_TEMPLATE_CREATED
+  REVIEW_TEMPLATE_UPDATED
+}
+
+model PerformanceCycle {
+  id            String                @id @default(cuid())
+  name          String
+  description   String?
+  type          PerformanceCycleType  @default(ANNUAL)
+  startDate     DateTime
+  endDate       DateTime
+  status        PerformanceCycleStatus @default(DRAFT)
+  tenantId      String
+  organizationId String
+  createdAt     DateTime              @default(now())
+  createdBy     String?
+  updatedAt     DateTime              @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  selfReviews  SelfReview[]
+  managerReviews ManagerReview[]
+  peerReviews  PeerReview[]
+  ratings      Rating[]
+  calibrationSessions CalibrationSession[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([type])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+}
+
+model ReviewTemplate {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  type          String    @default("PERFORMANCE")
+  isActive      Boolean   @default(true)
+  tenantId      String
+  organizationId String
+  createdAt     DateTime  @default(now())
+  createdBy     String?
+  updatedAt     DateTime  @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  questions    ReviewQuestion[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([tenantId, deletedAt])
+}
+
+model ReviewQuestion {
+  id            String    @id @default(cuid())
+  templateId    String
+  question      String
+  questionType  String    @default("TEXT")
+  weightage     Int       @default(1)
+  sortOrder     Int       @default(0)
+  isRequired    Boolean   @default(true)
+  tenantId      String
+  organizationId String
+  createdAt     DateTime  @default(now())
+  createdBy     String?
+  updatedAt     DateTime  @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  template ReviewTemplate        @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([tenantId, deletedAt])
+}
+
+model SelfReview {
+  id            String                  @id @default(cuid())
+  employeeId    String
+  cycleId       String
+  comments      String?
+  achievements  String?
+  challenges    String?
+  rating        Int?
+  status        ReviewSubmissionStatus  @default(DRAFT)
+  submittedAt   DateTime?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime                @default(now())
+  createdBy     String?
+  updatedAt     DateTime                @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee                @relation("SelfReviewEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  cycle        PerformanceCycle         @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, cycleId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([cycleId])
+  @@index([status])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+}
+
+model ManagerReview {
+  id            String                  @id @default(cuid())
+  employeeId    String
+  managerId     String
+  cycleId       String
+  comments      String?
+  strengths     String?
+  improvements  String?
+  rating        Int?
+  status        ReviewSubmissionStatus  @default(DRAFT)
+  submittedAt   DateTime?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime                @default(now())
+  createdBy     String?
+  updatedAt     DateTime                @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee                @relation("ManagerReviewEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  manager      Employee                @relation("ManagerReviewer", fields: [managerId], references: [id], onDelete: Cascade)
+  cycle        PerformanceCycle         @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, managerId, cycleId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([managerId])
+  @@index([cycleId])
+  @@index([status])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+}
+
+model PeerReview {
+  id            String                  @id @default(cuid())
+  reviewerId    String
+  employeeId    String
+  cycleId       String
+  comments      String?
+  strengths     String?
+  improvements  String?
+  rating        Int?
+  isAnonymous   Boolean                 @default(false)
+  isRequested   Boolean                 @default(false)
+  status        ReviewSubmissionStatus  @default(DRAFT)
+  submittedAt   DateTime?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime                @default(now())
+  createdBy     String?
+  updatedAt     DateTime                @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  reviewer     Employee                @relation("PeerReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  employee     Employee                @relation("PeerReviewEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  cycle        PerformanceCycle         @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewerId, employeeId, cycleId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([reviewerId])
+  @@index([employeeId])
+  @@index([cycleId])
+  @@index([status])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, status, deletedAt])
+}
+
+model GoalProgress {
+  id            String   @id @default(cuid())
+  goalId        String
+  progressValue Float?
+  progressText  String?
+  updatedAt     DateTime @updatedAt
+  tenantId      String
+  organizationId String
+  createdAt     DateTime @default(now())
+  createdBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  goal         Goal                   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([tenantId, deletedAt])
+}
+
+model Rating {
+  id            String   @id @default(cuid())
+  employeeId    String
+  cycleId       String
+  rating        Int
+  comments      String?
+  raterType     String   @default("MANAGER")
+  raterId       String?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime @default(now())
+  createdBy     String?
+  updatedAt     DateTime @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  employee     Employee               @relation("RatingEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  cycle        PerformanceCycle        @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, cycleId, raterType, raterId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([cycleId])
+  @@index([rating])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, employeeId, deletedAt])
+}
+
+model CalibrationSession {
+  id            String             @id @default(cuid())
+  name          String
+  description   String?
+  cycleId       String
+  status        CalibrationStatus  @default(PENDING)
+  startDate     DateTime?
+  endDate       DateTime?
+  facilitatorId String?
+  participants  Json?
+  notes         String?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime           @default(now())
+  createdBy     String?
+  updatedAt     DateTime           @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  cycle        PerformanceCycle     @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  adjustments  RatingAdjustment[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([cycleId])
+  @@index([status])
+  @@index([tenantId, deletedAt])
+}
+
+model RatingAdjustment {
+  id            String   @id @default(cuid())
+  sessionId     String
+  employeeId    String
+  previousRating Int?
+  adjustedRating Int?
+  reason        String?
+  approvedBy    String?
+  approvedAt    DateTime?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime @default(now())
+  createdBy     String?
+  updatedAt     DateTime @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  session      CalibrationSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  employee     Employee              @relation("CalibrationEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([employeeId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([tenantId, deletedAt])
+}
+
+model PerformanceAudit {
+  id            String   @id @default(cuid())
+  eventType     PerformanceEventType
+  entityType    String
+  entityId      String
+  previousValue Json?
+  newValue      Json?
+  performedBy   String?
+  performedAt   DateTime @default(now())
+  notes         String?
+  tenantId      String
+  organizationId String
+  createdAt     DateTime @default(now())
+  createdBy     String?
+  updatedAt     DateTime @updatedAt
+  updatedBy     String?
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletionReason String?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([eventType])
+  @@index([entityType, entityId])
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([performedBy])
+  @@index([performedAt])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, eventType, performedAt])
 }

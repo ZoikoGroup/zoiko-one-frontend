@@ -117,7 +117,7 @@ export interface EmergencyContact {
   notes?: string | null;
 }
 
-export interface EmployeeDocument {
+export type EmployeeDocument = {
   id: string;
   employeeId: string;
   tenantId: string;
@@ -130,6 +130,31 @@ export interface EmployeeDocument {
   expiryDate?: string | null;
   notes?: string | null;
   createdAt: string;
+  employee?: {
+    id: string;
+    employeeId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+};
+
+export interface DocumentListResponse {
+  data: EmployeeDocument[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface DocumentFilters {
+  search?: string;
+  documentType?: string;
+  status?: string;
+  employeeId?: string;
+  skip?: number;
+  take?: number;
+  orderBy?: string;
+  orderDir?: "asc" | "desc";
 }
 
 export type Employee = {
@@ -834,4 +859,666 @@ export async function fetchLeaveCalendar(filters?: { startDate?: string; endDate
   if (filters?.employeeId) params.set("employeeId", filters.employeeId);
   const qs = params.toString();
   return handleLeaveResponse<CalendarEvent[]>(await fetch(`${LEAVE_BASE}/calendar${qs ? `?${qs}` : ""}`));
+}
+
+// ── Attendance ──────────────────────────────────────────────
+
+const ATTENDANCE_BASE = "/api/zoiko-hr/attendance";
+const SHIFT_BASE = "/api/zoiko-hr/shifts";
+
+export interface AttendanceRecord {
+  id: string;
+  employeeId: string;
+  date: string;
+  checkIn: string | null;
+  checkOut: string | null;
+  workingHours: number | null;
+  overtimeHours: number | null;
+  status: string;
+  remarks: string | null;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttendanceListResponse {
+  data: AttendanceRecord[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface ShiftRecord {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  gracePeriod: number;
+  weeklyOff: string[] | null;
+  assignments?: { id: string; employeeId: string; employee: { id: string; firstName: string; lastName: string } }[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShiftListResponse {
+  data: ShiftRecord[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface AttendanceDashboardStats {
+  totalEmployees: number;
+  present: number;
+  absent: number;
+  halfDay: number;
+  onLeave: number;
+  lateArrivals: number;
+  attendancePct: number;
+}
+
+export interface AttendanceReport {
+  records: AttendanceRecord[];
+  summary: {
+    total: number;
+    present: number;
+    absent: number;
+    halfDay: number;
+    wfh: number;
+    onLeave: number;
+    holiday: number;
+    totalWorkingHours: number;
+    totalOvertimeHours: number;
+  };
+}
+
+async function handleAttendanceResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchAttendanceDashboard(): Promise<{ data: AttendanceDashboardStats }> {
+  return handleAttendanceResponse<{ data: AttendanceDashboardStats }>(await fetch(`${ATTENDANCE_BASE}/dashboard`));
+}
+
+export async function fetchAttendances(filters?: {
+  search?: string;
+  status?: string;
+  employeeId?: string;
+  departmentId?: string;
+  startDate?: string;
+  endDate?: string;
+  skip?: number;
+  take?: number;
+  orderBy?: string;
+  orderDir?: string;
+}): Promise<AttendanceListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.departmentId) params.set("departmentId", filters.departmentId);
+  if (filters?.startDate) params.set("startDate", filters.startDate);
+  if (filters?.endDate) params.set("endDate", filters.endDate);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleAttendanceResponse<AttendanceListResponse>(await fetch(`${ATTENDANCE_BASE}${qs ? `?${qs}` : ""}`));
+}
+
+export async function fetchAttendance(id: string): Promise<{ data: AttendanceRecord }> {
+  return handleAttendanceResponse<{ data: AttendanceRecord }>(await fetch(`${ATTENDANCE_BASE}/${id}`));
+}
+
+export async function createAttendance(body: {
+  employeeId: string;
+  date: string;
+  checkIn?: string;
+  checkOut?: string;
+  status: string;
+  remarks?: string;
+}): Promise<{ data: AttendanceRecord }> {
+  return handleAttendanceResponse<{ data: AttendanceRecord }>(
+    await fetch(ATTENDANCE_BASE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  );
+}
+
+export async function updateAttendance(id: string, body: {
+  checkIn?: string;
+  checkOut?: string;
+  status?: string;
+  remarks?: string;
+}): Promise<{ data: AttendanceRecord }> {
+  return handleAttendanceResponse<{ data: AttendanceRecord }>(
+    await fetch(`${ATTENDANCE_BASE}/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  );
+}
+
+export async function deleteAttendance(id: string, reason?: string): Promise<{ ok: boolean }> {
+  return handleAttendanceResponse<{ ok: boolean }>(
+    await fetch(`${ATTENDANCE_BASE}/${id}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, { method: "DELETE" }),
+  );
+}
+
+export async function checkInEmployee(employeeId: string, date?: string): Promise<{ data: AttendanceRecord }> {
+  return handleAttendanceResponse<{ data: AttendanceRecord }>(
+    await fetch(`${ATTENDANCE_BASE}/check-in`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ employeeId, date }) }),
+  );
+}
+
+export async function checkOutEmployee(employeeId: string, date?: string): Promise<{ data: AttendanceRecord }> {
+  return handleAttendanceResponse<{ data: AttendanceRecord }>(
+    await fetch(`${ATTENDANCE_BASE}/check-out`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ employeeId, date }) }),
+  );
+}
+
+export async function fetchAttendanceReport(filters: {
+  type: string;
+  startDate: string;
+  endDate: string;
+  employeeId?: string;
+  departmentId?: string;
+}): Promise<AttendanceReport> {
+  const params = new URLSearchParams();
+  params.set("type", filters.type);
+  params.set("startDate", filters.startDate);
+  params.set("endDate", filters.endDate);
+  if (filters.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters.departmentId) params.set("departmentId", filters.departmentId);
+  return handleAttendanceResponse<AttendanceReport>(await fetch(`${ATTENDANCE_BASE}/reports?${params.toString()}`));
+}
+
+// ── Shifts ──────────────────────────────────────────────────
+
+export async function fetchShifts(filters?: {
+  search?: string;
+  skip?: number;
+  take?: number;
+  orderBy?: string;
+  orderDir?: string;
+}): Promise<ShiftListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleAttendanceResponse<ShiftListResponse>(await fetch(`${SHIFT_BASE}${qs ? `?${qs}` : ""}`));
+}
+
+export async function fetchShift(id: string): Promise<{ data: ShiftRecord }> {
+  return handleAttendanceResponse<{ data: ShiftRecord }>(await fetch(`${SHIFT_BASE}/${id}`));
+}
+
+export async function createShift(body: {
+  name: string;
+  startTime: string;
+  endTime: string;
+  gracePeriod?: number;
+  weeklyOff?: string[];
+}): Promise<{ data: ShiftRecord }> {
+  return handleAttendanceResponse<{ data: ShiftRecord }>(
+    await fetch(SHIFT_BASE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  );
+}
+
+export async function updateShift(id: string, body: {
+  name?: string;
+  startTime?: string;
+  endTime?: string;
+  gracePeriod?: number;
+  weeklyOff?: string[];
+}): Promise<{ data: ShiftRecord }> {
+  return handleAttendanceResponse<{ data: ShiftRecord }>(
+    await fetch(`${SHIFT_BASE}/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  );
+}
+
+export async function deleteShift(id: string, reason?: string): Promise<{ ok: boolean }> {
+  return handleAttendanceResponse<{ ok: boolean }>(
+    await fetch(`${SHIFT_BASE}/${id}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, { method: "DELETE" }),
+  );
+}
+
+export async function assignShiftToEmployee(body: {
+  shiftId: string;
+  employeeId: string;
+  effectiveFrom: string;
+  effectiveTo?: string;
+}): Promise<{ data: { id: string } }> {
+  return handleAttendanceResponse<{ data: { id: string } }>(
+    await fetch(`${SHIFT_BASE}/assign`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Performance Management
+// ═══════════════════════════════════════════════════════════════
+
+export interface ReviewCycleRecord {
+  id: string;
+  name: string;
+  description: string | null;
+  startDate: string;
+  endDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewCycleListResponse {
+  data: ReviewCycleRecord[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PerformanceReviewRecord {
+  id: string;
+  employeeId: string;
+  reviewerId: string | null;
+  cycleId: string;
+  overallRating: number | null;
+  status: string;
+  strengths: string | null;
+  improvements: string | null;
+  notes: string | null;
+  submittedAt: string | null;
+  acknowledgedAt: string | null;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  reviewer?: { id: string; firstName: string; lastName: string; employeeId: string };
+  cycle?: { id: string; name: string; startDate?: string; endDate?: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewListResponse {
+  data: PerformanceReviewRecord[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface GoalRecord {
+  id: string;
+  employeeId: string;
+  title: string;
+  description: string | null;
+  category: string;
+  startDate: string;
+  targetDate: string | null;
+  completedDate: string | null;
+  status: string;
+  progress: number;
+  notes: string | null;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  updates?: GoalUpdateRecord[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoalListResponse {
+  data: GoalRecord[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface GoalUpdateRecord {
+  id: string;
+  goalId: string;
+  updateText: string;
+  previousProgress: number | null;
+  newProgress: number | null;
+  createdAt: string;
+  createdBy: string | null;
+}
+
+export interface FeedbackRecord {
+  id: string;
+  employeeId: string;
+  giverId: string | null;
+  type: string;
+  category: string | null;
+  content: string;
+  isConfidential: boolean;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  giver?: { id: string; firstName: string; lastName: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FeedbackListResponse {
+  data: FeedbackRecord[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PerformanceDashboardStats {
+  activeCycles: number;
+  totalReviews: number;
+  draftReviews: number;
+  submittedReviews: number;
+  acknowledgedReviews: number;
+  totalGoals: number;
+  completedGoals: number;
+  inProgressGoals: number;
+  goalCompletionPct: number;
+  recentFeedbacks: FeedbackRecord[];
+  topRated: PerformanceReviewRecord[];
+}
+
+const PERFORMANCE_BASE = "/api/zoiko-hr/performance";
+
+async function handlePerformanceResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Dashboard ──
+
+export async function fetchPerformanceDashboard(): Promise<{ data: PerformanceDashboardStats }> {
+  return handlePerformanceResponse<{ data: PerformanceDashboardStats }>(
+    await fetch(`${PERFORMANCE_BASE}/dashboard`),
+  );
+}
+
+// ── Review Cycles ──
+
+export async function fetchCycles(filters?: {
+  search?: string; status?: string; skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<ReviewCycleListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.skip) params.set("skip", String(filters.skip));
+  if (filters?.take) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handlePerformanceResponse<ReviewCycleListResponse>(
+    await fetch(`${PERFORMANCE_BASE}/cycles${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function fetchCycle(id: string): Promise<{ data: ReviewCycleRecord }> {
+  return handlePerformanceResponse<{ data: ReviewCycleRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/cycles/${id}`),
+  );
+}
+
+export async function createCycle(body: {
+  name: string; description?: string; startDate: string; endDate: string; status?: string;
+}): Promise<{ data: ReviewCycleRecord }> {
+  return handlePerformanceResponse<{ data: ReviewCycleRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/cycles`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateCycle(id: string, body: {
+  name?: string; description?: string; startDate?: string; endDate?: string; status?: string;
+}): Promise<{ data: ReviewCycleRecord }> {
+  return handlePerformanceResponse<{ data: ReviewCycleRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/cycles/${id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteCycle(id: string, reason?: string): Promise<{ ok: boolean }> {
+  return handlePerformanceResponse<{ ok: boolean }>(
+    await fetch(`${PERFORMANCE_BASE}/cycles/${id}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, { method: "DELETE" }),
+  );
+}
+
+// ── Reviews ──
+
+export async function fetchReviews(filters?: {
+  search?: string; status?: string; employeeId?: string; cycleId?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<ReviewListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.cycleId) params.set("cycleId", filters.cycleId);
+  if (filters?.skip) params.set("skip", String(filters.skip));
+  if (filters?.take) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handlePerformanceResponse<ReviewListResponse>(
+    await fetch(`${PERFORMANCE_BASE}/reviews${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function fetchReview(id: string): Promise<{ data: PerformanceReviewRecord }> {
+  return handlePerformanceResponse<{ data: PerformanceReviewRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/reviews/${id}`),
+  );
+}
+
+export async function createReview(body: {
+  employeeId: string; reviewerId?: string; cycleId: string;
+  overallRating?: number; status?: string; strengths?: string;
+  improvements?: string; notes?: string;
+}): Promise<{ data: PerformanceReviewRecord }> {
+  return handlePerformanceResponse<{ data: PerformanceReviewRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/reviews`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateReview(id: string, body: {
+  reviewerId?: string; overallRating?: number; status?: string;
+  strengths?: string; improvements?: string; notes?: string;
+}): Promise<{ data: PerformanceReviewRecord }> {
+  return handlePerformanceResponse<{ data: PerformanceReviewRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/reviews/${id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteReview(id: string, reason?: string): Promise<{ ok: boolean }> {
+  return handlePerformanceResponse<{ ok: boolean }>(
+    await fetch(`${PERFORMANCE_BASE}/reviews/${id}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, { method: "DELETE" }),
+  );
+}
+
+// ── Goals ──
+
+export async function fetchGoals(filters?: {
+  search?: string; status?: string; employeeId?: string; category?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<GoalListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.category) params.set("category", filters.category);
+  if (filters?.skip) params.set("skip", String(filters.skip));
+  if (filters?.take) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handlePerformanceResponse<GoalListResponse>(
+    await fetch(`${PERFORMANCE_BASE}/goals${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function fetchGoal(id: string): Promise<{ data: GoalRecord }> {
+  return handlePerformanceResponse<{ data: GoalRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/goals/${id}`),
+  );
+}
+
+export async function createGoal(body: {
+  employeeId: string; title: string; description?: string;
+  category?: string; startDate: string; targetDate?: string;
+  status?: string; progress?: number; notes?: string;
+}): Promise<{ data: GoalRecord }> {
+  return handlePerformanceResponse<{ data: GoalRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/goals`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateGoal(id: string, body: {
+  title?: string; description?: string; category?: string;
+  startDate?: string; targetDate?: string; completedDate?: string;
+  status?: string; progress?: number; notes?: string;
+}): Promise<{ data: GoalRecord }> {
+  return handlePerformanceResponse<{ data: GoalRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/goals/${id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteGoal(id: string, reason?: string): Promise<{ ok: boolean }> {
+  return handlePerformanceResponse<{ ok: boolean }>(
+    await fetch(`${PERFORMANCE_BASE}/goals/${id}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, { method: "DELETE" }),
+  );
+}
+
+export async function createGoalUpdate(goalId: string, body: {
+  updateText: string; previousProgress?: number; newProgress?: number;
+}): Promise<{ data: GoalUpdateRecord }> {
+  return handlePerformanceResponse<{ data: GoalUpdateRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/goals/${goalId}/updates`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+// ── Feedback ──
+
+export async function fetchFeedbacks(filters?: {
+  search?: string; employeeId?: string; giverId?: string; type?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<FeedbackListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.giverId) params.set("giverId", filters.giverId);
+  if (filters?.type) params.set("type", filters.type);
+  if (filters?.skip) params.set("skip", String(filters.skip));
+  if (filters?.take) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handlePerformanceResponse<FeedbackListResponse>(
+    await fetch(`${PERFORMANCE_BASE}/feedback${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function createFeedback(body: {
+  employeeId: string; giverId?: string; type?: string;
+  category?: string; content: string; isConfidential?: boolean;
+}): Promise<{ data: FeedbackRecord }> {
+  return handlePerformanceResponse<{ data: FeedbackRecord }>(
+    await fetch(`${PERFORMANCE_BASE}/feedback`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteFeedback(id: string, reason?: string): Promise<{ ok: boolean }> {
+  return handlePerformanceResponse<{ ok: boolean }>(
+    await fetch(`${PERFORMANCE_BASE}/feedback/${id}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, { method: "DELETE" }),
+  );
+}
+
+// ── Document Management (Standalone) ─────────────────────
+
+const DOCUMENTS_BASE = "/api/zoiko-hr/documents";
+
+async function handleDocumentResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchDocuments(filters?: DocumentFilters): Promise<DocumentListResponse> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.documentType) params.set("documentType", filters.documentType);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.skip) params.set("skip", String(filters.skip));
+  if (filters?.take) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleDocumentResponse<DocumentListResponse>(
+    await fetch(`${DOCUMENTS_BASE}${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function getDocument(id: string): Promise<{ data: EmployeeDocument }> {
+  return handleDocumentResponse<{ data: EmployeeDocument }>(
+    await fetch(`${DOCUMENTS_BASE}/${id}`),
+  );
+}
+
+export async function createDocument(body: {
+  employeeId: string;
+  documentType: string;
+  fileName?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  mimeType?: string;
+  status?: string;
+  expiryDate?: string;
+  notes?: string;
+}): Promise<{ data: EmployeeDocument }> {
+  return handleDocumentResponse<{ data: EmployeeDocument }>(
+    await fetch(DOCUMENTS_BASE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateDocument(id: string, body: {
+  documentType?: string;
+  fileName?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  mimeType?: string;
+  status?: string;
+  expiryDate?: string;
+  notes?: string;
+}): Promise<{ data: EmployeeDocument }> {
+  return handleDocumentResponse<{ data: EmployeeDocument }>(
+    await fetch(`${DOCUMENTS_BASE}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteDocument(id: string): Promise<{ ok: boolean }> {
+  return handleDocumentResponse<{ ok: boolean }>(
+    await fetch(`${DOCUMENTS_BASE}/${id}`, { method: "DELETE" }),
+  );
 }

@@ -9,6 +9,7 @@ export const permissionKeys = [
   "audit.*",
   "system.*",
   "workforce.*",
+  "performance.*",
 ] as const;
 
 export const roles = [
@@ -25,7 +26,7 @@ export const rolePermissionMap: Record<(typeof roles)[number], string[]> = {
   SUPER_ADMIN: [...permissionKeys],
   PLATFORM_ADMIN: ["tenants.*", "organizations.*", "users.*", "billing.*", "analytics.*", "audit.*", "system.*"],
   TENANT_ADMIN: ["organizations.*", "users.*", "analytics.*", "audit.*"],
-  HR_ADMIN: ["organizations.*", "users.*", "analytics.*", "workforce.*"],
+  HR_ADMIN: ["organizations.*", "users.*", "analytics.*", "workforce.*", "performance.*"],
   PAYROLL_ADMIN: ["payroll.*", "audit.*"],
   COMPLIANCE_ADMIN: ["compliance.*", "audit.*"],
   AUDITOR: ["analytics.*", "audit.*", "compliance.*"],

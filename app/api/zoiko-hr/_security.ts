@@ -15,7 +15,7 @@ export function withPermission(permission: string, handler: RouteHandler) {
         return NextResponse.json({ error: error.message }, { status: error.status });
       }
 
-      return NextResponse.json({ error: "Security enforcement failed." }, { status: 500 });
+      return NextResponse.json({ error: `Security enforcement failed: ${error instanceof Error ? error.message : "Unknown error"}` }, { status: 500 });
     }
   };
 }

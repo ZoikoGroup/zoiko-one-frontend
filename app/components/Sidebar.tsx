@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, Network, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, WalletCards, Workflow } from "lucide-react";
+import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, MessageSquare, Network, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Target, Users, WalletCards, Workflow } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -45,12 +45,13 @@ const sections: NavSection[] = [
             icon: Briefcase,
             children: [
               { label: "Employees", href: "/zoiko-hr/workforce/employees", icon: Users },
-              { label: "Documents", href: "/zoiko-hr/workforce/documents", icon: FileText },
+              { label: "Employee Documents", href: "/zoiko-hr/workforce/documents", icon: FileText },
               { label: "Employment Records", href: "/zoiko-hr/workforce/employment-records", icon: Briefcase },
               { label: "Emergency Contacts", href: "/zoiko-hr/workforce/emergency-contacts", icon: Phone },
               { label: "Addresses", href: "/zoiko-hr/workforce/addresses", icon: MapPin },
             ],
           },
+          { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
           {
@@ -61,6 +62,28 @@ const sections: NavSection[] = [
               { label: "Leave Requests", href: "/zoiko-hr/leave/requests", icon: Calendar },
               { label: "Leave Balances", href: "/zoiko-hr/leave/balances", icon: WalletCards },
               { label: "Calendar", href: "/zoiko-hr/leave/calendar", icon: Calendar },
+            ],
+          },
+          {
+            label: "Attendance Management",
+            icon: Calendar,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/attendance", icon: LayoutDashboard },
+              { label: "Records", href: "/zoiko-hr/attendance/records", icon: FileText },
+              { label: "Entry", href: "/zoiko-hr/attendance/entry", icon: FileCheck2 },
+              { label: "Check In/Out", href: "/zoiko-hr/attendance/check-in-out", icon: ShieldCheck },
+              { label: "Shifts", href: "/zoiko-hr/attendance/shifts", icon: Briefcase },
+              { label: "Reports", href: "/zoiko-hr/attendance/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Performance Management",
+            icon: Sparkles,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/performance", icon: LayoutDashboard },
+              { label: "Reviews", href: "/zoiko-hr/performance/reviews", icon: FileText },
+              { label: "Goals", href: "/zoiko-hr/performance/goals", icon: Target },
+              { label: "Feedback", href: "/zoiko-hr/performance/feedback", icon: MessageSquare },
             ],
           },
         ],
@@ -176,7 +199,7 @@ function NavLink({
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </span>
       </button>
-      <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-96" : "max-h-0"}`}>
+      <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-[2000px]" : "max-h-0"}`}>
         <div className={`space-y-1 ${depth === 0 ? "pl-3" : ""}`}>
           {item.children!.map((child) => (
             <NavLink key={child.label} item={child} pathname={pathname} depth={depth + 1} onClose={onClose} />

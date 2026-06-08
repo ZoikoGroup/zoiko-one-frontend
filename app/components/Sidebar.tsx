@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronRight, CreditCard, FileCheck2, LayoutDashboard, Network, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, WalletCards, Workflow } from "lucide-react";
+import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, Network, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, WalletCards, Workflow } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -10,7 +10,20 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const sections = [
+interface NavItem {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href?: string;
+  badge?: string;
+  children?: NavItem[];
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const sections: NavSection[] = [
   {
     title: "PLATFORM",
     items: [
@@ -21,7 +34,37 @@ const sections = [
   {
     title: "PRODUCTS",
     items: [
-      { label: "Zoiko HR", href: "/zoiko-hr", icon: Users, badge: "HR" },
+      {
+        label: "Zoiko HR",
+        icon: Users,
+        badge: "HR",
+        children: [
+          { label: "Dashboard", href: "/zoiko-hr", icon: LayoutDashboard },
+          {
+            label: "Workforce",
+            icon: Briefcase,
+            children: [
+              { label: "Employees", href: "/zoiko-hr/workforce/employees", icon: Users },
+              { label: "Documents", href: "/zoiko-hr/workforce/documents", icon: FileText },
+              { label: "Employment Records", href: "/zoiko-hr/workforce/employment-records", icon: Briefcase },
+              { label: "Emergency Contacts", href: "/zoiko-hr/workforce/emergency-contacts", icon: Phone },
+              { label: "Addresses", href: "/zoiko-hr/workforce/addresses", icon: MapPin },
+            ],
+          },
+          { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
+          { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
+          {
+            label: "Leave Management",
+            icon: Calendar,
+            children: [
+              { label: "Leave Types", href: "/zoiko-hr/leave/leave-types", icon: FileText },
+              { label: "Leave Requests", href: "/zoiko-hr/leave/requests", icon: Calendar },
+              { label: "Leave Balances", href: "/zoiko-hr/leave/balances", icon: WalletCards },
+              { label: "Calendar", href: "/zoiko-hr/leave/calendar", icon: Calendar },
+            ],
+          },
+        ],
+      },
       { label: "ZoikoTime", href: "/zoikotime", icon: ShieldCheck, badge: "Time" },
       { label: "Zoiko Payroll", href: "/payroll", icon: WalletCards, badge: "Payroll" },
       { label: "Zoiko Billing", href: "/billing", icon: CreditCard, badge: "Billing" },
@@ -29,7 +72,6 @@ const sections = [
       { label: "Zoiko Insights", href: "/insights", icon: Sparkles, badge: "Insights" },
     ],
   },
-
   {
     title: "INFRASTRUCTURE",
     items: [
@@ -64,11 +106,90 @@ const sections = [
   },
 ];
 
+function isActiveRoute(pathname: string, href?: string): boolean {
+  if (!href) return false;
+  if (href === "/dashboard") {
+    return pathname === "/dashboard" || pathname === "/";
+  }
+  return pathname.startsWith(href);
+}
+
+function hasActiveChild(pathname: string, children?: NavItem[]): boolean {
+  if (!children) return false;
+  return children.some((child) => {
+    if (child.href && isActiveRoute(pathname, child.href)) return true;
+    if (child.children && hasActiveChild(pathname, child.children)) return true;
+    return false;
+  });
+}
+
+function NavLink({
+  item,
+  pathname,
+  depth = 0,
+  onClose,
+}: {
+  item: NavItem;
+  pathname: string;
+  depth?: number;
+  onClose: () => void;
+}) {
+  const [open, setOpen] = useState(item.href ? isActiveRoute(pathname, item.href) : hasActiveChild(pathname, item.children));
+  const hasChildren = item.children && item.children.length > 0;
+  const active = item.href ? isActiveRoute(pathname, item.href) : false;
+
+  if (!hasChildren) {
+    return (
+      <Link
+        href={item.href!}
+        className={`flex items-center justify-between gap-3 rounded-3xl px-4 py-3 text-sm transition ${
+          active ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900 hover:text-white"
+        }`}
+        onClick={onClose}
+      >
+        <span className="flex items-center gap-3">
+          <item.icon className="h-4 w-4 text-slate-400" />
+          {item.label}
+        </span>
+        {item.badge ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">{item.badge}</span> : null}
+      </Link>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((c) => !c)}
+        className={`flex w-full items-center justify-between gap-3 rounded-3xl px-4 py-3 text-left text-sm transition ${
+          active || hasActiveChild(pathname, item.children)
+            ? "bg-slate-900 text-white"
+            : "text-slate-300 hover:bg-slate-900 hover:text-white"
+        }`}
+      >
+        <span className="flex items-center gap-3">
+          <item.icon className="h-4 w-4 text-slate-400" />
+          {item.label}
+        </span>
+        <span className="flex items-center gap-2">
+          {item.badge ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">{item.badge}</span> : null}
+          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </span>
+      </button>
+      <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-96" : "max-h-0"}`}>
+        <div className={`space-y-1 ${depth === 0 ? "pl-3" : ""}`}>
+          {item.children!.map((child) => (
+            <NavLink key={child.label} item={child} pathname={pathname} depth={depth + 1} onClose={onClose} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [productOpen, setProductOpen] = useState(true);
-
-  const isActive = (href: string) => (href === "/dashboard" ? pathname === "/dashboard" || pathname === "/" : pathname.startsWith(href));
 
   return (
     <>
@@ -100,41 +221,17 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                       <span>Product Management</span>
                       {productOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </button>
-                    <div className={`overflow-hidden transition-[max-height] duration-300 ${productOpen ? "max-h-96" : "max-h-0"}`}>
+                    <div className={`overflow-hidden transition-[max-height] duration-300 ${productOpen ? "max-h-[2000px]" : "max-h-0"}`}>
                       <div className="space-y-1 p-1">
                         {section.items.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`flex items-center justify-between gap-3 rounded-3xl px-4 py-3 text-sm transition ${
-                              isActive(item.href) ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                            }`}
-                            onClick={onClose}
-                          >
-                            <span className="flex items-center gap-3">
-                              <item.icon className="h-4 w-4 text-slate-400" />
-                              {item.label}
-                            </span>
-                            {item.badge ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">{item.badge}</span> : null}
-                          </Link>
+                          <NavLink key={item.label} item={item} pathname={pathname} depth={0} onClose={onClose} />
                         ))}
                       </div>
                     </div>
                   </div>
                 ) : (
                   section.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 rounded-3xl px-4 py-3 text-sm transition ${
-                        isActive(item.href) ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                      }`}
-                      onClick={onClose}
-                    >
-                      <item.icon className="h-4 w-4 text-slate-400" />
-                      <span>{item.label}</span>
-                      {item.badge ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">{item.badge}</span> : null}
-                    </Link>
+                    <NavLink key={item.label} item={item} pathname={pathname} depth={0} onClose={onClose} />
                   ))
                 )}
               </div>

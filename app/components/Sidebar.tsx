@@ -1,6 +1,14 @@
 "use client";
 
+<<<<<<< HEAD
 import { Activity, AlertTriangle, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Undo2, User, UserCheck, UserPlus, Users, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
+=======
+<<<<<<< HEAD
+import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, MessageSquare, Network, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Target, Users, WalletCards, Workflow } from "lucide-react";
+=======
+import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, Network, Package, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, WalletCards, Workflow } from "lucide-react";
+>>>>>>> ea28a7f (Add latest Zoiko One frontend changes)
+>>>>>>> 8ba0055 (Add latest Zoiko One frontend changes)
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -55,6 +63,10 @@ const sections: NavSection[] = [
           { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
+<<<<<<< HEAD
+=======
+          { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
+>>>>>>> 8ba0055 (Add latest Zoiko One frontend changes)
           { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
           {
             label: "Leave Management",
@@ -68,6 +80,7 @@ const sections: NavSection[] = [
             ],
           },
           {
+<<<<<<< HEAD
             label: "Attendance Management",
             icon: Calendar,
             children: [
@@ -87,6 +100,19 @@ const sections: NavSection[] = [
               { label: "Reviews", href: "/zoiko-hr/performance/reviews", icon: FileText },
               { label: "Goals", href: "/zoiko-hr/performance/goals", icon: Target },
               { label: "Feedback", href: "/zoiko-hr/performance/feedback", icon: MessageSquare },
+=======
+            label: "Recruitment",
+            icon: Sparkles,
+            children: [
+              { label: "Jobs", href: "/zoiko-hr/recruitment/jobs", icon: Briefcase },
+              { label: "Candidates", href: "/zoiko-hr/recruitment/candidates", icon: Users },
+              { label: "Interview Pipeline", href: "/zoiko-hr/recruitment/interview-pipeline", icon: Workflow },
+              { label: "Interview Scheduling", href: "/zoiko-hr/recruitment/interview-scheduling", icon: Calendar },
+              { label: "Offer Management", href: "/zoiko-hr/recruitment/offer-management", icon: FileText },
+              { label: "Talent Pool", href: "/zoiko-hr/recruitment/talent-pool", icon: Users },
+              { label: "Referral Program", href: "/zoiko-hr/recruitment/referral-program", icon: Sparkles },
+              { label: "Recruitment Analytics", href: "/zoiko-hr/recruitment/analytics", icon: Sparkles },
+>>>>>>> ea28a7f (Add latest Zoiko One frontend changes)
             ],
           },
           {
@@ -350,7 +376,11 @@ function NavLink({
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </span>
       </button>
+<<<<<<< HEAD
       <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-[2000px]" : "max-h-0"}`}>
+=======
+      <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-[1000px]" : "max-h-0"}`}>
+>>>>>>> ea28a7f (Add latest Zoiko One frontend changes)
         <div className={`space-y-1 ${depth === 0 ? "pl-3" : ""}`}>
           {item.children!.map((child) => (
             <NavLink key={child.label} item={child} pathname={pathname} depth={depth + 1} onClose={onClose} />

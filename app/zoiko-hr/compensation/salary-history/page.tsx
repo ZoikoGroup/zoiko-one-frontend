@@ -1,58 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search } from "lucide-react";
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
-import {
-  fetchSalaryRevisions,
-  type SalaryRevision,
-} from "../../../lib/workforce-api";
-
-const formatCurrency = (val: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
+import { fetchSalaryRevisions, type SalaryRevision } from "../../../lib/workforce-api";
 
 export default function SalaryHistoryPage() {
   const [revisions, setRevisions] = useState<SalaryRevision[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const pageSize = 25;
+  const pageSize = 20;
 
-  const loadData = async () => {
-    setLoading(true); setError("");
-    try {
-      const res = await fetchSalaryRevisions({
-        search: search || undefined,
-        skip: page * pageSize, take: pageSize,
-      });
-      setRevisions(res.data);
-      setTotal(res.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load salary history.");
-    } finally { setLoading(false); }
-  };
+  useEffect(() => {
+    setLoading(true);
+    fetchSalaryRevisions({ search: search || undefined, skip: page * pageSize, take: pageSize })
+      .then((res) => { setRevisions(res.data); setTotal(res.total); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [search, page]);
 
-  useEffect(() => { loadData(); }, [search, page]);
-
-  const totalPages = Math.ceil(total / pageSize);
-  const start = total > 0 ? page * pageSize + 1 : 0;
-  const end = Math.min((page + 1) * pageSize, total);
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(val);
 
   return (
     <SuperAdminShell>
-      <PageHeader
-        title="Salary Revision History"
-        description="View complete history of salary revisions and adjustments."
-      />
-
-      {error && (
-        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">
-          {error}
-        </div>
-      )}
+      <PageHeader title="Salary Revision History" description="Track historical salary changes and revisions." />
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
@@ -73,7 +48,7 @@ export default function SalaryHistoryPage() {
             <h2 className="text-lg font-semibold text-white">Salary Revisions <span className="ml-2 text-sm font-normal text-slate-400">({total})</span></h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[950px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[800px] border-collapse text-left text-sm">
               <thead className="bg-slate-950 text-xs uppercase text-slate-500">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Employee</th>
@@ -86,46 +61,34 @@ export default function SalaryHistoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {revisions.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-sm text-slate-500">No salary revisions found.</td>
-                  </tr>
-                ) : (
+                {revisions.length > 0 ? (
                   revisions.map((r) => (
                     <tr key={r.id} className="transition duration-200 hover:bg-slate-900/80">
-                      <td className="px-5 py-4">
-                        <p className="text-white font-medium">{r.employee}</p>
-                      </td>
-                      <td className="px-5 py-4 text-slate-400 font-mono text-xs">{formatCurrency(r.previousSalary)}</td>
-                      <td className="px-5 py-4 text-slate-300 font-mono text-xs">{formatCurrency(r.revisedSalary)}</td>
-                      <td className="px-5 py-4">
-                        <span className={`text-xs font-semibold ${r.changePercent > 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                          {r.changePercent > 0 ? "+" : ""}{r.changePercent}%
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-slate-400 max-w-[200px] truncate">{r.reason}</td>
-                      <td className="px-5 py-4 text-slate-400">{r.effectiveDate}</td>
-                      <td className="px-5 py-4 text-slate-400">{r.approvedBy}</td>
+                      <td className="border-t border-slate-800 px-5 py-4 font-medium text-white">{r.employee}</td>
+                      <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{formatCurrency(r.previousSalary)}</td>
+                      <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{formatCurrency(r.revisedSalary)}</td>
+                      <td className="border-t border-slate-800 px-5 py-4"><span className="text-emerald-400">+{r.changePercent}%</span></td>
+                      <td className="border-t border-slate-800 px-5 py-4 text-slate-300 max-w-[200px] truncate">{r.reason}</td>
+                      <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{new Date(r.effectiveDate).toLocaleDateString()}</td>
+                      <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{r.approvedBy}</td>
                     </tr>
                   ))
+                ) : (
+                  <tr>
+                    <td className="px-5 py-8 text-center text-slate-400" colSpan={7}>No salary revisions found.</td>
+                  </tr>
                 )}
               </tbody>
             </table>
           </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-800 px-5 py-3">
-              <p className="text-xs text-slate-500">Showing {start}–{end} of {total}</p>
-              <div className="flex items-center gap-2">
-                <button type="button" disabled={page <= 0} onClick={() => setPage((p) => p - 1)}
-                  className="rounded-3xl bg-slate-800 p-2 text-slate-400 hover:bg-slate-700 disabled:opacity-40">
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <span className="text-xs text-slate-400">Page {page + 1} of {totalPages}</span>
-                <button type="button" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}
-                  className="rounded-3xl bg-slate-800 p-2 text-slate-400 hover:bg-slate-700 disabled:opacity-40">
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+          {total > pageSize && (
+            <div className="flex items-center justify-between border-t border-slate-800 px-5 py-4">
+              <p className="text-sm text-slate-400">Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, total)} of {total}</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
+                  className="rounded-3xl bg-slate-800 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-700 disabled:opacity-50">Previous</button>
+                <button type="button" onClick={() => setPage((p) => p + 1)} disabled={(page + 1) * pageSize >= total}
+                  className="rounded-3xl bg-slate-800 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-700 disabled:opacity-50">Next</button>
               </div>
             </div>
           )}

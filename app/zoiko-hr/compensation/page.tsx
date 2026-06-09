@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HeartHandshake, ClipboardCheck, TrendingUp, CircleDollarSign, Layers } from "lucide-react";
+import { CircleDollarSign, Layers, HeartHandshake, ClipboardCheck, TrendingUp } from "lucide-react";
 import SuperAdminShell from "../../components/SuperAdminShell";
 import PageHeader from "../../components/PageHeader";
 import KPICard from "../../components/KPICard";
@@ -21,27 +21,22 @@ export default function CompensationDashboardPage() {
   }, []);
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(val);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(val);
 
   const kpiCards = [
-    { title: "Total Compensation Cost", value: stats ? formatCurrency(stats.totalCompensationCost) : "$0", icon: CircleDollarSign, trend: "Annual", description: "Total salary & benefits cost" },
-    { title: "Active Salary Structures", value: stats?.activeSalaryStructures ?? 0, icon: Layers, trend: "In Use", description: "Active pay structures" },
-    { title: "Benefits Enrolled", value: stats?.benefitsEnrolled ?? 0, icon: HeartHandshake, trend: "Enrolled", description: "Employees in benefit plans" },
-    { title: "Pending Reviews", value: stats?.pendingReviews ?? 0, icon: ClipboardCheck, trend: "Awaiting", description: "Compensation reviews pending" },
-    { title: "Upcoming Increments", value: stats?.upcomingIncrements ?? 0, icon: TrendingUp, trend: "Scheduled", description: "Approved salary increments" },
+    { title: "Total Compensation Cost", value: stats ? formatCurrency(stats.totalCompensationCost) : "...", icon: CircleDollarSign, trend: "Annual", description: "Total compensation expenditure" },
+    { title: "Active Salary Structures", value: stats?.activeSalaryStructures ?? 0, icon: Layers, trend: "Active", description: "Currently active salary structures" },
+    { title: "Benefits Enrolled", value: stats?.benefitsEnrolled ?? 0, icon: HeartHandshake, trend: "Enrolled", description: "Total benefit enrollments" },
+    { title: "Pending Reviews", value: stats?.pendingReviews ?? 0, icon: ClipboardCheck, trend: "Pending", description: "Compensation reviews pending" },
+    { title: "Upcoming Increments", value: stats?.upcomingIncrements ?? 0, icon: TrendingUp, trend: "Upcoming", description: "Approved increments pending" },
   ];
 
   return (
     <SuperAdminShell>
-      <PageHeader
-        title="Compensation & Benefits"
-        description="Manage salary structures, pay grades, allowances, deductions, benefits, and compensation reviews."
-      />
+      <PageHeader title="Compensation & Benefits" description="Dashboard overview of compensation structures, benefits, and reviews." />
 
       {error && (
-        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">
-          {error}
-        </div>
+        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">{error}</div>
       )}
 
       {loading ? (

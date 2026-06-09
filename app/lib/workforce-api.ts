@@ -1523,6 +1523,7 @@ export async function deleteDocument(id: string): Promise<{ ok: boolean }> {
   );
 }
 
+<<<<<<< HEAD
 // ═══════════════════════════════════════════════════════════════
 // Recruitment Management
 // ═══════════════════════════════════════════════════════════════
@@ -4480,6 +4481,20 @@ export interface FeedbackCampaign {
   status: CampaignStatus;
   totalFeedbacks: number;
   targetFeedbacks: number;
+=======
+// ── Rewards & Recognition ───────────────────────────
+
+export interface EmployeeAward {
+  id: string;
+  employeeId: string;
+  awardName: string;
+  category: string;
+  description: string | null;
+  dateAwarded: string;
+  awardedBy: string | null;
+  status: string;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+>>>>>>> 6731860 (Your commit message)
   createdAt: string;
   updatedAt: string;
 }
@@ -4487,6 +4502,7 @@ export interface FeedbackCampaign {
 export interface RecognitionProgram {
   id: string;
   name: string;
+<<<<<<< HEAD
   awardType: RecognitionAwardType;
   description: string | null;
   totalAwards: number;
@@ -4524,10 +4540,58 @@ export interface ActionPlan {
   dueDate: string;
   status: ActionPlanStatus;
   priority: "HIGH" | "MEDIUM" | "LOW";
+=======
+  description: string | null;
+  type: string;
+  frequency: string;
+  eligibilityCriteria: string | null;
+  rewardAmount: number | null;
+  status: string;
+  participantCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface RewardPointBalance {
+  id: string;
+  employeeId: string;
+  totalPoints: number;
+  usedPoints: number;
+  availablePoints: number;
+  tier: string;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  lastUpdated: string;
+}
+
+export interface RewardPointTransaction {
+  id: string;
+  employeeId: string;
+  points: number;
+  type: "EARNED" | "REDEEMED" | "EXPIRED" | "ADJUSTED";
+  reason: string;
+  referenceType: string | null;
+  referenceId: string | null;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  createdAt: string;
+}
+
+export interface AchievementRecord {
+  id: string;
+  employeeId: string;
+  title: string;
+  description: string | null;
+  category: string;
+  badgeIcon: string | null;
+  criteria: string | null;
+  unlockDate: string;
+  status: string;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+>>>>>>> 6731860 (Your commit message)
+  createdAt: string;
+  updatedAt: string;
+}
+
+<<<<<<< HEAD
 export interface EngagementDashboardStats {
   totalSurveys: number;
   activeSurveys: number;
@@ -5497,4 +5561,226 @@ export async function fetchWFBudgetReports(): Promise<{ data: WFBudgetReport[] }
       trainingCost: b.trainingCost,
     })),
   };
+=======
+export interface RewardsDashboardStats {
+  totalAwardsGiven: number;
+  activePrograms: number;
+  totalPointsIssued: number;
+  totalAchievementsUnlocked: number;
+  topPerformers: { employeeId: string; name: string; points: number; awards: number }[];
+  recentAwards: EmployeeAward[];
+  topAchievements: AchievementRecord[];
+}
+
+const REWARDS_BASE = "/api/zoiko-hr/rewards";
+
+async function handleRewardsResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Dashboard ──
+
+export async function fetchRewardsDashboard(): Promise<{ data: RewardsDashboardStats }> {
+  return handleRewardsResponse<{ data: RewardsDashboardStats }>(
+    await fetch(`${REWARDS_BASE}/dashboard`),
+  );
+}
+
+// ── Employee Awards ──
+
+export async function fetchAwards(filters?: {
+  search?: string; employeeId?: string; category?: string; status?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: EmployeeAward[]; total: number; skip: number; take: number }> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.category) params.set("category", filters.category);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleRewardsResponse(
+    await fetch(`${REWARDS_BASE}/awards${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function createAward(body: {
+  employeeId: string; awardName: string; category: string;
+  description?: string; dateAwarded: string; awardedBy?: string;
+}): Promise<{ data: EmployeeAward }> {
+  return handleRewardsResponse<{ data: EmployeeAward }>(
+    await fetch(`${REWARDS_BASE}/awards`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateAward(id: string, body: {
+  awardName?: string; category?: string; description?: string;
+  dateAwarded?: string; awardedBy?: string; status?: string;
+}): Promise<{ data: EmployeeAward }> {
+  return handleRewardsResponse<{ data: EmployeeAward }>(
+    await fetch(`${REWARDS_BASE}/awards/${id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteAward(id: string): Promise<{ ok: boolean }> {
+  return handleRewardsResponse<{ ok: boolean }>(
+    await fetch(`${REWARDS_BASE}/awards/${id}`, { method: "DELETE" }),
+  );
+}
+
+// ── Recognition Programs ──
+
+export async function fetchRecognitionPrograms(filters?: {
+  search?: string; type?: string; status?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: RecognitionProgram[]; total: number; skip: number; take: number }> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.type) params.set("type", filters.type);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleRewardsResponse(
+    await fetch(`${REWARDS_BASE}/programs${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function createRecognitionProgram(body: {
+  name: string; description?: string; type: string; frequency: string;
+  eligibilityCriteria?: string; rewardAmount?: number;
+}): Promise<{ data: RecognitionProgram }> {
+  return handleRewardsResponse<{ data: RecognitionProgram }>(
+    await fetch(`${REWARDS_BASE}/programs`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateRecognitionProgram(id: string, body: {
+  name?: string; description?: string; type?: string; frequency?: string;
+  eligibilityCriteria?: string; rewardAmount?: number; status?: string;
+}): Promise<{ data: RecognitionProgram }> {
+  return handleRewardsResponse<{ data: RecognitionProgram }>(
+    await fetch(`${REWARDS_BASE}/programs/${id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteRecognitionProgram(id: string): Promise<{ ok: boolean }> {
+  return handleRewardsResponse<{ ok: boolean }>(
+    await fetch(`${REWARDS_BASE}/programs/${id}`, { method: "DELETE" }),
+  );
+}
+
+// ── Reward Points ──
+
+export async function fetchRewardPointsBalances(filters?: {
+  search?: string; employeeId?: string; tier?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: RewardPointBalance[]; total: number; skip: number; take: number }> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.tier) params.set("tier", filters.tier);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleRewardsResponse(
+    await fetch(`${REWARDS_BASE}/points/balances${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function fetchRewardPointTransactions(filters?: {
+  employeeId?: string; type?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: RewardPointTransaction[]; total: number; skip: number; take: number }> {
+  const params = new URLSearchParams();
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.type) params.set("type", filters.type);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleRewardsResponse(
+    await fetch(`${REWARDS_BASE}/points/transactions${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function awardPoints(body: {
+  employeeId: string; points: number; reason: string;
+  referenceType?: string; referenceId?: string;
+}): Promise<{ data: RewardPointTransaction }> {
+  return handleRewardsResponse<{ data: RewardPointTransaction }>(
+    await fetch(`${REWARDS_BASE}/points/award`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+// ── Achievements ──
+
+export async function fetchAchievements(filters?: {
+  search?: string; employeeId?: string; category?: string; status?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: AchievementRecord[]; total: number; skip: number; take: number }> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.employeeId) params.set("employeeId", filters.employeeId);
+  if (filters?.category) params.set("category", filters.category);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.skip !== undefined) params.set("skip", String(filters.skip));
+  if (filters?.take !== undefined) params.set("take", String(filters.take));
+  if (filters?.orderBy) params.set("orderBy", filters.orderBy);
+  if (filters?.orderDir) params.set("orderDir", filters.orderDir);
+  const qs = params.toString();
+  return handleRewardsResponse(
+    await fetch(`${REWARDS_BASE}/achievements${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function createAchievement(body: {
+  employeeId: string; title: string; description?: string;
+  category: string; badgeIcon?: string; criteria?: string; unlockDate: string;
+}): Promise<{ data: AchievementRecord }> {
+  return handleRewardsResponse<{ data: AchievementRecord }>(
+    await fetch(`${REWARDS_BASE}/achievements`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function updateAchievement(id: string, body: {
+  title?: string; description?: string; category?: string;
+  badgeIcon?: string; criteria?: string; status?: string;
+}): Promise<{ data: AchievementRecord }> {
+  return handleRewardsResponse<{ data: AchievementRecord }>(
+    await fetch(`${REWARDS_BASE}/achievements/${id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function deleteAchievement(id: string): Promise<{ ok: boolean }> {
+  return handleRewardsResponse<{ ok: boolean }>(
+    await fetch(`${REWARDS_BASE}/achievements/${id}`, { method: "DELETE" }),
+  );
+>>>>>>> 6731860 (Your commit message)
 }

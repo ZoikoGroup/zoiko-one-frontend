@@ -15,7 +15,7 @@ interface ReusableTableProps<T> {
   emptyState?: string;
 }
 
-export default function ReusableTable<T extends Record<string, unknown>>({
+export default function ReusableTable<T>({
   title,
   description,
   columns,
@@ -43,10 +43,10 @@ export default function ReusableTable<T extends Record<string, unknown>>({
           <tbody className="divide-y divide-slate-800">
             {data.length > 0 ? (
               data.map((row, rowIndex) => (
-                <tr key={String(row.id ?? rowIndex)} className="transition duration-200 hover:bg-slate-900/80">
+                <tr key={String((row as Record<string, unknown>).id ?? rowIndex)} className="transition duration-200 hover:bg-slate-900/80">
                   {columns.map((column) => (
                     <td key={String(column.key)} className={`border-t border-slate-800 px-5 py-4 text-slate-300 ${column.className ?? ""}`}>
-                      {column.render ? column.render(row) : String(row[column.key] ?? "")}
+                      {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key as string] ?? "")}
                     </td>
                   ))}
                 </tr>

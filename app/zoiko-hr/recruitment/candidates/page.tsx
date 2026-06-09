@@ -1,150 +1,222 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, ChevronLeft, ChevronRight, X, UserCheck } from "lucide-react";
+import { useState } from "react";
+import { Plus, Search, X, User, Mail, Phone, Briefcase, Star, Trash2 } from "lucide-react";
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
-import StatusBadge from "../../../components/StatusBadge";
-import {
-  fetchCandidates, updateCandidateStage,
-  type Candidate, type CandidateStage,
-} from "../../../lib/workforce-api";
-
-const STAGES: CandidateStage[] = ["APPLIED", "SCREENING", "TECHNICAL_INTERVIEW", "HR_INTERVIEW", "SELECTED", "REJECTED"];
+import { initialCandidates, initialJobs, type Candidate } from "../mockData";
 
 export default function CandidatesPage() {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
+  const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
+  const [jobs] = useState(initialJobs);
   const [search, setSearch] = useState("");
-  const [stageFilter, setStageFilter] = useState("");
-  const [page, setPage] = useState(0);
-  const pageSize = 25;
+  const [stageFilter, setStageFilter] = useState("All");
+  const [jobFilter, setJobFilter] = useState("All");
 
+  // Modals state
+  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
-  const loadData = async () => {
-    setLoading(true); setError("");
-    try {
-      const res = await fetchCandidates({
-        search: search || undefined, stage: stageFilter || undefined,
-        skip: page * pageSize, take: pageSize,
-      });
-      setCandidates(res.data); setTotal(res.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load candidates.");
-    } finally { setLoading(false); }
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    jobId: "",
+    stage: "Applied" as const,
+    rating: 3
+  });
+
+  const handleOpenAdd = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      jobId: jobs[0]?.id || "",
+      stage: "Applied",
+      rating: 3
+    });
+    setShowAddModal(true);
   };
 
-  useEffect(() => { loadData(); }, [search, stageFilter, page]);
-
-  const showToast = (type: "success" | "error", message: string) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
-  };
-
-  const handleStageChange = async (id: string, stage: CandidateStage) => {
-    try {
-      await updateCandidateStage(id, stage);
-      showToast("success", `Candidate moved to ${stage.replace(/_/g, " ")}.`);
-      loadData();
-    } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to update stage.");
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to remove this candidate application?")) {
+      setCandidates(candidates.filter((c) => c.id !== id));
+      if (selectedCandidate?.id === id) {
+        setSelectedCandidate(null);
+      }
     }
   };
 
-  const totalPages = Math.ceil(total / pageSize);
-  const start = total > 0 ? page * pageSize + 1 : 0;
-  const end = Math.min((page + 1) * pageSize, total);
+  const handleStageChange = (id: string, newStage: any) => {
+    setCandidates(
+      candidates.map((c) => (c.id === id ? { ...c, stage: newStage } : c))
+    );
+    if (selectedCandidate?.id === id) {
+      setSelectedCandidate({ ...selectedCandidate, stage: newStage });
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const selectedJob = jobs.find((j) => j.id === formData.jobId);
+    const newCandidate: Candidate = {
+      id: `cand-${Date.now()}`,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      jobId: formData.jobId,
+      jobTitle: selectedJob ? selectedJob.title : "Unknown Job",
+      stage: formData.stage as any,
+      dateApplied: new Date().toISOString().split("T")[0],
+      resumeName: `${formData.name.replace(/\s+/g, "_")}_Resume.pdf`,
+      rating: formData.rating
+    };
+
+    setCandidates([newCandidate, ...candidates]);
+    setShowAddModal(false);
+  };
+
+  const filteredCandidates = candidates.filter((cand) => {
+    const matchesSearch =
+      cand.name.toLowerCase().includes(search.toLowerCase()) ||
+      cand.email.toLowerCase().includes(search.toLowerCase()) ||
+      cand.phone.includes(search);
+    const matchesStage = stageFilter === "All" || cand.stage === stageFilter;
+    const matchesJob = jobFilter === "All" || cand.jobId === jobFilter;
+    return matchesSearch && matchesStage && matchesJob;
+  });
+
+  const stages = ["Applied", "Phone Screen", "Technical", "Executive", "Offer", "Hired", "Rejected"];
 
   return (
     <SuperAdminShell>
       <PageHeader
         title="Candidates"
-        description="Track and manage candidates through the recruitment pipeline."
+        description="Track candidate profiles, reviews, and progression through the recruitment lifecycle."
+        action={
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-2 rounded-3xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
+          >
+            <Plus className="h-4 w-4" /> Add Candidate
+          </button>
+        }
       />
 
-      {toast && (
-        <div className={`mb-4 rounded-2xl px-5 py-3 text-sm font-medium shadow-lg transition-all ${
-          toast.type === "success" ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20" : "bg-rose-500/15 text-rose-300 border border-rose-500/20"
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">
-          {error}
-        </div>
-      )}
-
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input type="text" placeholder="Search by name, position, or email..." value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            className="w-full rounded-3xl border border-slate-800 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition focus:border-indigo-500" />
-        </div>
-        <select value={stageFilter} onChange={(e) => { setStageFilter(e.target.value); setPage(0); }}
-          className="rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500">
-          <option value="">All Stages</option>
-          {STAGES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-        </select>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
-        </div>
-      ) : (
-        <section className="overflow-hidden rounded-[28px] border border-slate-800 bg-[#0b1220] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-          <div className="border-b border-slate-800 px-5 py-4">
-            <h2 className="text-lg font-semibold text-white">Candidates <span className="ml-2 text-sm font-normal text-slate-400">({total})</span></h2>
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Candidates Table List */}
+        <div className="rounded-[28px] border border-slate-800 bg-[#0b1220] p-5 shadow-lg lg:col-span-2">
+          {/* Filters */}
+          <div className="mb-5 flex flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search candidates..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-3xl border border-slate-800 bg-slate-950 py-2 pl-9 pr-4 text-xs text-white placeholder-slate-500 outline-none transition focus:border-indigo-500"
+              />
+            </div>
+            <select
+              value={jobFilter}
+              onChange={(e) => setJobFilter(e.target.value)}
+              className="rounded-3xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300 outline-none transition focus:border-indigo-500"
+            >
+              <option value="All">All Jobs</option>
+              {jobs.map((job) => (
+                <option key={job.id} value={job.id}>
+                  {job.title}
+                </option>
+              ))}
+            </select>
+            <select
+              value={stageFilter}
+              onChange={(e) => setStageFilter(e.target.value)}
+              className="rounded-3xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300 outline-none transition focus:border-indigo-500"
+            >
+              <option value="All">All Stages</option>
+              {stages.map((stage) => (
+                <option key={stage} value={stage}>
+                  {stage}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[950px] border-collapse text-left text-sm">
-              <thead className="bg-slate-950 text-xs uppercase text-slate-500">
+
+          <div className="overflow-x-auto rounded-[20px] border border-slate-850">
+            <table className="w-full min-w-[650px] text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 uppercase tracking-wider">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">Candidate Name</th>
-                  <th className="px-5 py-3 font-semibold">Position Applied</th>
-                  <th className="px-5 py-3 font-semibold">Email</th>
-                  <th className="px-5 py-3 font-semibold">Phone</th>
-                  <th className="px-5 py-3 font-semibold">Experience</th>
-                  <th className="px-5 py-3 font-semibold">Current Stage</th>
-                  <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 font-semibold">Actions</th>
+                  <th className="px-4 py-3">Candidate</th>
+                  <th className="px-4 py-3">Applied For</th>
+                  <th className="px-4 py-3">Stage</th>
+                  <th className="px-4 py-3">Rating</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {candidates.length === 0 ? (
+                {filteredCandidates.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-5 py-8 text-center text-sm text-slate-500">No candidates found.</td>
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                      No candidates found.
+                    </td>
                   </tr>
                 ) : (
-                  candidates.map((c) => (
-                    <tr key={c.id} className="transition duration-200 hover:bg-slate-900/80">
-                      <td className="px-5 py-4">
-                        <button type="button" onClick={() => setSelectedCandidate(c)}
-                          className="text-white font-medium hover:text-indigo-400 transition text-left">
-                          {c.name}
-                        </button>
+                  filteredCandidates.map((cand) => (
+                    <tr
+                      key={cand.id}
+                      onClick={() => setSelectedCandidate(cand)}
+                      className={`cursor-pointer transition duration-200 hover:bg-slate-900/60 ${
+                        selectedCandidate?.id === cand.id ? "bg-slate-900/40" : ""
+                      }`}
+                    >
+                      <td className="px-4 py-3.5">
+                        <p className="font-semibold text-white">{cand.name}</p>
+                        <p className="text-[10px] text-slate-500">{cand.email}</p>
                       </td>
-                      <td className="px-5 py-4 text-slate-400">{c.positionApplied}</td>
-                      <td className="px-5 py-4 text-slate-400">{c.email}</td>
-                      <td className="px-5 py-4 text-slate-400">{c.phone}</td>
-                      <td className="px-5 py-4 text-slate-300">{c.experience} yrs</td>
-                      <td className="px-5 py-4"><StatusBadge status={c.currentStage} /></td>
-                      <td className="px-5 py-4"><StatusBadge status={c.status} /></td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <select value={c.currentStage} onChange={(e) => handleStageChange(c.id, e.target.value as CandidateStage)}
-                            className="rounded-3xl border border-slate-800 bg-slate-950 px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-indigo-500 max-w-[120px]">
-                            {STAGES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                          </select>
+                      <td className="px-4 py-3.5 text-slate-300">
+                        <p>{cand.jobTitle}</p>
+                        <p className="text-[10px] text-slate-500">Applied {cand.dateApplied}</p>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold border ${
+                            cand.stage === "Hired"
+                              ? "bg-emerald-500/10 text-emerald-450 border-emerald-500/20"
+                              : cand.stage === "Rejected"
+                              ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                              : cand.stage === "Offer"
+                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                              : "bg-indigo-550/10 text-indigo-400 border-indigo-500/20"
+                          }`}
+                        >
+                          {cand.stage}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: 5 }).map((_, idx) => (
+                            <Star
+                              key={idx}
+                              className={`h-3 w-3 ${
+                                idx < cand.rating ? "fill-amber-400 text-amber-400" : "text-slate-700"
+                              }`}
+                            />
+                          ))}
                         </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(cand.id)}
+                          className="rounded-full p-1.5 text-slate-400 transition hover:bg-rose-500/15 hover:text-rose-450"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -152,92 +224,211 @@ export default function CandidatesPage() {
               </tbody>
             </table>
           </div>
+        </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-800 px-5 py-3">
-              <p className="text-xs text-slate-500">Showing {start}–{end} of {total}</p>
-              <div className="flex items-center gap-2">
-                <button type="button" disabled={page <= 0} onClick={() => setPage((p) => p - 1)}
-                  className="rounded-3xl bg-slate-800 p-2 text-slate-400 hover:bg-slate-700 disabled:opacity-40">
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <span className="text-xs text-slate-400">Page {page + 1} of {totalPages}</span>
-                <button type="button" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}
-                  className="rounded-3xl bg-slate-800 p-2 text-slate-400 hover:bg-slate-700 disabled:opacity-40">
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+        {/* Selected Candidate Details Panel */}
+        <div className="rounded-[28px] border border-slate-800 bg-[#0b1220] p-6 shadow-lg">
+          {selectedCandidate ? (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-2xl font-bold text-slate-200">
+                  {selectedCandidate.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </div>
+                <h3 className="mt-4 text-xl font-bold text-white">{selectedCandidate.name}</h3>
+                <p className="text-xs text-indigo-400 mt-1">{selectedCandidate.jobTitle}</p>
+              </div>
+
+              <div className="border-t border-slate-850 pt-5 space-y-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Contact Details</h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-3 text-xs text-slate-300">
+                    <Mail className="h-4 w-4 text-slate-500" />
+                    <span>{selectedCandidate.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-slate-300">
+                    <Phone className="h-4 w-4 text-slate-500" />
+                    <span>{selectedCandidate.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-slate-300">
+                    <Briefcase className="h-4 w-4 text-slate-500" />
+                    <span>Applied on {selectedCandidate.dateApplied}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-850 pt-5 space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Stage Management</h4>
+                <div>
+                  <label className="block text-[10px] text-slate-400 mb-1">Set Pipeline Stage</label>
+                  <select
+                    value={selectedCandidate.stage}
+                    onChange={(e) => handleStageChange(selectedCandidate.id, e.target.value as any)}
+                    className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-350 outline-none transition focus:border-indigo-500"
+                  >
+                    {stages.map((stage) => (
+                      <option key={stage} value={stage}>
+                        {stage}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-850 pt-5 space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Application Attachments</h4>
+                <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded bg-indigo-650/15 p-1.5 text-xs text-indigo-400 font-bold">PDF</div>
+                    <span className="text-xs text-slate-300 truncate max-w-[150px]">{selectedCandidate.resumeName}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => alert(`Downloading resume: ${selectedCandidate.resumeName}`)}
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold"
+                  >
+                    Download
+                  </button>
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center text-center text-slate-500 py-16">
+              <User className="h-12 w-12 text-slate-700 mb-3" />
+              <p className="text-sm">Select a candidate from the list to view profile, documents, and manage stages.</p>
+            </div>
           )}
-        </section>
-      )}
+        </div>
+      </div>
 
-      {selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80">
-          <div className="w-full max-w-lg rounded-[28px] border border-slate-800 bg-[#0b1220] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)] max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-white">Candidate Profile</h3>
-              <button type="button" onClick={() => setSelectedCandidate(null)} className="text-slate-400 hover:text-white">
+      {/* Add Candidate Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 overflow-y-auto">
+          <div className="w-full max-w-md rounded-[28px] border border-slate-800 bg-[#0b1220] p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-850 pb-4">
+              <h3 className="text-lg font-semibold text-white">Add Candidate Application</h3>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="text-slate-400 hover:text-white transition"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>
-                <p className="text-xl font-semibold text-white">{selectedCandidate.name}</p>
-                <p className="text-sm text-slate-400">{selectedCandidate.positionApplied}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 rounded-3xl bg-slate-950 p-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Email</p>
-                  <p className="text-sm text-white">{selectedCandidate.email}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Phone</p>
-                  <p className="text-sm text-white">{selectedCandidate.phone}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Experience</p>
-                  <p className="text-sm text-white">{selectedCandidate.experience} years</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Source</p>
-                  <p className="text-sm text-white">{selectedCandidate.source || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Applied Date</p>
-                  <p className="text-sm text-white">{new Date(selectedCandidate.appliedDate).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Current Stage</p>
-                  <StatusBadge status={selectedCandidate.currentStage} />
-                </div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Sarah Jenkins"
+                  className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-white outline-none transition focus:border-indigo-500"
+                />
               </div>
 
               <div>
-                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Notes</p>
-                <p className="text-sm text-slate-300">{selectedCandidate.notes || "No notes."}</p>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="sarah@example.com"
+                  className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-white outline-none transition focus:border-indigo-500"
+                />
               </div>
 
               <div>
-                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Move to Stage</p>
-                <select value={selectedCandidate.currentStage}
-                  onChange={(e) => {
-                    const newStage = e.target.value as CandidateStage;
-                    handleStageChange(selectedCandidate.id, newStage);
-                    setSelectedCandidate({ ...selectedCandidate, currentStage: newStage });
-                  }}
-                  className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500">
-                  {STAGES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Phone Number *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+44 7700 900077"
+                  className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-white outline-none transition focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Job Position *
+                </label>
+                <select
+                  value={formData.jobId}
+                  onChange={(e) => setFormData({ ...formData, jobId: e.target.value })}
+                  className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-350 outline-none transition focus:border-indigo-500"
+                >
+                  {jobs.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.title}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
 
-            <div className="mt-6 flex justify-end">
-              <button type="button" onClick={() => setSelectedCandidate(null)}
-                className="rounded-3xl bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700 transition">Close</button>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Initial Stage
+                  </label>
+                  <select
+                    value={formData.stage}
+                    onChange={(e) => setFormData({ ...formData, stage: e.target.value as any })}
+                    className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-350 outline-none transition focus:border-indigo-500"
+                  >
+                    {stages.map((stage) => (
+                      <option key={stage} value={stage}>
+                        {stage}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Rating (1-5)
+                  </label>
+                  <select
+                    value={formData.rating}
+                    onChange={(e) => setFormData({ ...formData, rating: Number(e.target.value) })}
+                    className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-350 outline-none transition focus:border-indigo-500"
+                  >
+                    <option value="1">1 Star</option>
+                    <option value="2">2 Star</option>
+                    <option value="3">3 Star</option>
+                    <option value="4">4 Star</option>
+                    <option value="5">5 Star</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-slate-850 pt-4 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="rounded-3xl border border-slate-800 bg-slate-950 px-5 py-2 text-sm text-slate-300 transition hover:bg-slate-900"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-3xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                >
+                  Add Candidate
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

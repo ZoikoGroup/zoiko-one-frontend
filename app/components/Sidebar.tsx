@@ -55,6 +55,7 @@ const sections: NavSection[] = [
           { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
+          { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
           {
             label: "Leave Management",
             icon: Calendar,

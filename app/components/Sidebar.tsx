@@ -55,7 +55,6 @@ const sections: NavSection[] = [
           { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
-          { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
           {
             label: "Leave Management",
             icon: Calendar,
@@ -69,7 +68,7 @@ const sections: NavSection[] = [
           },
           {
             label: "Attendance Management",
-            icon: Calendar,
+            icon: Clock,
             children: [
               { label: "Dashboard", href: "/zoiko-hr/attendance", icon: LayoutDashboard },
               { label: "Records", href: "/zoiko-hr/attendance/records", icon: FileText },

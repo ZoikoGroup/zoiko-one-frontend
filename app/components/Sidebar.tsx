@@ -1,18 +1,6 @@
 "use client";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { Activity, AlertTriangle, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Undo2, User, UserCheck, UserPlus, Users, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
-=======
-<<<<<<< HEAD
-import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, MessageSquare, Network, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Target, Users, WalletCards, Workflow } from "lucide-react";
-=======
-import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, Network, Package, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Users, WalletCards, Workflow } from "lucide-react";
->>>>>>> ea28a7f (Add latest Zoiko One frontend changes)
->>>>>>> 8ba0055 (Add latest Zoiko One frontend changes)
-=======
-import { ArrowUpDown, Award, BadgeCheck, BookOpen, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, MessageSquare, Network, Package, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Target, Ticket, Trophy, UserPlus, UserX, Users, WalletCards, Workflow } from "lucide-react";
->>>>>>> 6731860 (Your commit message)
+import { Activity, AlertTriangle, ArrowUpDown, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Ticket, Trophy, Undo2, User, UserCheck, UserPlus, Users, UserX, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -66,10 +54,7 @@ const sections: NavSection[] = [
           },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
-<<<<<<< HEAD
-=======
           { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
->>>>>>> 8ba0055 (Add latest Zoiko One frontend changes)
           { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
           {
             label: "Employee Lifecycle",

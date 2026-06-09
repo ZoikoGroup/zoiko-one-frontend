@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Briefcase, Building2, Calendar, ChevronDown, ChevronRight, CreditCard, FileCheck2, FileText, LayoutDashboard, MapPin, MessageSquare, Network, Phone, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Target, Users, WalletCards, Workflow } from "lucide-react";
+import { Activity, AlertTriangle, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Undo2, User, UserCheck, UserPlus, Users, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -44,6 +44,7 @@ const sections: NavSection[] = [
             label: "Workforce",
             icon: Briefcase,
             children: [
+              { label: "Dashboard", href: "/zoiko-hr/workforce", icon: LayoutDashboard },
               { label: "Employees", href: "/zoiko-hr/workforce/employees", icon: Users },
               { label: "Employee Documents", href: "/zoiko-hr/workforce/documents", icon: FileText },
               { label: "Employment Records", href: "/zoiko-hr/workforce/employment-records", icon: Briefcase },
@@ -58,6 +59,7 @@ const sections: NavSection[] = [
             label: "Leave Management",
             icon: Calendar,
             children: [
+              { label: "Dashboard", href: "/zoiko-hr/leave", icon: LayoutDashboard },
               { label: "Leave Types", href: "/zoiko-hr/leave/leave-types", icon: FileText },
               { label: "Leave Requests", href: "/zoiko-hr/leave/requests", icon: Calendar },
               { label: "Leave Balances", href: "/zoiko-hr/leave/balances", icon: WalletCards },
@@ -84,6 +86,154 @@ const sections: NavSection[] = [
               { label: "Reviews", href: "/zoiko-hr/performance/reviews", icon: FileText },
               { label: "Goals", href: "/zoiko-hr/performance/goals", icon: Target },
               { label: "Feedback", href: "/zoiko-hr/performance/feedback", icon: MessageSquare },
+            ],
+          },
+          {
+            label: "Recruitment Management",
+            icon: UserPlus,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/recruitment", icon: LayoutDashboard },
+              { label: "Job Openings", href: "/zoiko-hr/recruitment/job-openings", icon: Briefcase },
+              { label: "Candidates", href: "/zoiko-hr/recruitment/candidates", icon: Users },
+              { label: "Interviews", href: "/zoiko-hr/recruitment/interviews", icon: Calendar },
+              { label: "Offers", href: "/zoiko-hr/recruitment/offers", icon: BadgeCheck },
+              { label: "Reports", href: "/zoiko-hr/recruitment/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Onboarding Management",
+            icon: UserRoundCheck,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/onboarding", icon: LayoutDashboard },
+              { label: "New Joiners", href: "/zoiko-hr/onboarding/new-joiners", icon: Users },
+              { label: "Document Verification", href: "/zoiko-hr/onboarding/document-verification", icon: FileText },
+              { label: "Asset Allocation", href: "/zoiko-hr/onboarding/asset-allocation", icon: Briefcase },
+              { label: "Welcome Kit", href: "/zoiko-hr/onboarding/welcome-kit", icon: BadgeCheck },
+              { label: "Probation Tracking", href: "/zoiko-hr/onboarding/probation", icon: Calendar },
+              { label: "Reports", href: "/zoiko-hr/onboarding/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Asset Management",
+            icon: Package,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/assets", icon: LayoutDashboard },
+              { label: "Inventory", href: "/zoiko-hr/assets/inventory", icon: Package },
+              { label: "Categories", href: "/zoiko-hr/assets/categories", icon: Layers },
+              { label: "Allocation", href: "/zoiko-hr/assets/allocation", icon: ClipboardCheck },
+              { label: "Returns", href: "/zoiko-hr/assets/returns", icon: Undo2 },
+              { label: "Maintenance", href: "/zoiko-hr/assets/maintenance", icon: Wrench },
+              { label: "Reports", href: "/zoiko-hr/assets/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Learning & Development",
+            icon: GraduationCap,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/learning", icon: LayoutDashboard },
+              { label: "Courses", href: "/zoiko-hr/learning/courses", icon: BookOpen },
+              { label: "Learning Paths", href: "/zoiko-hr/learning/learning-paths", icon: Layers },
+              { label: "Certifications", href: "/zoiko-hr/learning/certifications", icon: BadgeCheck },
+              { label: "Assessments", href: "/zoiko-hr/learning/assessments", icon: ClipboardCheck },
+              { label: "Enrollments", href: "/zoiko-hr/learning/enrollments", icon: Users },
+              { label: "Reports", href: "/zoiko-hr/learning/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Compensation & Benefits",
+            icon: CircleDollarSign,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/compensation", icon: LayoutDashboard },
+              { label: "Salary Structures", href: "/zoiko-hr/compensation/salary-structures", icon: Layers },
+              { label: "Pay Grades", href: "/zoiko-hr/compensation/pay-grades", icon: BarChart3 },
+              { label: "Allowances", href: "/zoiko-hr/compensation/allowances", icon: PlusCircle },
+              { label: "Deductions", href: "/zoiko-hr/compensation/deductions", icon: MinusCircle },
+              { label: "Benefits", href: "/zoiko-hr/compensation/benefits", icon: HeartHandshake },
+              { label: "Bonuses & Incentives", href: "/zoiko-hr/compensation/bonuses", icon: Award },
+              { label: "Compensation Reviews", href: "/zoiko-hr/compensation/reviews", icon: ClipboardCheck },
+              { label: "Salary Revision History", href: "/zoiko-hr/compensation/salary-history", icon: History },
+              { label: "Reports", href: "/zoiko-hr/compensation/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Employee Self Service",
+            icon: Users,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/ess", icon: LayoutDashboard },
+              { label: "My Profile", href: "/zoiko-hr/ess/my-profile", icon: User },
+              { label: "My Attendance", href: "/zoiko-hr/ess/my-attendance", icon: Clock },
+              { label: "My Leave", href: "/zoiko-hr/ess/my-leave", icon: CalendarCheck },
+              { label: "My Documents", href: "/zoiko-hr/ess/my-documents", icon: FileText },
+              { label: "My Assets", href: "/zoiko-hr/ess/my-assets", icon: Package },
+              { label: "My Learning", href: "/zoiko-hr/ess/my-learning", icon: BookOpen },
+              { label: "My Performance", href: "/zoiko-hr/ess/my-performance", icon: Sparkles },
+              { label: "My Payslips", href: "/zoiko-hr/ess/my-payslips", icon: WalletCards },
+              { label: "My Requests", href: "/zoiko-hr/ess/my-requests", icon: Send },
+              { label: "Notifications", href: "/zoiko-hr/ess/notifications", icon: Bell },
+            ],
+          },
+          {
+            label: "Travel & Expense Management",
+            icon: Plane,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/travel", icon: LayoutDashboard },
+              { label: "Travel Requests", href: "/zoiko-hr/travel/travel-requests", icon: Globe },
+              { label: "Expense Claims", href: "/zoiko-hr/travel/expense-claims", icon: Receipt },
+              { label: "Expense Categories", href: "/zoiko-hr/travel/expense-categories", icon: Tags },
+              { label: "Approvals", href: "/zoiko-hr/travel/approvals", icon: ClipboardCheck },
+              { label: "Reimbursements", href: "/zoiko-hr/travel/reimbursements", icon: CircleDollarSign },
+              { label: "Corporate Travel", href: "/zoiko-hr/travel/corporate-travel", icon: Briefcase },
+              { label: "Policy Management", href: "/zoiko-hr/travel/policy-management", icon: FileText },
+              { label: "Reports", href: "/zoiko-hr/travel/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Compliance & Policy Management",
+            icon: ShieldCheck,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/compliance", icon: LayoutDashboard },
+              { label: "Policies", href: "/zoiko-hr/compliance/policies", icon: FileText },
+              { label: "Policy Categories", href: "/zoiko-hr/compliance/policy-categories", icon: Layers },
+              { label: "Employee Acknowledgements", href: "/zoiko-hr/compliance/acknowledgements", icon: UserCheck },
+              { label: "Compliance Requirements", href: "/zoiko-hr/compliance/requirements", icon: ClipboardCheck },
+              { label: "Audits", href: "/zoiko-hr/compliance/audits", icon: Search },
+              { label: "Violations", href: "/zoiko-hr/compliance/violations", icon: AlertTriangle },
+              { label: "Corrective Actions", href: "/zoiko-hr/compliance/corrective-actions", icon: Wrench },
+              { label: "Training Compliance", href: "/zoiko-hr/compliance/training-compliance", icon: GraduationCap },
+              { label: "Reports", href: "/zoiko-hr/compliance/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Employee Engagement & Surveys",
+            icon: HeartHandshake,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/engagement", icon: LayoutDashboard },
+              { label: "Surveys", href: "/zoiko-hr/engagement/surveys", icon: MessageSquare },
+              { label: "Survey Templates", href: "/zoiko-hr/engagement/survey-templates", icon: Layers },
+              { label: "Pulse Surveys", href: "/zoiko-hr/engagement/pulse-surveys", icon: Activity },
+              { label: "Feedback Campaigns", href: "/zoiko-hr/engagement/feedback-campaigns", icon: Send },
+              { label: "Recognition Programs", href: "/zoiko-hr/engagement/recognition-programs", icon: Award },
+              { label: "Employee Recognition", href: "/zoiko-hr/engagement/employee-recognition", icon: BadgeCheck },
+              { label: "Engagement Scores", href: "/zoiko-hr/engagement/engagement-scores", icon: BarChart3 },
+              { label: "Sentiment Analysis", href: "/zoiko-hr/engagement/sentiment-analysis", icon: Sparkles },
+              { label: "Action Plans", href: "/zoiko-hr/engagement/action-plans", icon: Target },
+              { label: "Reports", href: "/zoiko-hr/engagement/reports", icon: SlidersHorizontal },
+            ],
+          },
+          {
+            label: "Workforce Planning",
+            icon: Workflow,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/workforce-planning", icon: LayoutDashboard },
+              { label: "Headcount Planning", href: "/zoiko-hr/workforce-planning/headcount", icon: Users },
+              { label: "Workforce Forecasting", href: "/zoiko-hr/workforce-planning/forecasting", icon: BarChart3 },
+              { label: "Hiring Plans", href: "/zoiko-hr/workforce-planning/hiring-plans", icon: UserPlus },
+              { label: "Capacity Planning", href: "/zoiko-hr/workforce-planning/capacity", icon: Layers },
+              { label: "Skills Gap Analysis", href: "/zoiko-hr/workforce-planning/skill-gaps", icon: Search },
+              { label: "Succession Planning", href: "/zoiko-hr/workforce-planning/succession", icon: Target },
+              { label: "Budget Planning", href: "/zoiko-hr/workforce-planning/budget", icon: CircleDollarSign },
+              { label: "Scenarios", href: "/zoiko-hr/workforce-planning/scenarios", icon: Sparkles },
+              { label: "Reports", href: "/zoiko-hr/workforce-planning/reports", icon: SlidersHorizontal },
             ],
           },
         ],
@@ -244,7 +394,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                       <span>Product Management</span>
                       {productOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </button>
-                    <div className={`overflow-hidden transition-[max-height] duration-300 ${productOpen ? "max-h-[2000px]" : "max-h-0"}`}>
+                    <div className={`overflow-hidden transition-[max-height] duration-300 ${productOpen ? "max-h-[10000px]" : "max-h-0"}`}>
                       <div className="space-y-1 p-1">
                         {section.items.map((item) => (
                           <NavLink key={item.label} item={item} pathname={pathname} depth={0} onClose={onClose} />

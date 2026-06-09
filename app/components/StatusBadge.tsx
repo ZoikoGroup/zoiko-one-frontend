@@ -47,7 +47,16 @@ const statusClasses: Record<string, string> = {
   DEVELOPMENT: "bg-emerald-500/10 text-emerald-300",
   PROJECT: "bg-amber-500/10 text-amber-300",
   BEHAVIORAL: "bg-rose-500/10 text-rose-300",
+  PAID: "bg-emerald-500/10 text-emerald-300",
   OTHER: "bg-slate-600 text-slate-200",
+  UNDER_REPAIR: "bg-amber-500/10 text-amber-300",
+  RETIRED: "bg-slate-700 text-slate-200",
+  ALLOCATED: "bg-emerald-500/10 text-emerald-300",
+  RETURNED: "bg-blue-500/10 text-sky-300",
+  EXPIRED: "bg-rose-500/10 text-rose-300",
+  BEGINNER: "bg-emerald-500/10 text-emerald-300",
+  INTERMEDIATE: "bg-amber-500/10 text-amber-300",
+  ADVANCED: "bg-rose-500/10 text-rose-300",
 };
 
 export default function StatusBadge({ status }: { status: string }) {

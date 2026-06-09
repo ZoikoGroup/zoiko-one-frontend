@@ -77,6 +77,16 @@ model Tenant {
   policyViolations           PolicyViolation[]
   correctiveActions          CorrectiveAction[]
   trainingComplianceRecords  TrainingCompliance[]
+  policyCategories           PolicyCategory[]
+  engagementSurveys          EngagementSurvey[]
+  engagementSurveyTemplates  EngagementSurveyTemplate[]
+  engagementPulseSurveys     EngagementPulseSurvey[]
+  engagementFeedbackCampaigns EngagementFeedbackCampaign[]
+  engagementRecognitionPrograms EngagementRecognitionProgram[]
+  engagementEmployeeRecognitions EngagementEmployeeRecognition[]
+  engagementScores           EngagementScore[]
+  engagementSentimentAnalyses EngagementSentimentAnalysis[]
+  engagementActionPlans      EngagementActionPlan[]
 }
 
 enum TenantStatus {
@@ -127,6 +137,16 @@ model Organization {
   policyViolations           PolicyViolation[]
   correctiveActions          CorrectiveAction[]
   trainingComplianceRecords  TrainingCompliance[]
+  policyCategories           PolicyCategory[]
+  engagementSurveys          EngagementSurvey[]
+  engagementSurveyTemplates  EngagementSurveyTemplate[]
+  engagementPulseSurveys     EngagementPulseSurvey[]
+  engagementFeedbackCampaigns EngagementFeedbackCampaign[]
+  engagementRecognitionPrograms EngagementRecognitionProgram[]
+  engagementEmployeeRecognitions EngagementEmployeeRecognition[]
+  engagementScores           EngagementScore[]
+  engagementSentimentAnalyses EngagementSentimentAnalysis[]
+  engagementActionPlans      EngagementActionPlan[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -1209,6 +1229,10 @@ model Employee {
   ratings             Rating[]            @relation("RatingEmployee")
   ratingAdjustments   RatingAdjustment[]  @relation("CalibrationEmployee")
   managedGoals        Goal[]              @relation("GoalManager")
+  policyAcknowledgements     PolicyAcknowledgement[]
+  policyViolations           PolicyViolation[]
+  trainingComplianceRecords  TrainingCompliance[]
+  employeeRecognitions       EngagementEmployeeRecognition[]
 
   @@unique([tenantId, email])
   @@unique([organizationId, employeeId])
@@ -3098,8 +3122,9 @@ model EngagementRecognitionProgram {
   updatedAt       DateTime                      @updatedAt
   deletedAt       DateTime?
 
-  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant               Tenant                           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  organization         Organization                     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employeeRecognitions EngagementEmployeeRecognition[]
 
   @@unique([tenantId, organizationId, name])
   @@index([tenantId])

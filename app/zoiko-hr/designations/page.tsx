@@ -186,17 +186,17 @@ export default function DesignationListPage() {
                 <tr><td colSpan={8} className="px-5 py-12 text-center text-slate-400">No designations found.</td></tr>
               ) : designations.map((dg) => (
                 <tr key={dg.id} className="transition duration-200 hover:bg-slate-900/80">
-                  <td className="border-t border-slate-800 px-5 py-4 font-mono text-xs text-slate-400">{dg.code}</td>
+                  <td className="border-t border-slate-800 px-5 py-4 font-mono text-xs text-slate-400">{dg.code ?? "—"}</td>
                   <td className="border-t border-slate-800 px-5 py-4">
-                    <Link href={`/zoiko-hr/designations/${dg.id}`} className="text-white hover:text-indigo-400 transition">{dg.title}</Link>
+                    <Link href={`/zoiko-hr/designations/${dg.id}`} className="text-white hover:text-indigo-400 transition">{dg.title ?? "—"}</Link>
                   </td>
                   <td className="border-t border-slate-800 px-5 py-4">
-                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">{dg.level.replace(/_/g, " ")}</span>
+                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">{(dg.level ?? "").replace(/_/g, " ") || "—"}</span>
                   </td>
-                  <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{dg.category}</td>
+                  <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{dg.category ?? "—"}</td>
                   <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{dg.department?.name ?? "—"}</td>
-                  <td className="border-t border-slate-800 px-5 py-4 text-slate-300">${dg.minSalary.toLocaleString()} – ${dg.maxSalary.toLocaleString()}</td>
-                  <td className="border-t border-slate-800 px-5 py-4"><StatusBadge status={dg.status} /></td>
+                  <td className="border-t border-slate-800 px-5 py-4 text-slate-300">${dg.minSalary?.toLocaleString() ?? "—"} – ${dg.maxSalary?.toLocaleString() ?? "—"}</td>
+                  <td className="border-t border-slate-800 px-5 py-4"><StatusBadge status={dg.status ?? "ACTIVE"} /></td>
                   <td className="border-t border-slate-800 px-5 py-4">
                     <div className="flex items-center gap-2">
                       <Link href={`/zoiko-hr/designations/${dg.id}`}

@@ -4496,9 +4496,11 @@ export interface EmployeeAward {
   awardedBy: string | null;
   status: string;
   employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface RecognitionProgram {
+export interface EngagementRecognitionProgram {
   id: string;
   name: string;
   awardType: RecognitionAwardType;
@@ -4538,9 +4540,11 @@ export interface ActionPlan {
   dueDate: string;
   status: ActionPlanStatus;
   priority: "HIGH" | "MEDIUM" | "LOW";
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface RewardsRecognitionProgram {
+export interface RecognitionProgram {
   id: string;
   name: string;
   description: string | null;
@@ -4665,7 +4669,7 @@ const mockFeedbackCampaigns: FeedbackCampaign[] = [
   { id: "fc-005", name: "Sales Team Performance Feedback", campaignScope: "DEPARTMENT", department: "Sales", status: "COMPLETED", totalFeedbacks: 34, targetFeedbacks: 40, createdAt: "2026-03-01T00:00:00Z", updatedAt: "2026-03-01T00:00:00Z" },
 ];
 
-const mockRecognitionPrograms: RecognitionProgram[] = [
+const mockRecognitionPrograms: EngagementRecognitionProgram[] = [
   { id: "rp-001", name: "Employee of the Month", awardType: "EMPLOYEE_OF_MONTH", description: "Monthly award recognizing outstanding employee contributions", totalAwards: 18, isActive: true },
   { id: "rp-002", name: "Team Excellence Award", awardType: "TEAM_AWARD", description: "Quarterly award for exceptional team performance", totalAwards: 8, isActive: true },
   { id: "rp-003", name: "Spot Award Program", awardType: "SPOT_AWARD", description: "On-the-spot recognition for going above and beyond", totalAwards: 45, isActive: true },
@@ -4851,7 +4855,7 @@ export async function updateFeedbackCampaignStatus(id: string, status: CampaignS
 
 // ── Recognition Programs ───────────────────────────────
 
-export async function fetchRecognitionPrograms(): Promise<{ data: RecognitionProgram[] }> {
+export async function fetchEngagementRecognitionPrograms(): Promise<{ data: EngagementRecognitionProgram[] }> {
   return { data: [...mockRecognitionPrograms] };
 }
 
@@ -5850,9 +5854,8 @@ export async function updateAchievement(id: string, body: {
 }
 
 export async function deleteAchievement(id: string): Promise<{ ok: boolean }> {
-  const idx = mockAchievementRecords.findIndex((a) => a.id === id);
-  if (idx === -1) throw new Error("Achievement not found");
-  mockAchievementRecords.splice(idx, 1);
-  return { ok: true };
+  return handleRewardsResponse<{ ok: boolean }>(
+    await fetch(`${REWARDS_BASE}/achievements/${id}`, { method: "DELETE" }),
+  );
 }
 

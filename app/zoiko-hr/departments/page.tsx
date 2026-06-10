@@ -154,13 +154,13 @@ export default function DepartmentListPage() {
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-slate-400">No departments found.</td></tr>
               ) : departments.map((dept) => (
                 <tr key={dept.id} className="transition duration-200 hover:bg-slate-900/80">
-                  <td className="border-t border-slate-800 px-5 py-4 font-mono text-xs text-slate-400">{dept.code}</td>
+                  <td className="border-t border-slate-800 px-5 py-4 font-mono text-xs text-slate-400">{dept.code ?? "—"}</td>
                   <td className="border-t border-slate-800 px-5 py-4">
-                    <Link href={`/zoiko-hr/departments/${dept.id}`} className="text-white hover:text-indigo-400 transition">{dept.name}</Link>
+                    <Link href={`/zoiko-hr/departments/${dept.id}`} className="text-white hover:text-indigo-400 transition">{dept.name ?? "—"}</Link>
                   </td>
                   <td className="border-t border-slate-800 px-5 py-4 text-slate-300">{dept.parentDept?.name ?? "—"}</td>
-                  <td className="border-t border-slate-800 px-5 py-4 text-slate-300">${dept.budget.toLocaleString()}</td>
-                  <td className="border-t border-slate-800 px-5 py-4"><StatusBadge status={dept.status} /></td>
+                  <td className="border-t border-slate-800 px-5 py-4 text-slate-300">${dept.budget?.toLocaleString() ?? "—"}</td>
+                  <td className="border-t border-slate-800 px-5 py-4"><StatusBadge status={dept.status ?? "ACTIVE"} /></td>
                   <td className="border-t border-slate-800 px-5 py-4">
                     <div className="flex items-center gap-2">
                       <Link href={`/zoiko-hr/departments/${dept.id}`}

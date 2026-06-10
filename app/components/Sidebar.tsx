@@ -54,17 +54,7 @@ const sections: NavSection[] = [
           },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
-          { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
-          {
-            label: "Employee Lifecycle",
-            icon: Workflow,
-            children: [
-              { label: "Dashboard", href: "/zoiko-hr/employee-lifecycle", icon: LayoutDashboard },
-              { label: "Onboarding", href: "/zoiko-hr/employee-lifecycle/onboarding", icon: UserPlus },
-              { label: "Promotions & Transfers", href: "/zoiko-hr/employee-lifecycle/transfers", icon: ArrowUpDown },
-              { label: "Offboarding", href: "/zoiko-hr/employee-lifecycle/offboarding", icon: UserX },
-            ],
-          },
+          { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
           {
             label: "Leave Management",
             icon: Calendar,
@@ -78,7 +68,7 @@ const sections: NavSection[] = [
           },
           {
             label: "Attendance Management",
-            icon: Calendar,
+            icon: Clock,
             children: [
               { label: "Dashboard", href: "/zoiko-hr/attendance", icon: LayoutDashboard },
               { label: "Records", href: "/zoiko-hr/attendance/records", icon: FileText },

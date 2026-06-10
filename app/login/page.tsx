@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import LoginForm from "./LoginForm";
-import { Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -13,9 +13,16 @@ export default function LoginPage() {
       {/* Centered Glass Card */}
       <section className="relative z-10 w-full max-w-[440px] rounded-[32px] border border-slate-800/60 bg-[#0c1328]/50 p-8 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-slate-850">
         <div className="flex flex-col items-center text-center">
-          {/* Logo Icon */}
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 mb-4 shadow-lg shadow-indigo-500/5">
-            <Sparkles className="h-6 w-6" />
+          {/* Logo Image */}
+          <div className="mb-6">
+            <Image
+              src="/zoiko-logo.png"
+              alt="Zoiko Group Logo"
+              width={200}
+              height={80}
+              priority
+              className="h-auto w-auto max-w-[200px]"
+            />
           </div>
           
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-indigo-400 font-sans">Zoiko One Platform</p>

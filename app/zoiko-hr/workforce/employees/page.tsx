@@ -45,7 +45,7 @@ export default function EmployeeListPage() {
         setDeleteId(null);
         setRefreshKey((k) => k + 1);
       }
-    } catch {}
+    } catch (err) { console.error("Failed to delete employee:", err); }
   };
 
   const totalPages = Math.ceil(total / pageSize);

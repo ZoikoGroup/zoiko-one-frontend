@@ -4484,6 +4484,20 @@ export interface FeedbackCampaign {
   updatedAt: string;
 }
 
+// ── Rewards & Recognition ───────────────────────────
+
+export interface EmployeeAward {
+  id: string;
+  employeeId: string;
+  awardName: string;
+  category: string;
+  description: string | null;
+  dateAwarded: string;
+  awardedBy: string | null;
+  status: string;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+}
+
 export interface RecognitionProgram {
   id: string;
   name: string;
@@ -4524,6 +4538,56 @@ export interface ActionPlan {
   dueDate: string;
   status: ActionPlanStatus;
   priority: "HIGH" | "MEDIUM" | "LOW";
+}
+
+export interface RewardsRecognitionProgram {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  frequency: string;
+  eligibilityCriteria: string | null;
+  rewardAmount: number | null;
+  status: string;
+  participantCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RewardPointBalance {
+  id: string;
+  employeeId: string;
+  totalPoints: number;
+  usedPoints: number;
+  availablePoints: number;
+  tier: string;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  lastUpdated: string;
+}
+
+export interface RewardPointTransaction {
+  id: string;
+  employeeId: string;
+  points: number;
+  type: "EARNED" | "REDEEMED" | "EXPIRED" | "ADJUSTED";
+  reason: string;
+  referenceType: string | null;
+  referenceId: string | null;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
+  createdAt: string;
+}
+
+export interface AchievementRecord {
+  id: string;
+  employeeId: string;
+  title: string;
+  description: string | null;
+  category: string;
+  badgeIcon: string | null;
+  criteria: string | null;
+  unlockDate: string;
+  status: string;
+  employee?: { id: string; firstName: string; lastName: string; employeeId: string };
   createdAt: string;
   updatedAt: string;
 }
@@ -5498,3 +5562,297 @@ export async function fetchWFBudgetReports(): Promise<{ data: WFBudgetReport[] }
     })),
   };
 }
+
+export interface RewardsDashboardStats {
+  totalAwardsGiven: number;
+  activePrograms: number;
+  totalPointsIssued: number;
+  totalAchievementsUnlocked: number;
+  topPerformers: { employeeId: string; name: string; points: number; awards: number }[];
+  recentAwards: EmployeeAward[];
+  topAchievements: AchievementRecord[];
+}
+
+// ── Mock Data ───────────────────────────────────────────
+
+const mockEmployeeAwards: EmployeeAward[] = [
+  { id: "awd-001", employeeId: "EMP-001", awardName: "Outstanding Performance Q1", category: "PERFORMANCE", description: "Top performer in engineering team", dateAwarded: "2026-04-15", awardedBy: "Sarah Chen", status: "ACTIVE", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" } },
+  { id: "awd-002", employeeId: "EMP-002", awardName: "Innovation Excellence", category: "INNOVATION", description: "Developed a new caching system", dateAwarded: "2026-05-01", awardedBy: "Mike Johnson", status: "ACTIVE", employee: { id: "e2", firstName: "Bob", lastName: "Smith", employeeId: "EMP-002" } },
+  { id: "awd-003", employeeId: "EMP-003", awardName: "Team Player Award", category: "COLLABORATION", description: "Exceptional cross-team collaboration", dateAwarded: "2026-03-20", awardedBy: "Lisa Wang", status: "ACTIVE", employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" } },
+  { id: "awd-004", employeeId: "EMP-004", awardName: "Leadership Excellence", category: "LEADERSHIP", description: "Led successful product launch", dateAwarded: "2026-05-10", awardedBy: "Tom Martinez", status: "ACTIVE", employee: { id: "e4", firstName: "Dan", lastName: "Wilson", employeeId: "EMP-004" } },
+  { id: "awd-005", employeeId: "EMP-005", awardName: "Customer Service Star", category: "CUSTOMER_SERVICE", description: "Exceptional client satisfaction ratings", dateAwarded: "2026-04-28", awardedBy: "Sarah Chen", status: "ACTIVE", employee: { id: "e5", firstName: "Eve", lastName: "Martinez", employeeId: "EMP-005" } },
+  { id: "awd-006", employeeId: "EMP-006", awardName: "Safety Champion Q1", category: "SAFETY", description: "Zero safety incidents in team", dateAwarded: "2026-04-01", awardedBy: "HR Team", status: "ACTIVE", employee: { id: "e6", firstName: "Frank", lastName: "Lee", employeeId: "EMP-006" } },
+  { id: "awd-007", employeeId: "EMP-007", awardName: "Mentorship Award", category: "MENTORSHIP", description: "Guided 3 new hires through onboarding", dateAwarded: "2026-05-15", awardedBy: "Mike Johnson", status: "ACTIVE", employee: { id: "e7", firstName: "Grace", lastName: "Kim", employeeId: "EMP-007" } },
+  { id: "awd-008", employeeId: "EMP-008", awardName: "Culture Champion", category: "CULTURE", description: "Organized team building events", dateAwarded: "2026-03-01", awardedBy: "Lisa Wang", status: "ACTIVE", employee: { id: "e8", firstName: "Henry", lastName: "Brown", employeeId: "EMP-008" } },
+];
+
+const mockRewardsPrograms: RewardsRecognitionProgram[] = [
+  { id: "rrp-001", name: "Peer Recognition Program", description: "Employees can nominate peers for recognition", type: "PEER_RECOGNITION", frequency: "ONGOING", eligibilityCriteria: "All employees", rewardAmount: 500, status: "ACTIVE", participantCount: 120, createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-05-01T00:00:00Z" },
+  { id: "rrp-002", name: "Manager Excellence Awards", description: "Quarterly manager nomination program", type: "MANAGER_NOMINATION", frequency: "QUARTERLY", eligibilityCriteria: "Managers only", rewardAmount: 2000, status: "ACTIVE", participantCount: 45, createdAt: "2026-01-15T00:00:00Z", updatedAt: "2026-04-01T00:00:00Z" },
+  { id: "rrp-003", name: "Spot Recognition", description: "Auto-recognition for milestones and achievements", type: "AUTO_RECOGNITION", frequency: "ONGOING", eligibilityCriteria: "All employees", rewardAmount: 250, status: "ACTIVE", participantCount: 230, createdAt: "2026-02-01T00:00:00Z", updatedAt: "2026-05-15T00:00:00Z" },
+  { id: "rrp-004", name: "Annual Top Performer", description: "Yearly award for top performing employees", type: "MANAGER_NOMINATION", frequency: "YEARLY", eligibilityCriteria: "Top 10% performers", rewardAmount: 10000, status: "DRAFT", participantCount: 0, createdAt: "2026-05-10T00:00:00Z", updatedAt: "2026-05-10T00:00:00Z" },
+];
+
+const mockRewardBalances: RewardPointBalance[] = [
+  { id: "bal-001", employeeId: "EMP-001", totalPoints: 4500, usedPoints: 1200, availablePoints: 3300, tier: "GOLD", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" }, lastUpdated: "2026-05-20" },
+  { id: "bal-002", employeeId: "EMP-002", totalPoints: 3200, usedPoints: 800, availablePoints: 2400, tier: "SILVER", employee: { id: "e2", firstName: "Bob", lastName: "Smith", employeeId: "EMP-002" }, lastUpdated: "2026-05-18" },
+  { id: "bal-003", employeeId: "EMP-003", totalPoints: 6800, usedPoints: 2100, availablePoints: 4700, tier: "PLATINUM", employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" }, lastUpdated: "2026-05-22" },
+  { id: "bal-004", employeeId: "EMP-004", totalPoints: 1500, usedPoints: 500, availablePoints: 1000, tier: "BRONZE", employee: { id: "e4", firstName: "Dan", lastName: "Wilson", employeeId: "EMP-004" }, lastUpdated: "2026-05-10" },
+  { id: "bal-005", employeeId: "EMP-005", totalPoints: 5100, usedPoints: 1500, availablePoints: 3600, tier: "GOLD", employee: { id: "e5", firstName: "Eve", lastName: "Martinez", employeeId: "EMP-005" }, lastUpdated: "2026-05-21" },
+  { id: "bal-006", employeeId: "EMP-006", totalPoints: 2800, usedPoints: 900, availablePoints: 1900, tier: "SILVER", employee: { id: "e6", firstName: "Frank", lastName: "Lee", employeeId: "EMP-006" }, lastUpdated: "2026-05-19" },
+];
+
+const mockRewardTransactions: RewardPointTransaction[] = [
+  { id: "txn-001", employeeId: "EMP-001", points: 500, type: "EARNED", reason: "Q1 Performance Bonus", referenceType: "AWARD", referenceId: "awd-001", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" }, createdAt: "2026-04-15T00:00:00Z" },
+  { id: "txn-002", employeeId: "EMP-001", points: 200, type: "REDEEMED", reason: "Gift card redemption", referenceType: null, referenceId: null, employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" }, createdAt: "2026-05-01T00:00:00Z" },
+  { id: "txn-003", employeeId: "EMP-002", points: 300, type: "EARNED", reason: "Innovation Award", referenceType: "AWARD", referenceId: "awd-002", employee: { id: "e2", firstName: "Bob", lastName: "Smith", employeeId: "EMP-002" }, createdAt: "2026-05-01T00:00:00Z" },
+  { id: "txn-004", employeeId: "EMP-003", points: 1000, type: "EARNED", reason: "Platinum tier bonus", referenceType: null, referenceId: null, employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" }, createdAt: "2026-05-10T00:00:00Z" },
+  { id: "txn-005", employeeId: "EMP-003", points: 500, type: "REDEEMED", reason: "Charity donation match", referenceType: null, referenceId: null, employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" }, createdAt: "2026-05-15T00:00:00Z" },
+  { id: "txn-006", employeeId: "EMP-005", points: 400, type: "EARNED", reason: "Customer satisfaction bonus", referenceType: "AWARD", referenceId: "awd-005", employee: { id: "e5", firstName: "Eve", lastName: "Martinez", employeeId: "EMP-005" }, createdAt: "2026-04-28T00:00:00Z" },
+  { id: "txn-007", employeeId: "EMP-007", points: 250, type: "EARNED", reason: "Mentorship recognition", referenceType: "AWARD", referenceId: "awd-007", employee: { id: "e7", firstName: "Grace", lastName: "Kim", employeeId: "EMP-007" }, createdAt: "2026-05-15T00:00:00Z" },
+  { id: "txn-008", employeeId: "EMP-006", points: 100, type: "ADJUSTED", reason: "Points correction from HR", referenceType: null, referenceId: null, employee: { id: "e6", firstName: "Frank", lastName: "Lee", employeeId: "EMP-006" }, createdAt: "2026-05-05T00:00:00Z" },
+  { id: "txn-009", employeeId: "EMP-004", points: 300, type: "EARNED", reason: "Leadership award", referenceType: "AWARD", referenceId: "awd-004", employee: { id: "e4", firstName: "Dan", lastName: "Wilson", employeeId: "EMP-004" }, createdAt: "2026-05-10T00:00:00Z" },
+];
+
+const mockAchievementRecords: AchievementRecord[] = [
+  { id: "ach-001", employeeId: "EMP-001", title: "Project Milestone: Platform Redesign", description: "Successfully completed platform architecture redesign ahead of schedule", category: "PROJECT_MILESTONE", badgeIcon: "Trophy", criteria: "Complete major project on time", unlockDate: "2026-04-20T00:00:00Z", status: "UNLOCKED", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" }, createdAt: "2026-04-20T00:00:00Z", updatedAt: "2026-04-20T00:00:00Z" },
+  { id: "ach-002", employeeId: "EMP-002", title: "Perfect Attendance Q1", description: "No absences recorded in Q1 2026", category: "ATTENDANCE", badgeIcon: "Calendar", criteria: "100% attendance for quarter", unlockDate: "2026-04-01T00:00:00Z", status: "UNLOCKED", employee: { id: "e2", firstName: "Bob", lastName: "Smith", employeeId: "EMP-002" }, createdAt: "2026-04-01T00:00:00Z", updatedAt: "2026-04-01T00:00:00Z" },
+  { id: "ach-003", employeeId: "EMP-003", title: "Skill Mastery: Kubernetes", description: "Completed advanced Kubernetes certification", category: "SKILL_MASTERY", badgeIcon: "Award", criteria: "Pass advanced certification exam", unlockDate: "2026-05-10T00:00:00Z", status: "UNLOCKED", employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" }, createdAt: "2026-05-10T00:00:00Z", updatedAt: "2026-05-10T00:00:00Z" },
+  { id: "ach-004", employeeId: "EMP-004", title: "5 Year Service Milestone", description: "Completed 5 years with the company", category: "MILESTONE", badgeIcon: "Star", criteria: "5 years of service", unlockDate: "2026-03-15T00:00:00Z", status: "UNLOCKED", employee: { id: "e4", firstName: "Dan", lastName: "Wilson", employeeId: "EMP-004" }, createdAt: "2026-03-15T00:00:00Z", updatedAt: "2026-03-15T00:00:00Z" },
+  { id: "ach-005", employeeId: "EMP-005", title: "Innovation Award", description: "Filed 2 patent applications this quarter", category: "INNOVATION", badgeIcon: "Lightbulb", criteria: "File patent application", unlockDate: "2026-05-01T00:00:00Z", status: "UNLOCKED", employee: { id: "e5", firstName: "Eve", lastName: "Martinez", employeeId: "EMP-005" }, createdAt: "2026-05-01T00:00:00Z", updatedAt: "2026-05-01T00:00:00Z" },
+  { id: "ach-006", employeeId: "EMP-006", title: "Mentor of the Quarter", description: "Recognized for outstanding mentorship contributions", category: "MENTORSHIP", badgeIcon: "Users", criteria: "Complete mentorship program", unlockDate: "2026-04-30T00:00:00Z", status: "UNLOCKED", employee: { id: "e6", firstName: "Frank", lastName: "Lee", employeeId: "EMP-006" }, createdAt: "2026-04-30T00:00:00Z", updatedAt: "2026-04-30T00:00:00Z" },
+  { id: "ach-007", employeeId: "EMP-001", title: "Leadership Excellence", description: "Demonstrated exceptional leadership on cross-functional team", category: "LEADERSHIP", badgeIcon: "TrendingUp", criteria: "Lead cross-functional initiative", unlockDate: "2026-05-20T00:00:00Z", status: "LOCKED", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" }, createdAt: "2026-05-20T00:00:00Z", updatedAt: "2026-05-20T00:00:00Z" },
+];
+
+// ── Dashboard ──
+
+export async function fetchRewardsDashboard(): Promise<{ data: RewardsDashboardStats }> {
+  return {
+    data: {
+      totalAwardsGiven: mockEmployeeAwards.length,
+      activePrograms: mockRewardsPrograms.filter((p) => p.status === "ACTIVE").length,
+      totalPointsIssued: mockRewardBalances.reduce((sum, b) => sum + b.totalPoints, 0),
+      totalAchievementsUnlocked: mockAchievementRecords.filter((a) => a.status === "UNLOCKED").length,
+      topPerformers: [
+        { employeeId: "EMP-003", name: "Carol Davis", points: 4700, awards: 1 },
+        { employeeId: "EMP-005", name: "Eve Martinez", points: 3600, awards: 1 },
+        { employeeId: "EMP-001", name: "Alice Johnson", points: 3300, awards: 1 },
+        { employeeId: "EMP-002", name: "Bob Smith", points: 2400, awards: 1 },
+        { employeeId: "EMP-006", name: "Frank Lee", points: 1900, awards: 1 },
+      ],
+      recentAwards: [...mockEmployeeAwards].sort((a, b) => new Date(b.dateAwarded).getTime() - new Date(a.dateAwarded).getTime()).slice(0, 5),
+      topAchievements: [...mockAchievementRecords].filter((a) => a.status === "UNLOCKED").sort((a, b) => new Date(b.unlockDate).getTime() - new Date(a.unlockDate).getTime()).slice(0, 5),
+    },
+  };
+}
+
+// ── Employee Awards ──
+
+export async function fetchAwards(filters?: {
+  search?: string; employeeId?: string; category?: string; status?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: EmployeeAward[]; total: number; skip: number; take: number }> {
+  let filtered = [...mockEmployeeAwards];
+  if (filters?.search) { const q = filters.search.toLowerCase(); filtered = filtered.filter((a) => a.awardName.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q))); }
+  if (filters?.employeeId) filtered = filtered.filter((a) => a.employeeId === filters.employeeId);
+  if (filters?.category) filtered = filtered.filter((a) => a.category === filters.category);
+  if (filters?.status) filtered = filtered.filter((a) => a.status === filters.status);
+  const total = filtered.length;
+  const skip = filters?.skip ?? 0;
+  const take = filters?.take ?? 25;
+  return { data: filtered.slice(skip, skip + take), total, skip, take };
+}
+
+export async function createAward(body: {
+  employeeId: string; awardName: string; category: string;
+  description?: string; dateAwarded: string; awardedBy?: string;
+}): Promise<{ data: EmployeeAward }> {
+  const award: EmployeeAward = {
+    id: `awd-${String(mockEmployeeAwards.length + 1).padStart(3, "0")}`,
+    employeeId: body.employeeId,
+    awardName: body.awardName,
+    category: body.category,
+    description: body.description ?? null,
+    dateAwarded: body.dateAwarded,
+    awardedBy: body.awardedBy ?? null,
+    status: "ACTIVE",
+  };
+  mockEmployeeAwards.push(award);
+  return { data: award };
+}
+
+export async function updateAward(id: string, body: {
+  awardName?: string; category?: string; description?: string;
+  dateAwarded?: string; awardedBy?: string; status?: string;
+}): Promise<{ data: EmployeeAward }> {
+  const idx = mockEmployeeAwards.findIndex((a) => a.id === id);
+  if (idx === -1) throw new Error("Award not found");
+  Object.assign(mockEmployeeAwards[idx], body);
+  return { data: mockEmployeeAwards[idx] };
+}
+
+export async function deleteAward(id: string): Promise<{ ok: boolean }> {
+  const idx = mockEmployeeAwards.findIndex((a) => a.id === id);
+  if (idx === -1) throw new Error("Award not found");
+  mockEmployeeAwards.splice(idx, 1);
+  return { ok: true };
+}
+
+// ── Recognition Programs ──
+
+export async function fetchRewardsRecognitionPrograms(filters?: {
+  search?: string; type?: string; status?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: RewardsRecognitionProgram[]; total: number; skip: number; take: number }> {
+  let filtered = [...mockRewardsPrograms];
+  if (filters?.search) { const q = filters.search.toLowerCase(); filtered = filtered.filter((p) => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q))); }
+  if (filters?.type) filtered = filtered.filter((p) => p.type === filters.type);
+  if (filters?.status) filtered = filtered.filter((p) => p.status === filters.status);
+  const total = filtered.length;
+  const skip = filters?.skip ?? 0;
+  const take = filters?.take ?? 25;
+  return { data: filtered.slice(skip, skip + take), total, skip, take };
+}
+
+export async function createRewardsRecognitionProgram(body: {
+  name: string; description?: string; type: string; frequency: string;
+  eligibilityCriteria?: string; rewardAmount?: number;
+}): Promise<{ data: RewardsRecognitionProgram }> {
+  const program: RewardsRecognitionProgram = {
+    id: `rrp-${String(mockRewardsPrograms.length + 1).padStart(3, "0")}`,
+    name: body.name,
+    description: body.description ?? null,
+    type: body.type,
+    frequency: body.frequency,
+    eligibilityCriteria: body.eligibilityCriteria ?? null,
+    rewardAmount: body.rewardAmount ?? null,
+    status: "DRAFT",
+    participantCount: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockRewardsPrograms.push(program);
+  return { data: program };
+}
+
+export async function updateRewardsRecognitionProgram(id: string, body: {
+  name?: string; description?: string; type?: string; frequency?: string;
+  eligibilityCriteria?: string; rewardAmount?: number; status?: string;
+}): Promise<{ data: RewardsRecognitionProgram }> {
+  const idx = mockRewardsPrograms.findIndex((p) => p.id === id);
+  if (idx === -1) throw new Error("Program not found");
+  Object.assign(mockRewardsPrograms[idx], { ...body, updatedAt: new Date().toISOString() });
+  return { data: mockRewardsPrograms[idx] };
+}
+
+export async function deleteRewardsRecognitionProgram(id: string): Promise<{ ok: boolean }> {
+  const idx = mockRewardsPrograms.findIndex((p) => p.id === id);
+  if (idx === -1) throw new Error("Program not found");
+  mockRewardsPrograms.splice(idx, 1);
+  return { ok: true };
+}
+
+// ── Reward Points ──
+
+export async function fetchRewardPointsBalances(filters?: {
+  search?: string; employeeId?: string; tier?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: RewardPointBalance[]; total: number; skip: number; take: number }> {
+  let filtered = [...mockRewardBalances];
+  if (filters?.search) { const q = filters.search.toLowerCase(); filtered = filtered.filter((b) => { const name = b.employee ? `${b.employee.firstName} ${b.employee.lastName}` : ""; return name.toLowerCase().includes(q) || b.employeeId.toLowerCase().includes(q); }); }
+  if (filters?.employeeId) filtered = filtered.filter((b) => b.employeeId === filters.employeeId);
+  if (filters?.tier) filtered = filtered.filter((b) => b.tier === filters.tier);
+  const total = filtered.length;
+  const skip = filters?.skip ?? 0;
+  const take = filters?.take ?? 25;
+  return { data: filtered.slice(skip, skip + take), total, skip, take };
+}
+
+export async function fetchRewardPointTransactions(filters?: {
+  employeeId?: string; type?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: RewardPointTransaction[]; total: number; skip: number; take: number }> {
+  let filtered = [...mockRewardTransactions];
+  if (filters?.employeeId) filtered = filtered.filter((t) => t.employeeId === filters.employeeId);
+  if (filters?.type) filtered = filtered.filter((t) => t.type === filters.type);
+  const total = filtered.length;
+  const skip = filters?.skip ?? 0;
+  const take = filters?.take ?? 25;
+  return { data: filtered.slice(skip, skip + take), total, skip, take };
+}
+
+export async function awardPoints(body: {
+  employeeId: string; points: number; reason: string;
+  referenceType?: string; referenceId?: string;
+}): Promise<{ data: RewardPointTransaction }> {
+  const txn: RewardPointTransaction = {
+    id: `txn-${String(mockRewardTransactions.length + 1).padStart(3, "0")}`,
+    employeeId: body.employeeId,
+    points: body.points,
+    type: "EARNED",
+    reason: body.reason,
+    referenceType: body.referenceType ?? null,
+    referenceId: body.referenceId ?? null,
+    createdAt: new Date().toISOString(),
+  };
+  mockRewardTransactions.push(txn);
+  const bal = mockRewardBalances.find((b) => b.employeeId === body.employeeId);
+  if (bal) { bal.totalPoints += body.points; bal.availablePoints += body.points; bal.lastUpdated = new Date().toISOString().split("T")[0]; }
+  return { data: txn };
+}
+
+// ── Achievements ──
+
+export async function fetchAchievements(filters?: {
+  search?: string; employeeId?: string; category?: string; status?: string;
+  skip?: number; take?: number; orderBy?: string; orderDir?: string;
+}): Promise<{ data: AchievementRecord[]; total: number; skip: number; take: number }> {
+  let filtered = [...mockAchievementRecords];
+  if (filters?.search) { const q = filters.search.toLowerCase(); filtered = filtered.filter((a) => a.title.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q))); }
+  if (filters?.employeeId) filtered = filtered.filter((a) => a.employeeId === filters.employeeId);
+  if (filters?.category) filtered = filtered.filter((a) => a.category === filters.category);
+  if (filters?.status) filtered = filtered.filter((a) => a.status === filters.status);
+  const total = filtered.length;
+  const skip = filters?.skip ?? 0;
+  const take = filters?.take ?? 25;
+  return { data: filtered.slice(skip, skip + take), total, skip, take };
+}
+
+export async function createAchievement(body: {
+  employeeId: string; title: string; description?: string;
+  category: string; badgeIcon?: string; criteria?: string; unlockDate: string;
+}): Promise<{ data: AchievementRecord }> {
+  const achievement: AchievementRecord = {
+    id: `ach-${String(mockAchievementRecords.length + 1).padStart(3, "0")}`,
+    employeeId: body.employeeId,
+    title: body.title,
+    description: body.description ?? null,
+    category: body.category,
+    badgeIcon: body.badgeIcon ?? null,
+    criteria: body.criteria ?? null,
+    unlockDate: body.unlockDate,
+    status: "LOCKED",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockAchievementRecords.push(achievement);
+  return { data: achievement };
+}
+
+export async function updateAchievement(id: string, body: {
+  title?: string; description?: string; category?: string;
+  badgeIcon?: string; criteria?: string; status?: string;
+}): Promise<{ data: AchievementRecord }> {
+  const idx = mockAchievementRecords.findIndex((a) => a.id === id);
+  if (idx === -1) throw new Error("Achievement not found");
+  Object.assign(mockAchievementRecords[idx], { ...body, updatedAt: new Date().toISOString() });
+  return { data: mockAchievementRecords[idx] };
+}
+
+export async function deleteAchievement(id: string): Promise<{ ok: boolean }> {
+  const idx = mockAchievementRecords.findIndex((a) => a.id === id);
+  if (idx === -1) throw new Error("Achievement not found");
+  mockAchievementRecords.splice(idx, 1);
+  return { ok: true };
+}
+

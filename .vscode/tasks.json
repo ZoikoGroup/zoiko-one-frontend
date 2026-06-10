@@ -8,10 +8,6 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "next",
-        "pattern": {
-          "regexp": "^(.*)$",
-          "file": 1
-        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".*Ready.*|.*Ready in.*",

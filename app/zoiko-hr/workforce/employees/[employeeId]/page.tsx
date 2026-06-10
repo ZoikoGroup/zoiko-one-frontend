@@ -504,7 +504,7 @@ function DocumentsTab({
     try {
       await deleteEmployeeDocument(employeeId, documentId);
       onUpdate();
-    } catch {}
+    } catch (err) { console.error("Failed to delete document:", err); }
   }
 
   return (
@@ -685,7 +685,7 @@ function EmergencyContactsTab({
     try {
       await deleteEmergencyContact(employeeId, contactId);
       onUpdate();
-    } catch {}
+    } catch (err) { console.error("Failed to delete emergency contact:", err); }
   }
 
   return (
@@ -855,7 +855,7 @@ function AddressesTab({
     try {
       await deleteEmployeeAddress(employeeId, addressId);
       onUpdate();
-    } catch {}
+    } catch (err) { console.error("Failed to delete address:", err); }
   }
 
   return (

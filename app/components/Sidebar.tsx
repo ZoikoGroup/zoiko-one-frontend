@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, AlertTriangle, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Undo2, User, UserCheck, UserPlus, Users, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
+import { Activity, AlertTriangle, ArrowUpDown, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Ticket, Trophy, Undo2, User, UserCheck, UserPlus, Users, UserX, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -52,9 +52,9 @@ const sections: NavSection[] = [
               { label: "Addresses", href: "/zoiko-hr/workforce/addresses", icon: MapPin },
             ],
           },
-          { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
+          { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
           {
             label: "Leave Management",
             icon: Calendar,
@@ -86,6 +86,30 @@ const sections: NavSection[] = [
               { label: "Reviews", href: "/zoiko-hr/performance/reviews", icon: FileText },
               { label: "Goals", href: "/zoiko-hr/performance/goals", icon: Target },
               { label: "Feedback", href: "/zoiko-hr/performance/feedback", icon: MessageSquare },
+            ],
+          },
+          {
+            label: "Rewards & Recognition",
+            icon: Award,
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/rewards", icon: LayoutDashboard },
+              { label: "Employee Awards", href: "/zoiko-hr/rewards/awards", icon: Trophy },
+              { label: "Recognition Programs", href: "/zoiko-hr/rewards/programs", icon: Sparkles },
+              { label: "Reward Points", href: "/zoiko-hr/rewards/points", icon: WalletCards },
+              { label: "Achievement Tracking", href: "/zoiko-hr/rewards/achievements", icon: Target },
+            ],
+          },
+          {
+            label: "HR Helpdesk",
+            icon: MessageSquare,
+            badge: "Help",
+            children: [
+              { label: "Dashboard", href: "/zoiko-hr/helpdesk", icon: LayoutDashboard },
+              { label: "HR Tickets", href: "/zoiko-hr/helpdesk/tickets", icon: Ticket },
+              { label: "Employee Requests", href: "/zoiko-hr/helpdesk/employee-requests", icon: FileText },
+              { label: "Case Management", href: "/zoiko-hr/helpdesk/cases", icon: Briefcase },
+              { label: "SLA Tracking", href: "/zoiko-hr/helpdesk/sla", icon: Clock },
+              { label: "Knowledge Base", href: "/zoiko-hr/helpdesk/knowledge-base", icon: BookOpen },
             ],
           },
           {

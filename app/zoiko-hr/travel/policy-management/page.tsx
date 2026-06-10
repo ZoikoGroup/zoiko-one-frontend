@@ -110,7 +110,7 @@ export default function PolicyManagementPage() {
                       <td className="px-5 py-4">
                         <p className="text-white font-medium">{p.title}</p>
                       </td>
-                      <td className="px-5 py-4"><StatusBadge status={p.category === "Travel" ? "COMPLETED" : "SUBMITTED"} /></td>
+                      <td className="px-5 py-4"><span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] bg-slate-800 text-slate-300">{p.category}</span></td>
                       <td className="px-5 py-4 text-slate-400 max-w-[300px] truncate">{p.description}</td>
                       <td className="px-5 py-4 text-slate-400">{p.effectiveDate}</td>
                       <td className="px-5 py-4 text-slate-300">v{p.version}</td>

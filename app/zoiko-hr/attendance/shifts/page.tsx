@@ -15,12 +15,96 @@ export default function ShiftsPage() {
   const pageSize = 20;
 
   useEffect(() => {
-    setLoading(true);
-    fetchShifts({ search: search || undefined, skip: page * pageSize, take: pageSize })
-      .then((res) => { setShifts(res.data); setTotal(res.total); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [search, page]);
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  useEffect(() => {
+    fetchShifts({
+      search: search || undefined,
+      skip: page * pageSize,
+      take: pageSize,
+      orderBy: "createdAt",
+      orderDir: "desc",
+    })
+      .then((res) => {
+        setShifts(res.data);
+        setTotal(res.total);
+        setLoaded(true);
+      })
+      .catch(() => {});
+  }, [search, page, refreshKey]);
+
+  const openAddForm = () => {
+    setEditId(null);
+    setFormData(defaultForm);
+    setFormError("");
+    setShowForm(true);
+  };
+
+  const openEditForm = (s: ShiftRecord) => {
+    setEditId(s.id);
+    setFormData({
+      name: s.name,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      gracePeriod: String(s.gracePeriod),
+      weeklyOff: s.weeklyOff ?? [],
+    });
+    setFormError("");
+    setShowForm(true);
+  };
+
+  const toggleDay = (day: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      weeklyOff: prev.weeklyOff.includes(day)
+        ? prev.weeklyOff.filter((d) => d !== day)
+        : [...prev.weeklyOff, day],
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setFormError("");
+    try {
+      const body = {
+        name: formData.name,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        gracePeriod: formData.gracePeriod ? Number(formData.gracePeriod) : undefined,
+        weeklyOff: formData.weeklyOff.length ? formData.weeklyOff : undefined,
+      };
+      if (editId) {
+        await updateShift(editId, body);
+        setToast("Shift updated successfully.");
+      } else {
+        await createShift(body);
+        setToast("Shift created successfully.");
+      }
+      setShowForm(false);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Failed to save shift.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeleting(true);
+    try {
+      await deleteShift(id);
+      setDeleteId(null);
+      setToast("Shift deleted successfully.");
+      setRefreshKey((k) => k + 1);
+    } catch {}
+    setDeleting(false);
+  };
+
+  const totalPages = Math.ceil(total / pageSize);
 
   return (
     <SuperAdminShell>

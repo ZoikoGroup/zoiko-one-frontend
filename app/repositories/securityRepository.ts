@@ -1,5 +1,4 @@
 import type { AuditCategory, AuditEventType, AuditOutcome, Prisma } from "@prisma/client";
-
 import { prisma } from "@/lib/prisma";
 
 const sessionsStore = new Map<string, any>();
@@ -19,163 +18,207 @@ export type AuditRecordInput = {
   userAgent?: string;
 };
 
+// Database availability checking and caching
+let isDatabaseOnline: boolean | null = null;
+let lastCheckTime = 0;
+
+async function checkDatabaseOnline() {
+  const now = Date.now();
+  // Cache the database status for 10 seconds to avoid repeating checks
+  if (isDatabaseOnline !== null && now - lastCheckTime < 10000) {
+    return isDatabaseOnline;
+  }
+  try {
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 800))
+    ]);
+    isDatabaseOnline = true;
+  } catch {
+    isDatabaseOnline = false;
+  }
+  lastCheckTime = now;
+  return isDatabaseOnline;
+}
+
+// Wrap prisma promises with timeout and connection safety check
+async function safeQuery<T>(query: () => Promise<T>, fallback: T, timeoutMs = 1000): Promise<T> {
+  const isOnline = await checkDatabaseOnline();
+  if (!isOnline) {
+    return fallback;
+  }
+  try {
+    return await Promise.race([
+      query(),
+      new Promise<T>((_, reject) => {
+        setTimeout(() => reject(new Error("Timeout")), timeoutMs);
+      }),
+    ]);
+  } catch {
+    return fallback;
+  }
+}
+
 export class SecurityRepository {
   async findTenantBySlug(slug: string) {
-    try {
-      return await prisma.tenant.findUnique({ where: { slug } });
-    } catch {
-      if (slug === "zoiko-one") {
-        return {
-          id: "tenant-demo",
-          name: "Zoiko One",
-          slug: "zoiko-one",
-          status: "ACTIVE",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as any;
-      }
-      return null;
-    }
-  }
-
-  async findUserForLogin(tenantId: string, email: string) {
-    try {
-      return await prisma.user.findUnique({
-        where: { tenantId_email: { tenantId, email } },
-        include: {
-          tenant: true,
-          roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
-          permissions: { include: { permission: true } },
-        },
-      });
-    } catch {
-      if (email.toLowerCase() === "admin@zoiko.one") {
-        return {
-          id: "user-demo",
-          tenantId: "tenant-demo",
-          email: "admin@zoiko.one",
-          firstName: "Zoiko",
-          lastName: "Admin",
-          passwordHash: "pbkdf2:210000:21vBt-sT1qt-94vY2JPe0A:xpvrtVOHeAi-KzlQ1nEPuxZx3c0iJmtZvpWc2jJ908M",
-          isActive: true,
-          isEmailVerified: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          tenant: {
+    return safeQuery(
+      () => prisma.tenant.findUnique({ where: { slug } }),
+      slug === "zoiko-one"
+        ? {
             id: "tenant-demo",
             name: "Zoiko One",
             slug: "zoiko-one",
             status: "ACTIVE",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          } as any
+        : null
+    );
+  }
+
+  async findUserForLogin(tenantId: string, email: string) {
+    return safeQuery(
+      () =>
+        prisma.user.findUnique({
+          where: { tenantId_email: { tenantId, email } },
+          include: {
+            tenant: true,
+            roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
+            permissions: { include: { permission: true } },
           },
-          roles: [
-            {
-              role: {
-                key: "SUPER_ADMIN",
-                permissions: [
-                  { permission: { key: "tenants.*" } },
-                  { permission: { key: "organizations.*" } },
-                  { permission: { key: "users.*" } },
-                  { permission: { key: "payroll.*" } },
-                  { permission: { key: "compliance.*" } },
-                  { permission: { key: "billing.*" } },
-                  { permission: { key: "analytics.*" } },
-                  { permission: { key: "audit.*" } },
-                  { permission: { key: "system.*" } },
-                  { permission: { key: "workforce.*" } },
-                ]
+        }),
+      email.toLowerCase() === "admin@zoiko.one"
+        ? {
+            id: "user-demo",
+            tenantId: "tenant-demo",
+            email: "admin@zoiko.one",
+            firstName: "Zoiko",
+            lastName: "Admin",
+            passwordHash: "pbkdf2:210000:21vBt-sT1qt-94vY2JPe0A:xpvrtVOHeAi-KzlQ1nEPuxZx3c0iJmtZvpWc2jJ908M",
+            isActive: true,
+            isEmailVerified: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            tenant: {
+              id: "tenant-demo",
+              name: "Zoiko One",
+              slug: "zoiko-one",
+              status: "ACTIVE",
+            },
+            roles: [
+              {
+                role: {
+                  key: "SUPER_ADMIN",
+                  permissions: [
+                    { permission: { key: "tenants.*" } },
+                    { permission: { key: "organizations.*" } },
+                    { permission: { key: "users.*" } },
+                    { permission: { key: "payroll.*" } },
+                    { permission: { key: "compliance.*" } },
+                    { permission: { key: "billing.*" } },
+                    { permission: { key: "analytics.*" } },
+                    { permission: { key: "audit.*" } },
+                    { permission: { key: "system.*" } },
+                    { permission: { key: "workforce.*" } },
+                  ]
+                }
               }
-            }
-          ],
-          permissions: []
-        } as any;
-      }
-      return null;
-    }
+            ],
+            permissions: []
+          } as any
+        : null
+    );
   }
 
   async findSession(sessionId: string) {
-    try {
-      const dbSession = await prisma.session.findUnique({
-        where: { id: sessionId },
-        include: {
-          user: {
-            include: {
-              roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
-              permissions: { include: { permission: true } },
+    const fallbackUser = {
+      id: "user-demo",
+      tenantId: "tenant-demo",
+      email: "admin@zoiko.one",
+      firstName: "Zoiko",
+      lastName: "Admin",
+      isActive: true,
+      tenant: {
+        id: "tenant-demo",
+        name: "Zoiko One",
+        slug: "zoiko-one",
+        status: "ACTIVE",
+      },
+      roles: [
+        {
+          role: {
+            key: "SUPER_ADMIN",
+            permissions: [
+              { permission: { key: "tenants.*" } },
+              { permission: { key: "organizations.*" } },
+              { permission: { key: "users.*" } },
+              { permission: { key: "payroll.*" } },
+              { permission: { key: "compliance.*" } },
+              { permission: { key: "billing.*" } },
+              { permission: { key: "analytics.*" } },
+              { permission: { key: "audit.*" } },
+              { permission: { key: "system.*" } },
+              { permission: { key: "workforce.*" } },
+            ]
+          }
+        }
+      ],
+      permissions: []
+    };
+
+    const getCachedOrFallback = async () => {
+      let cached = sessionsStore.get(sessionId);
+      if (!cached) {
+        let jti = "access-token-demo";
+        try {
+          const { cookies } = require("next/headers");
+          const cookieStore = cookies();
+          const resolvedStore = typeof (cookieStore as any).then === "function" ? await cookieStore : cookieStore;
+          const token = resolvedStore.get("zoiko_access_token")?.value;
+          const { verifyAccessToken } = require("@/lib/security/jwt");
+          const payload = verifyAccessToken(token);
+          if (payload && payload.sessionId === sessionId) {
+            jti = payload.jti;
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        cached = {
+          id: sessionId,
+          tenantId: "tenant-demo",
+          userId: "user-demo",
+          accessTokenId: jti,
+          refreshTokenHash: "refresh-token-demo",
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+          revokedAt: null,
+        };
+      }
+      return {
+        ...cached,
+        user: fallbackUser
+      } as any;
+    };
+
+    const fallback = await getCachedOrFallback();
+
+    return safeQuery(
+      async () => {
+        const dbSession = await prisma.session.findUnique({
+          where: { id: sessionId },
+          include: {
+            user: {
+              include: {
+                roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
+                permissions: { include: { permission: true } },
+              },
             },
           },
-        },
-      });
-      if (dbSession) return dbSession;
-    } catch {
-      // Fallback
-    }
-
-    let cached = sessionsStore.get(sessionId);
-    if (!cached) {
-      let jti = "access-token-demo";
-      try {
-        const { cookies } = require("next/headers");
-        const cookieStore = cookies();
-        const resolvedStore = typeof (cookieStore as any).then === "function" ? await cookieStore : cookieStore;
-        const token = resolvedStore.get("zoiko_access_token")?.value;
-        const { verifyAccessToken } = require("@/lib/security/jwt");
-        const payload = verifyAccessToken(token);
-        if (payload && payload.sessionId === sessionId) {
-          jti = payload.jti;
-        }
-      } catch (e) {
-        // ignore
-      }
-
-      cached = {
-        id: sessionId,
-        tenantId: "tenant-demo",
-        userId: "user-demo",
-        accessTokenId: jti,
-        refreshTokenHash: "refresh-token-demo",
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-        revokedAt: null,
-      };
-    }
-
-    return {
-      ...cached,
-      user: {
-        id: "user-demo",
-        tenantId: "tenant-demo",
-        email: "admin@zoiko.one",
-        firstName: "Zoiko",
-        lastName: "Admin",
-        isActive: true,
-        tenant: {
-          id: "tenant-demo",
-          name: "Zoiko One",
-          slug: "zoiko-one",
-          status: "ACTIVE",
-        },
-        roles: [
-          {
-            role: {
-              key: "SUPER_ADMIN",
-              permissions: [
-                { permission: { key: "tenants.*" } },
-                { permission: { key: "organizations.*" } },
-                { permission: { key: "users.*" } },
-                { permission: { key: "payroll.*" } },
-                { permission: { key: "compliance.*" } },
-                { permission: { key: "billing.*" } },
-                { permission: { key: "analytics.*" } },
-                { permission: { key: "audit.*" } },
-                { permission: { key: "system.*" } },
-                { permission: { key: "workforce.*" } },
-              ]
-            }
-          }
-        ],
-        permissions: []
-      }
-    } as any;
+        });
+        return dbSession || fallback;
+      },
+      fallback
+    );
   }
 
   async createSession(input: {
@@ -194,11 +237,10 @@ export class SecurityRepository {
       createdAt: new Date(),
     };
     sessionsStore.set(session.id, session);
-    try {
-      return await prisma.session.create({ data: input });
-    } catch {
-      return session as any;
-    }
+    return safeQuery(
+      () => prisma.session.create({ data: input }),
+      session as any
+    );
   }
 
   async rotateSession(sessionId: string, accessTokenId: string, refreshTokenHash: string, expiresAt: Date) {
@@ -209,20 +251,20 @@ export class SecurityRepository {
       cached.expiresAt = expiresAt;
       sessionsStore.set(sessionId, cached);
     }
-    try {
-      return await prisma.session.update({
-        where: { id: sessionId },
-        data: { accessTokenId, refreshTokenHash, expiresAt },
-      });
-    } catch {
-      return {
+    return safeQuery(
+      () =>
+        prisma.session.update({
+          where: { id: sessionId },
+          data: { accessTokenId, refreshTokenHash, expiresAt },
+        }),
+      {
         id: sessionId,
         accessTokenId,
         refreshTokenHash,
         expiresAt,
         revokedAt: null,
-      } as any;
-    }
+      } as any
+    );
   }
 
   async revokeSession(sessionId: string) {
@@ -231,34 +273,21 @@ export class SecurityRepository {
       cached.revokedAt = new Date();
       sessionsStore.set(sessionId, cached);
     }
-    try {
-      return await prisma.session.update({
-        where: { id: sessionId },
-        data: { revokedAt: new Date() },
-      });
-    } catch {
-      return {
+    return safeQuery(
+      () =>
+        prisma.session.update({
+          where: { id: sessionId },
+          data: { revokedAt: new Date() },
+        }),
+      {
         id: sessionId,
         revokedAt: new Date(),
-      } as any;
-    }
+      } as any
+    );
   }
 
   async findSessionByRefreshHash(refreshTokenHash: string) {
-    try {
-      return await prisma.session.findFirst({
-        where: { refreshTokenHash, revokedAt: null, expiresAt: { gt: new Date() } },
-        include: {
-          user: {
-            include: {
-              tenant: true,
-              roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
-              permissions: { include: { permission: true } },
-            },
-          },
-        },
-      });
-    } catch {
+    const getFallback = () => {
       let found: any = null;
       for (const session of sessionsStore.values()) {
         if (session.refreshTokenHash === refreshTokenHash && !session.revokedAt && session.expiresAt > new Date()) {
@@ -314,60 +343,78 @@ export class SecurityRepository {
           permissions: []
         }
       } as any;
-    }
+    };
+
+    const fallback = getFallback();
+
+    return safeQuery(
+      () =>
+        prisma.session.findFirst({
+          where: { refreshTokenHash, revokedAt: null, expiresAt: { gt: new Date() } },
+          include: {
+            user: {
+              include: {
+                tenant: true,
+                roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
+                permissions: { include: { permission: true } },
+              },
+            },
+          },
+        }),
+      fallback
+    );
   }
 
   async writeAudit(input: AuditRecordInput) {
-    try {
-      return await prisma.auditLog.create({
-        data: {
-          tenantId: input.tenantId,
-          userId: input.userId,
-          action: input.action,
-          eventType: input.eventType ?? "SYSTEM_EVENT",
-          category: input.category ?? "SYSTEM",
-          outcome: input.outcome ?? "SUCCESS",
-          resourceType: input.resourceType,
-          resourceId: input.resourceId,
-          resourceName: input.resourceName,
-          details: input.details,
-          ipAddress: input.ipAddress,
-          userAgent: input.userAgent,
-        },
-      });
-    } catch {
-      return {
+    return safeQuery(
+      () =>
+        prisma.auditLog.create({
+          data: {
+            tenantId: input.tenantId,
+            userId: input.userId,
+            action: input.action,
+            eventType: input.eventType ?? "SYSTEM_EVENT",
+            category: input.category ?? "SYSTEM",
+            outcome: input.outcome ?? "SUCCESS",
+            resourceType: input.resourceType,
+            resourceId: input.resourceId,
+            resourceName: input.resourceName,
+            details: input.details,
+            ipAddress: input.ipAddress,
+            userAgent: input.userAgent,
+          },
+        }),
+      {
         id: `audit-${Math.random().toString(36).substring(2, 11)}`,
         ...input,
         createdAt: new Date(),
-      } as any;
-    }
+      } as any
+    );
   }
 
   async assignRole(userId: string, roleId: string, tenantId: string, assignedById?: string) {
-    try {
-      return await prisma.userRole.upsert({
-        where: { userId_roleId: { userId, roleId } },
-        update: { assignedById },
-        create: { userId, roleId, tenantId, assignedById },
-      });
-    } catch {
-      return {
+    return safeQuery(
+      () =>
+        prisma.userRole.upsert({
+          where: { userId_roleId: { userId, roleId } },
+          update: { assignedById },
+          create: { userId, roleId, tenantId, assignedById },
+        }),
+      {
         id: `user-role-${Math.random().toString(36).substring(2, 11)}`,
         userId,
         roleId,
         tenantId,
         assignedById,
         assignedAt: new Date(),
-      } as any;
-    }
+      } as any
+    );
   }
 
   async findRoleByKey(tenantId: string, key: string) {
-    try {
-      return await prisma.role.findUnique({ where: { tenantId_key: { tenantId, key: key as never } } });
-    } catch {
-      return {
+    return safeQuery(
+      () => prisma.role.findUnique({ where: { tenantId_key: { tenantId, key: key as never } } }),
+      {
         id: `role-${key.toLowerCase()}`,
         tenantId,
         key: key as any,
@@ -375,16 +422,15 @@ export class SecurityRepository {
         isSystem: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
-    }
+      } as any
+    );
   }
 
   async findPermissionByKey(tenantId: string, key: string) {
-    try {
-      return await prisma.permission.findUnique({ where: { tenantId_key: { tenantId, key } } });
-    } catch {
-      const [domain, action] = key.split(".");
-      return {
+    const [domain, action] = key.split(".");
+    return safeQuery(
+      () => prisma.permission.findUnique({ where: { tenantId_key: { tenantId, key } } }),
+      {
         id: `perm-${key.replace(".", "-")}`,
         tenantId,
         key,
@@ -393,39 +439,39 @@ export class SecurityRepository {
         description: `Permission for ${key}`,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
-    }
+      } as any
+    );
   }
 
   async assignPermission(userId: string, permissionId: string, tenantId: string, assignedById?: string) {
-    try {
-      return await prisma.userPermission.upsert({
-        where: { userId_permissionId: { userId, permissionId } },
-        update: { assignedById },
-        create: { userId, permissionId, tenantId, assignedById },
-      });
-    } catch {
-      return {
+    return safeQuery(
+      () =>
+        prisma.userPermission.upsert({
+          where: { userId_permissionId: { userId, permissionId } },
+          update: { assignedById },
+          create: { userId, permissionId, tenantId, assignedById },
+        }),
+      {
         id: `user-perm-${Math.random().toString(36).substring(2, 11)}`,
         userId,
         permissionId,
         tenantId,
         assignedById,
         assignedAt: new Date(),
-      } as any;
-    }
+      } as any
+    );
   }
 
   async listApprovalWorkflows() {
-    try {
-      return await prisma.approvalWorkflow.findMany({
-        include: { tenant: true, currentApprover: true, actions: { include: { actor: true }, orderBy: { createdAt: "desc" } } },
-        orderBy: { updatedAt: "desc" },
-        take: 50,
-      });
-    } catch {
-      return [];
-    }
+    return safeQuery(
+      () =>
+        prisma.approvalWorkflow.findMany({
+          include: { tenant: true, currentApprover: true, actions: { include: { actor: true }, orderBy: { createdAt: "desc" } } },
+          orderBy: { updatedAt: "desc" },
+          take: 50,
+        }),
+      []
+    );
   }
 }
 

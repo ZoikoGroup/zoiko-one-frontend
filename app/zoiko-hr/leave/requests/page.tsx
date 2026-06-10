@@ -70,12 +70,12 @@ export default function LeaveRequestsPage() {
     try {
       await approveLeaveRequest(approveId, approveAction, approveReason || undefined);
       setApproveId(null); setApproveReason(""); setRefreshKey((k) => k + 1);
-    } catch {}
+    } catch (err) { console.error("Failed to approve leave request:", err); }
     setApproving(false);
   };
 
   const handleCancel = async (id: string) => {
-    try { await cancelLeaveRequest(id); setRefreshKey((k) => k + 1); } catch {}
+    try { await cancelLeaveRequest(id); setRefreshKey((k) => k + 1); } catch (err) { console.error("Failed to cancel leave request:", err); }
   };
 
   const totalPages = Math.ceil(total / pageSize);

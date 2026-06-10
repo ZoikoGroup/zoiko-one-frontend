@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, HelpCircle, Loader2, Menu } from "lucide-react";
+import { HelpCircle, Loader2, Menu } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
@@ -41,13 +41,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
             Help
           </button>
           <NotificationBell />
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-200 transition hover:border-slate-700 hover:bg-slate-900"
-          >
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
-            7 Alerts
-          </button>
           <span className="rounded-3xl bg-emerald-500/10 px-3 py-2 text-xs uppercase tracking-[0.32em] text-emerald-300">LIVE</span>
         </div>
 

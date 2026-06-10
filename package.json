@@ -2,7 +2,6 @@
   "name": "zoiko_one",
   "version": "0.1.0",
   "private": true,
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,11 +10,9 @@
     "prisma": "prisma",
     "db:seed": "prisma db seed"
   },
-
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
-
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "lucide-react": "^1.17.0",
@@ -25,7 +22,6 @@
     "react-dom": "19.2.4",
     "recharts": "^3.8.1"
   },
-
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

@@ -80,7 +80,7 @@ export default function DocumentDetailPage() {
     try {
       await deleteDocument(documentId);
       router.push("/zoiko-hr/documents");
-    } catch {}
+    } catch (err) { setError("Failed to delete document."); }
   };
 
   if (loading) {

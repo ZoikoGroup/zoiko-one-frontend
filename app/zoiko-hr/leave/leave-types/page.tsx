@@ -61,7 +61,7 @@ export default function LeaveTypesPage() {
 
   const handleDelete = async (id: string) => {
     setDeleting(true);
-    try { await deleteLeaveType(id); setDeleteId(null); setRefreshKey((k) => k + 1); } catch {}
+    try { await deleteLeaveType(id); setDeleteId(null); setRefreshKey((k) => k + 1); } catch (err) { console.error("Failed to delete leave type:", err); }
     setDeleting(false);
   };
 

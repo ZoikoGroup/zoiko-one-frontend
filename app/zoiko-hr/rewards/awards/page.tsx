@@ -5,27 +5,18 @@ import { Search, Plus, ChevronLeft, ChevronRight, X, Trophy } from "lucide-react
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
 import StatusBadge from "../../../components/StatusBadge";
-
-const mockAwards = [
-  { id: "1", employeeId: "EMP-001", employeeName: "Sarah Johnson", awardName: "Employee of the Month", category: "PERFORMANCE", description: "Outstanding performance in Q2 2026", dateAwarded: "2026-05-15", awardedBy: "John Manager", status: "AWARDED" },
-  { id: "2", employeeId: "EMP-042", employeeName: "Michael Chen", awardName: "Innovation Star", category: "INNOVATION", description: "Developed a breakthrough automation tool", dateAwarded: "2026-05-10", awardedBy: "Lisa Director", status: "AWARDED" },
-  { id: "3", employeeId: "EMP-018", employeeName: "Emily Rodriguez", awardName: "Team Player Award", category: "COLLABORATION", description: "Exceptional collaboration on cross-team project", dateAwarded: "2026-05-05", awardedBy: "Mark Lead", status: "AWARDED" },
-  { id: "4", employeeId: "EMP-027", employeeName: "David Kim", awardName: "Leadership Excellence", category: "LEADERSHIP", description: "Led team to exceed Q1 targets by 30%", dateAwarded: "2026-04-28", awardedBy: "Sarah VP", status: "AWARDED" },
-  { id: "5", employeeId: "EMP-035", employeeName: "Lisa Thompson", awardName: "Customer Hero", category: "CUSTOMER_SERVICE", description: "Resolved 50+ critical tickets with 100% satisfaction", dateAwarded: "2026-04-20", awardedBy: "Support Head", status: "AWARDED" },
-  { id: "6", employeeId: "EMP-012", employeeName: "James Wilson", awardName: "Safety Champion", category: "SAFETY", description: "Zero safety incidents in department for 6 months", dateAwarded: "2026-04-15", awardedBy: "Safety Officer", status: "AWARDED" },
-  { id: "7", employeeId: "EMP-008", employeeName: "Anna Martinez", awardName: "Rising Star", category: "DEVELOPMENT", description: "Completed advanced certification ahead of schedule", dateAwarded: "2026-04-10", awardedBy: "HR Director", status: "AWARDED" },
-  { id: "8", employeeId: "EMP-050", employeeName: "Robert Taylor", awardName: "Mentor of the Quarter", category: "MENTORSHIP", description: "Mentored 5 junior developers with excellent results", dateAwarded: "2026-04-05", awardedBy: "Engineering Lead", status: "AWARDED" },
-  { id: "9", employeeId: "EMP-022", employeeName: "Jennifer Brown", awardName: "Sales Excellence", category: "PERFORMANCE", description: "Exceeded annual sales target by 45%", dateAwarded: "2026-03-28", awardedBy: "Sales Director", status: "AWARDED" },
-  { id: "10", employeeId: "EMP-033", employeeName: "Chris Anderson", awardName: "Process Improvement", category: "INNOVATION", description: "Streamlined workflow saving 200+ hours monthly", dateAwarded: "2026-03-20", awardedBy: "Ops Manager", status: "AWARDED" },
-  { id: "11", employeeId: "EMP-015", employeeName: "Maria Garcia", awardName: "Diversity Champion", category: "CULTURE", description: "Led DEI initiatives with measurable impact", dateAwarded: "2026-03-15", awardedBy: "DEI Committee", status: "AWARDED" },
-  { id: "12", employeeId: "EMP-038", employeeName: "Daniel Lee", awardName: "Tech Innovator", category: "INNOVATION", description: "Patent filed for novel AI-based solution", dateAwarded: "2026-03-10", awardedBy: "CTO", status: "AWARDED" },
-];
+import { fetchAwards, createAward, updateAward, deleteAward, EmployeeAward } from "../../../lib/workforce-api";
 
 const categories = ["PERFORMANCE", "INNOVATION", "COLLABORATION", "LEADERSHIP", "CUSTOMER_SERVICE", "SAFETY", "DEVELOPMENT", "MENTORSHIP", "CULTURE"];
 
+interface AwardWithName extends EmployeeAward {
+  employeeName: string;
+}
+
 export default function AwardsPage() {
-  const [awards, setAwards] = useState<typeof mockAwards>([]);
+  const [awards, setAwards] = useState<AwardWithName[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [page, setPage] = useState(0);
@@ -38,13 +29,25 @@ export default function AwardsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const loadAwards = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await fetchAwards({ search: search || undefined, category: categoryFilter || undefined });
+      const mapped = res.data.map((a) => ({
+        ...a,
+        employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : a.employeeId,
+      }));
+      setAwards(mapped);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load awards");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const filtered = mockAwards.filter((a) => {
-      const matchesSearch = !search || a.employeeName.toLowerCase().includes(search.toLowerCase()) || a.awardName.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = !categoryFilter || a.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    });
-    setTimeout(() => { setAwards(filtered); setLoading(false); }, 300);
+    loadAwards();
   }, [search, categoryFilter]);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -59,9 +62,9 @@ export default function AwardsPage() {
     setShowForm(true);
   };
 
-  const openEdit = (a: typeof mockAwards[0]) => {
+  const openEdit = (a: AwardWithName) => {
     setEditId(a.id);
-    setFormData({ employeeId: a.employeeId, awardName: a.awardName, category: a.category, description: a.description, dateAwarded: a.dateAwarded, awardedBy: a.awardedBy });
+    setFormData({ employeeId: a.employeeId, awardName: a.awardName, category: a.category, description: a.description ?? "", dateAwarded: a.dateAwarded, awardedBy: a.awardedBy ?? "" });
     setFormError("");
     setShowForm(true);
   };
@@ -73,17 +76,47 @@ export default function AwardsPage() {
       return;
     }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    showToast("success", editId ? "Award updated successfully." : "Award created successfully.");
-    setShowForm(false);
-    setSaving(false);
+    try {
+      if (editId) {
+        await updateAward(editId, {
+          awardName: formData.awardName,
+          category: formData.category,
+          description: formData.description || undefined,
+          dateAwarded: formData.dateAwarded,
+          awardedBy: formData.awardedBy || undefined,
+        });
+        showToast("success", "Award updated successfully.");
+      } else {
+        await createAward({
+          employeeId: formData.employeeId,
+          awardName: formData.awardName,
+          category: formData.category,
+          description: formData.description || undefined,
+          dateAwarded: formData.dateAwarded,
+          awardedBy: formData.awardedBy || undefined,
+        });
+        showToast("success", "Award created successfully.");
+      }
+      setShowForm(false);
+      await loadAwards();
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : "Failed to save award");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    await new Promise((r) => setTimeout(r, 300));
-    showToast("success", "Award deleted.");
-    setDeleteId(null);
+    try {
+      await deleteAward(deleteId);
+      showToast("success", "Award deleted.");
+      setDeleteId(null);
+      await loadAwards();
+    } catch (e: unknown) {
+      showToast("error", e instanceof Error ? e.message : "Failed to delete award");
+      setDeleteId(null);
+    }
   };
 
   const totalPages = Math.ceil(awards.length / pageSize);
@@ -109,6 +142,10 @@ export default function AwardsPage() {
         }`}>
           {toast.message}
         </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">{error}</div>
       )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">

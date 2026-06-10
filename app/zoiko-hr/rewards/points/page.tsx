@@ -5,47 +5,30 @@ import { Search, Plus, ChevronLeft, ChevronRight, X, WalletCards, TrendingUp, Tr
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
 import StatusBadge from "../../../components/StatusBadge";
-
-const mockBalances = [
-  { id: "1", employeeId: "EMP-001", employeeName: "Sarah Johnson", totalPoints: 4500, usedPoints: 1200, availablePoints: 3300, tier: "PLATINUM" },
-  { id: "2", employeeId: "EMP-042", employeeName: "Michael Chen", totalPoints: 3800, usedPoints: 800, availablePoints: 3000, tier: "GOLD" },
-  { id: "3", employeeId: "EMP-018", employeeName: "Emily Rodriguez", totalPoints: 3200, usedPoints: 1500, availablePoints: 1700, tier: "GOLD" },
-  { id: "4", employeeId: "EMP-027", employeeName: "David Kim", totalPoints: 2900, usedPoints: 900, availablePoints: 2000, tier: "SILVER" },
-  { id: "5", employeeId: "EMP-035", employeeName: "Lisa Thompson", totalPoints: 2500, usedPoints: 500, availablePoints: 2000, tier: "SILVER" },
-  { id: "6", employeeId: "EMP-012", employeeName: "James Wilson", totalPoints: 1800, usedPoints: 600, availablePoints: 1200, tier: "SILVER" },
-  { id: "7", employeeId: "EMP-008", employeeName: "Anna Martinez", totalPoints: 1500, usedPoints: 300, availablePoints: 1200, tier: "BRONZE" },
-  { id: "8", employeeId: "EMP-050", employeeName: "Robert Taylor", totalPoints: 2200, usedPoints: 1000, availablePoints: 1200, tier: "GOLD" },
-  { id: "9", employeeId: "EMP-022", employeeName: "Jennifer Brown", totalPoints: 5000, usedPoints: 2000, availablePoints: 3000, tier: "PLATINUM" },
-  { id: "10", employeeId: "EMP-033", employeeName: "Chris Anderson", totalPoints: 900, usedPoints: 200, availablePoints: 700, tier: "BRONZE" },
-];
-
-const mockTransactions = [
-  { id: "t1", employeeId: "EMP-001", employeeName: "Sarah Johnson", points: 500, type: "EARNED" as const, reason: "Employee of the Month - May 2026", createdAt: "2026-05-15" },
-  { id: "t2", employeeId: "EMP-042", employeeName: "Michael Chen", points: 300, type: "EARNED" as const, reason: "Innovation Star Award", createdAt: "2026-05-10" },
-  { id: "t3", employeeId: "EMP-001", employeeName: "Sarah Johnson", points: 200, type: "REDEEMED" as const, reason: "Gift card redemption", createdAt: "2026-05-08" },
-  { id: "t4", employeeId: "EMP-018", employeeName: "Emily Rodriguez", points: 150, type: "EARNED" as const, reason: "Team Player Award", createdAt: "2026-05-05" },
-  { id: "t5", employeeId: "EMP-035", employeeName: "Lisa Thompson", points: 100, type: "EARNED" as const, reason: "Peer recognition - Helpful teammate", createdAt: "2026-05-03" },
-  { id: "t6", employeeId: "EMP-027", employeeName: "David Kim", points: 75, type: "REDEEMED" as const, reason: "Coffee voucher", createdAt: "2026-05-01" },
-  { id: "t7", employeeId: "EMP-022", employeeName: "Jennifer Brown", points: 1000, type: "EARNED" as const, reason: "Sales Excellence Award", createdAt: "2026-04-28" },
-  { id: "t8", employeeId: "EMP-050", employeeName: "Robert Taylor", points: 200, type: "EARNED" as const, reason: "Mentor of the Quarter", createdAt: "2026-04-25" },
-  { id: "t9", employeeId: "EMP-008", employeeName: "Anna Martinez", points: 100, type: "EXPIRED" as const, reason: "Q1 bonus points expired", createdAt: "2026-04-20" },
-  { id: "t10", employeeId: "EMP-012", employeeName: "James Wilson", points: 50, type: "ADJUSTED" as const, reason: "Manual correction", createdAt: "2026-04-15" },
-];
+import { fetchRewardPointsBalances, fetchRewardPointTransactions, awardPoints, RewardPointBalance, RewardPointTransaction } from "../../../lib/workforce-api";
 
 const tiers = ["BRONZE", "SILVER", "GOLD", "PLATINUM"];
 
+interface BalanceWithName extends RewardPointBalance {
+  employeeName: string;
+}
+
+interface TransactionWithName extends RewardPointTransaction {
+  employeeName: string;
+}
+
 export default function RewardPointsPage() {
   const [activeTab, setActiveTab] = useState<"balances" | "transactions">("balances");
-  const [viewMode, setViewMode] = useState<"table" | "cards">("cards");
 
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("");
   const [page, setPage] = useState(0);
   const pageSize = 25;
 
-  const [balances, setBalances] = useState<typeof mockBalances>([]);
-  const [transactions, setTransactions] = useState<typeof mockTransactions>([]);
+  const [balances, setBalances] = useState<BalanceWithName[]>([]);
+  const [transactions, setTransactions] = useState<TransactionWithName[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const [showForm, setShowForm] = useState(false);
@@ -53,18 +36,40 @@ export default function RewardPointsPage() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const [balRes, txRes] = await Promise.all([
+        fetchRewardPointsBalances({ search: search || undefined, tier: tierFilter || undefined }),
+        fetchRewardPointTransactions({}),
+      ]);
+      setBalances(
+        balRes.data.map((b) => ({
+          ...b,
+          employeeName: b.employee ? `${b.employee.firstName} ${b.employee.lastName}` : b.employeeId,
+        })),
+      );
+      const filteredTx = txRes.data.filter((t) => {
+        if (!search) return true;
+        const name = t.employee ? `${t.employee.firstName} ${t.employee.lastName}` : "";
+        return name.toLowerCase().includes(search.toLowerCase()) || t.reason.toLowerCase().includes(search.toLowerCase());
+      });
+      setTransactions(
+        filteredTx.map((t) => ({
+          ...t,
+          employeeName: t.employee ? `${t.employee.firstName} ${t.employee.lastName}` : t.employeeId,
+        })),
+      );
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setLoading(true);
-    const filtered = mockBalances.filter((b) => {
-      const matchesSearch = !search || b.employeeName.toLowerCase().includes(search.toLowerCase());
-      const matchesTier = !tierFilter || b.tier === tierFilter;
-      return matchesSearch && matchesTier;
-    });
-    const filteredTx = mockTransactions.filter((t) => {
-      const matchesSearch = !search || t.employeeName.toLowerCase().includes(search.toLowerCase()) || t.reason.toLowerCase().includes(search.toLowerCase());
-      return matchesSearch;
-    });
-    setTimeout(() => { setBalances(filtered); setTransactions(filteredTx); setLoading(false); }, 300);
+    loadData();
   }, [search, tierFilter]);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -79,10 +84,20 @@ export default function RewardPointsPage() {
       return;
     }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    showToast("success", "Points awarded successfully.");
-    setShowForm(false);
-    setSaving(false);
+    try {
+      await awardPoints({
+        employeeId: formData.employeeId,
+        points: Number(formData.points),
+        reason: formData.reason,
+      });
+      showToast("success", "Points awarded successfully.");
+      setShowForm(false);
+      await loadData();
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : "Failed to award points");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const currentItems = activeTab === "balances" ? balances : transactions;
@@ -111,6 +126,10 @@ export default function RewardPointsPage() {
         }`}>
           {toast.message}
         </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">{error}</div>
       )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">

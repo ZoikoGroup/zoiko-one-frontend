@@ -1,39 +1,70 @@
 "use client";
 
-import { Award, Trophy, Sparkles, WalletCards, Target, TrendingUp, Users, Gift } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Award, Trophy, Sparkles, WalletCards, Gift } from "lucide-react";
 import SuperAdminShell from "../../components/SuperAdminShell";
 import PageHeader from "../../components/PageHeader";
 import StatusBadge from "../../components/StatusBadge";
-
-const stats = {
-  totalAwardsGiven: 48,
-  activePrograms: 6,
-  totalPointsIssued: 125800,
-  totalAchievementsUnlocked: 112,
-  topPerformers: [
-    { employeeId: "EMP-001", name: "Sarah Johnson", points: 4500, awards: 5 },
-    { employeeId: "EMP-042", name: "Michael Chen", points: 3800, awards: 4 },
-    { employeeId: "EMP-018", name: "Emily Rodriguez", points: 3200, awards: 3 },
-    { employeeId: "EMP-027", name: "David Kim", points: 2900, awards: 3 },
-    { employeeId: "EMP-035", name: "Lisa Thompson", points: 2500, awards: 2 },
-  ],
-};
-
-const recentAwards = [
-  { id: "1", employeeName: "Sarah Johnson", awardName: "Employee of the Month", category: "PERFORMANCE", dateAwarded: "2026-05-15", status: "AWARDED" },
-  { id: "2", employeeName: "Michael Chen", awardName: "Innovation Star", category: "INNOVATION", dateAwarded: "2026-05-10", status: "AWARDED" },
-  { id: "3", employeeName: "Emily Rodriguez", awardName: "Team Player Award", category: "COLLABORATION", dateAwarded: "2026-05-05", status: "AWARDED" },
-  { id: "4", employeeName: "David Kim", awardName: "Leadership Excellence", category: "LEADERSHIP", dateAwarded: "2026-04-28", status: "AWARDED" },
-];
-
-const recentAchievements = [
-  { id: "1", employeeName: "Lisa Thompson", title: "10 Projects Completed", category: "PROJECT_MILESTONE", unlockDate: "2026-05-12", badgeIcon: "trophy" },
-  { id: "2", employeeName: "James Wilson", title: "Perfect Attendance - Q2", category: "ATTENDANCE", unlockDate: "2026-05-01", badgeIcon: "star" },
-  { id: "3", employeeName: "Anna Martinez", title: "Skill Master: React", category: "SKILL_MASTERY", unlockDate: "2026-04-25", badgeIcon: "code" },
-  { id: "4", employeeName: "Robert Taylor", title: "Mentor of the Quarter", category: "MENTORSHIP", unlockDate: "2026-04-15", badgeIcon: "users" },
-];
+import { fetchRewardsDashboard, RewardsDashboardStats } from "../../lib/workforce-api";
 
 export default function RewardsDashboardPage() {
+  const [data, setData] = useState<RewardsDashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await fetchRewardsDashboard();
+        setData(res.data);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <SuperAdminShell>
+        <PageHeader
+          title="Rewards & Recognition"
+          description="Track employee awards, recognition programs, reward points, and achievements across the organization."
+        />
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+        </div>
+      </SuperAdminShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <SuperAdminShell>
+        <PageHeader
+          title="Rewards & Recognition"
+          description="Track employee awards, recognition programs, reward points, and achievements across the organization."
+        />
+        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">{error}</div>
+      </SuperAdminShell>
+    );
+  }
+
+  if (!data) return null;
+
+  const recentAwards = data.recentAwards.map((a) => ({
+    ...a,
+    employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : "",
+  }));
+
+  const recentAchievements = data.topAchievements.map((a) => ({
+    ...a,
+    employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : "",
+  }));
+
   return (
     <SuperAdminShell>
       <PageHeader
@@ -45,10 +76,10 @@ export default function RewardsDashboardPage() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">Overview</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Total Awards Given", value: stats.totalAwardsGiven, icon: <Trophy className="h-6 w-6" />, gradient: "from-amber-600/40 to-amber-900/20" },
-            { label: "Active Programs", value: stats.activePrograms, icon: <Sparkles className="h-6 w-6" />, gradient: "from-violet-600/40 to-violet-900/20" },
-            { label: "Points Issued", value: stats.totalPointsIssued.toLocaleString(), icon: <WalletCards className="h-6 w-6" />, gradient: "from-blue-600/40 to-blue-900/20" },
-            { label: "Achievements Unlocked", value: stats.totalAchievementsUnlocked, icon: <Award className="h-6 w-6" />, gradient: "from-emerald-600/40 to-emerald-900/20" },
+            { label: "Total Awards Given", value: data.totalAwardsGiven, icon: <Trophy className="h-6 w-6" />, gradient: "from-amber-600/40 to-amber-900/20" },
+            { label: "Active Programs", value: data.activePrograms, icon: <Sparkles className="h-6 w-6" />, gradient: "from-violet-600/40 to-violet-900/20" },
+            { label: "Points Issued", value: data.totalPointsIssued.toLocaleString(), icon: <WalletCards className="h-6 w-6" />, gradient: "from-blue-600/40 to-blue-900/20" },
+            { label: "Achievements Unlocked", value: data.totalAchievementsUnlocked, icon: <Award className="h-6 w-6" />, gradient: "from-emerald-600/40 to-emerald-900/20" },
           ].map((card) => (
             <div key={card.label} className={`relative overflow-hidden rounded-[28px] border border-slate-800 bg-[#0b1220] bg-gradient-to-br ${card.gradient} p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)]`}>
               <div className="flex items-center justify-between">
@@ -67,7 +98,7 @@ export default function RewardsDashboardPage() {
             <h2 className="text-lg font-semibold text-white">Top Performers</h2>
           </div>
           <div className="divide-y divide-slate-800">
-            {stats.topPerformers.map((p, i) => (
+            {data.topPerformers.map((p, i) => (
               <div key={p.employeeId} className="flex items-center justify-between px-5 py-3 transition hover:bg-slate-900/80">
                 <div className="flex items-center gap-3">
                   <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${

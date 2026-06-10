@@ -128,7 +128,7 @@ export default function ShiftListPage() {
       setDeleteId(null);
       setToast("Shift deleted successfully.");
       setRefreshKey((k) => k + 1);
-    } catch {}
+    } catch (err) { setToast("Failed to delete shift."); }
     setDeleting(false);
   };
 

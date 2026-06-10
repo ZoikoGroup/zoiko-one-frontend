@@ -1,7 +1,5 @@
 export async function getDashboardData() {
-  const response = await fetch(
-    "http://localhost:3000/api/dashboard"
-  );
+  const response = await fetch("/api/dashboard");
 
   return response.json();
 }

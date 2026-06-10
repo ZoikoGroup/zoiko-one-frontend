@@ -27,9 +27,45 @@ const initialRecords: OnboardingRecord[] = [
 ];
 
 export default function OnboardingPage() {
-  const [records] = useState(initialRecords);
+  const [records, setRecords] = useState(initialRecords);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ employeeName: "", position: "", department: "", buddy: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const openCreate = () => {
+    setFormData({ employeeName: "", position: "", department: "", buddy: "" });
+    setFormError("");
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.employeeName.trim() || !formData.position.trim() || !formData.department.trim()) {
+      setFormError("Employee name, position, and department are required.");
+      return;
+    }
+    setSubmitting(true); setFormError("");
+    try {
+      const newRecord: OnboardingRecord = {
+        id: `ob-${Date.now()}`,
+        employeeName: formData.employeeName.trim(),
+        position: formData.position.trim(),
+        department: formData.department.trim(),
+        startDate: new Date().toISOString().split("T")[0],
+        status: "PENDING",
+        buddy: formData.buddy.trim() || "TBD",
+        tasksCompleted: 0,
+        totalTasks: 8,
+      };
+      setRecords((prev) => [...prev, newRecord]);
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Failed to create onboarding record.");
+    } finally { setSubmitting(false); }
+  };
 
   const filtered = records.filter((r) => {
     const matchesSearch = r.employeeName.toLowerCase().includes(search.toLowerCase()) || r.position.toLowerCase().includes(search.toLowerCase());
@@ -50,6 +86,7 @@ export default function OnboardingPage() {
         action={
           <button
             type="button"
+            onClick={openCreate}
             className="inline-flex items-center gap-2 rounded-3xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
           >
             <UserPlus className="h-4 w-4" /> New Onboarding
@@ -95,7 +132,7 @@ export default function OnboardingPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-slate-350 outline-none transition focus:border-indigo-500"
+              className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-slate-400 outline-none transition focus:border-indigo-500"
             >
               <option value="All">All Statuses</option>
               <option value="PENDING">Pending</option>
@@ -153,6 +190,36 @@ export default function OnboardingPage() {
           </table>
         </div>
       </div>
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowForm(false)}>
+          <div className="w-full max-w-lg rounded-[28px] border border-slate-800 bg-[#0b1220] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="mb-4 text-lg font-semibold text-white">New Onboarding Record</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs text-slate-400">Employee Name *</label>
+                <input type="text" value={formData.employeeName} onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-400">Position *</label>
+                <input type="text" value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-400">Department *</label>
+                <input type="text" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-400">Buddy</label>
+                <input type="text" value={formData.buddy} onChange={(e) => setFormData({ ...formData, buddy: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+              </div>
+              {formError && <p className="text-xs text-rose-400">{formError}</p>}
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-3xl border border-slate-700 px-5 py-2 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
+                <button type="submit" disabled={submitting} className="rounded-3xl bg-indigo-600 px-5 py-2 text-xs text-white hover:bg-indigo-500 disabled:opacity-50">{submitting ? "Saving..." : "Create"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </SuperAdminShell>
   );
 }

@@ -56,7 +56,7 @@ export default function LoginForm() {
   const handleQuickFill = () => {
     setTenantSlug("zoiko-one");
     setEmail("admin@zoiko.one");
-    setPassword("admin123"); // Assuming default seed password is standard, or just pre-filling the fields
+    setPassword("ZoikoAdmin!2026");
   };
 
   return (

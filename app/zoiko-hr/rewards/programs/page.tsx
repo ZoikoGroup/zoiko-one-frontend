@@ -5,24 +5,15 @@ import { Search, Plus, ChevronLeft, ChevronRight, X, Sparkles } from "lucide-rea
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
 import StatusBadge from "../../../components/StatusBadge";
-
-const mockPrograms = [
-  { id: "1", name: "Employee of the Month", description: "Monthly award recognizing outstanding employee contributions", type: "PEER_RECOGNITION", frequency: "MONTHLY", eligibilityCriteria: "All active employees with 6+ months tenure", rewardAmount: 500, status: "ACTIVE", participantCount: 120 },
-  { id: "2", name: "Innovation Spotlight", description: "Quarterly program rewarding innovative ideas and solutions", type: "MANAGER_NOMINATION", frequency: "QUARTERLY", eligibilityCriteria: "All full-time employees", rewardAmount: 1000, status: "ACTIVE", participantCount: 85 },
-  { id: "3", name: "Peer-to-Peer Kudos", description: "Real-time peer recognition with reward points", type: "PEER_RECOGNITION", frequency: "ONGOING", eligibilityCriteria: "All employees", rewardAmount: null, status: "ACTIVE", participantCount: 200 },
-  { id: "4", name: "Leadership Excellence", description: "Annual program for exceptional leadership qualities", type: "MANAGER_NOMINATION", frequency: "YEARLY", eligibilityCriteria: "Employees in management roles with 2+ years", rewardAmount: 2500, status: "ACTIVE", participantCount: 45 },
-  { id: "5", name: "Customer Hero Award", description: "Recognition for exceptional customer service", type: "PEER_RECOGNITION", frequency: "MONTHLY", eligibilityCriteria: "Customer-facing roles", rewardAmount: 300, status: "ACTIVE", participantCount: 60 },
-  { id: "6", name: "Safety Champion", description: "Program promoting workplace safety awareness", type: "AUTO_RECOGNITION", frequency: "QUARTERLY", eligibilityCriteria: "All employees in operations", rewardAmount: 200, status: "ACTIVE", participantCount: 35 },
-  { id: "7", name: "Mentorship Milestone", description: "Recognition for employees who complete mentorship programs", type: "AUTO_RECOGNITION", frequency: "QUARTERLY", eligibilityCriteria: "Mentors and mentees in formal program", rewardAmount: 150, status: "ACTIVE", participantCount: 28 },
-  { id: "8", name: "Sales Excellence Club", description: "Top performers who exceed annual sales targets", type: "MANAGER_NOMINATION", frequency: "YEARLY", eligibilityCriteria: "Sales team members", rewardAmount: 5000, status: "ACTIVE", participantCount: 15 },
-];
+import { fetchRewardsRecognitionPrograms, createRewardsRecognitionProgram, updateRewardsRecognitionProgram, deleteRewardsRecognitionProgram, RewardsRecognitionProgram } from "../../../lib/workforce-api";
 
 const types = ["PEER_RECOGNITION", "MANAGER_NOMINATION", "AUTO_RECOGNITION"];
 const frequencies = ["MONTHLY", "QUARTERLY", "YEARLY", "ONGOING", "ONE_TIME"];
 
 export default function RecognitionProgramsPage() {
-  const [programs, setPrograms] = useState<typeof mockPrograms>([]);
+  const [programs, setPrograms] = useState<RewardsRecognitionProgram[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [page, setPage] = useState(0);
@@ -35,13 +26,21 @@ export default function RecognitionProgramsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const loadPrograms = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await fetchRewardsRecognitionPrograms({ search: search || undefined, type: typeFilter || undefined });
+      setPrograms(res.data);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load programs");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const filtered = mockPrograms.filter((p) => {
-      const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
-      const matchesType = !typeFilter || p.type === typeFilter;
-      return matchesSearch && matchesType;
-    });
-    setTimeout(() => { setPrograms(filtered); setLoading(false); }, 300);
+    loadPrograms();
   }, [search, typeFilter]);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -56,9 +55,9 @@ export default function RecognitionProgramsPage() {
     setShowForm(true);
   };
 
-  const openEdit = (p: typeof mockPrograms[0]) => {
+  const openEdit = (p: RewardsRecognitionProgram) => {
     setEditId(p.id);
-    setFormData({ name: p.name, description: p.description, type: p.type, frequency: p.frequency, eligibilityCriteria: p.eligibilityCriteria, rewardAmount: p.rewardAmount?.toString() ?? "" });
+    setFormData({ name: p.name, description: p.description ?? "", type: p.type, frequency: p.frequency, eligibilityCriteria: p.eligibilityCriteria ?? "", rewardAmount: p.rewardAmount?.toString() ?? "" });
     setFormError("");
     setShowForm(true);
   };
@@ -67,17 +66,48 @@ export default function RecognitionProgramsPage() {
     setFormError("");
     if (!formData.name) { setFormError("Program name is required."); return; }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    showToast("success", editId ? "Program updated successfully." : "Program created successfully.");
-    setShowForm(false);
-    setSaving(false);
+    try {
+      if (editId) {
+        await updateRewardsRecognitionProgram(editId, {
+          name: formData.name,
+          description: formData.description || undefined,
+          type: formData.type,
+          frequency: formData.frequency,
+          eligibilityCriteria: formData.eligibilityCriteria || undefined,
+          rewardAmount: formData.rewardAmount ? Number(formData.rewardAmount) : undefined,
+        });
+        showToast("success", "Program updated successfully.");
+      } else {
+        await createRewardsRecognitionProgram({
+          name: formData.name,
+          description: formData.description || undefined,
+          type: formData.type,
+          frequency: formData.frequency,
+          eligibilityCriteria: formData.eligibilityCriteria || undefined,
+          rewardAmount: formData.rewardAmount ? Number(formData.rewardAmount) : undefined,
+        });
+        showToast("success", "Program created successfully.");
+      }
+      setShowForm(false);
+      await loadPrograms();
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : "Failed to save program");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    await new Promise((r) => setTimeout(r, 300));
-    showToast("success", "Program deleted.");
-    setDeleteId(null);
+    try {
+      await deleteRewardsRecognitionProgram(deleteId);
+      showToast("success", "Program deleted.");
+      setDeleteId(null);
+      await loadPrograms();
+    } catch (e: unknown) {
+      showToast("error", e instanceof Error ? e.message : "Failed to delete program");
+      setDeleteId(null);
+    }
   };
 
   const totalPages = Math.ceil(programs.length / pageSize);
@@ -103,6 +133,10 @@ export default function RecognitionProgramsPage() {
         }`}>
           {toast.message}
         </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">{error}</div>
       )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">

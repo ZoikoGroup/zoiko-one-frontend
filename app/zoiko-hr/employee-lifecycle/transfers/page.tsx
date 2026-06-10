@@ -28,10 +28,46 @@ const initialRecords: TransferRecord[] = [
 ];
 
 export default function TransfersPage() {
-  const [records] = useState(initialRecords);
+  const [records, setRecords] = useState(initialRecords);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ employeeName: "", fromPosition: "", toPosition: "", fromDepartment: "", toDepartment: "", type: "TRANSFER" as TransferRecord["type"] });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const openCreate = () => {
+    setFormData({ employeeName: "", fromPosition: "", toPosition: "", fromDepartment: "", toDepartment: "", type: "TRANSFER" });
+    setFormError("");
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.employeeName.trim() || !formData.toPosition.trim() || !formData.toDepartment.trim()) {
+      setFormError("Employee name, new position, and new department are required.");
+      return;
+    }
+    setSubmitting(true); setFormError("");
+    try {
+      const newRecord: TransferRecord = {
+        id: `tr-${Date.now()}`,
+        employeeName: formData.employeeName.trim(),
+        fromPosition: formData.fromPosition.trim() || "N/A",
+        toPosition: formData.toPosition.trim(),
+        fromDepartment: formData.fromDepartment.trim() || "N/A",
+        toDepartment: formData.toDepartment.trim(),
+        effectiveDate: new Date().toISOString().split("T")[0],
+        type: formData.type,
+        status: "PENDING",
+      };
+      setRecords((prev) => [...prev, newRecord]);
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Failed to create transfer record.");
+    } finally { setSubmitting(false); }
+  };
 
   const filtered = records.filter((r) => {
     const matchesSearch = r.employeeName.toLowerCase().includes(search.toLowerCase()) || r.fromPosition.toLowerCase().includes(search.toLowerCase()) || r.toPosition.toLowerCase().includes(search.toLowerCase());
@@ -53,6 +89,7 @@ export default function TransfersPage() {
         action={
           <button
             type="button"
+            onClick={openCreate}
             className="inline-flex items-center gap-2 rounded-3xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
           >
             <ArrowUpDown className="h-4 w-4" /> New Transfer
@@ -98,7 +135,7 @@ export default function TransfersPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-slate-350 outline-none transition focus:border-indigo-500"
+              className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-slate-400 outline-none transition focus:border-indigo-500"
             >
               <option value="All">All Types</option>
               <option value="PROMOTION">Promotion</option>
@@ -110,7 +147,7 @@ export default function TransfersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-slate-350 outline-none transition focus:border-indigo-500"
+              className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-slate-400 outline-none transition focus:border-indigo-500"
             >
               <option value="All">All Statuses</option>
               <option value="PENDING">Pending</option>
@@ -168,6 +205,52 @@ export default function TransfersPage() {
           </table>
         </div>
       </div>
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowForm(false)}>
+          <div className="w-full max-w-lg rounded-[28px] border border-slate-800 bg-[#0b1220] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="mb-4 text-lg font-semibold text-white">New Transfer Record</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs text-slate-400">Employee Name *</label>
+                <input type="text" value={formData.employeeName} onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">From Position</label>
+                  <input type="text" value={formData.fromPosition} onChange={(e) => setFormData({ ...formData, fromPosition: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">To Position *</label>
+                  <input type="text" value={formData.toPosition} onChange={(e) => setFormData({ ...formData, toPosition: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">From Department</label>
+                  <input type="text" value={formData.fromDepartment} onChange={(e) => setFormData({ ...formData, fromDepartment: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">To Department *</label>
+                  <input type="text" value={formData.toDepartment} onChange={(e) => setFormData({ ...formData, toDepartment: e.target.value })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-400">Type *</label>
+                <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as TransferRecord["type"] })} className="w-full rounded-3xl border border-slate-800 bg-slate-950/60 px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500">
+                  <option value="TRANSFER">Transfer</option>
+                  <option value="PROMOTION">Promotion</option>
+                  <option value="DEMOTION">Demotion</option>
+                </select>
+              </div>
+              {formError && <p className="text-xs text-rose-400">{formError}</p>}
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-3xl border border-slate-700 px-5 py-2 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
+                <button type="submit" disabled={submitting} className="rounded-3xl bg-indigo-600 px-5 py-2 text-xs text-white hover:bg-indigo-500 disabled:opacity-50">{submitting ? "Saving..." : "Create"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </SuperAdminShell>
   );
 }

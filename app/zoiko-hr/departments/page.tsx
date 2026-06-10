@@ -95,7 +95,7 @@ export default function DepartmentListPage() {
       await deleteDepartment(id);
       setDeleteId(null);
       setRefreshKey((k) => k + 1);
-    } catch {}
+    } catch (err) { console.error("Failed to delete department:", err); }
     setDeleting(false);
   };
 

@@ -30,7 +30,7 @@ export default function LeaveRequestDetailPage() {
     try {
       await approveLeaveRequest(requestId, action);
       load();
-    } catch {}
+    } catch (err) { console.error("Failed to approve/reject leave request:", err); }
     setActionLoading(false);
   };
 

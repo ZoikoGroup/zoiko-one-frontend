@@ -5,29 +5,18 @@ import { Search, Plus, ChevronLeft, ChevronRight, X, Target, Gift, Award } from 
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
 import StatusBadge from "../../../components/StatusBadge";
-
-const mockAchievements = [
-  { id: "1", employeeId: "EMP-035", employeeName: "Lisa Thompson", title: "10 Projects Completed", description: "Successfully delivered 10 major projects on time and within budget", category: "PROJECT_MILESTONE", badgeIcon: "trophy", criteria: "Complete 10 approved projects", unlockDate: "2026-05-12", status: "UNLOCKED" },
-  { id: "2", employeeId: "EMP-012", employeeName: "James Wilson", title: "Perfect Attendance - Q2", description: "Maintained perfect attendance record for the entire quarter", category: "ATTENDANCE", badgeIcon: "star", criteria: "No absences or late arrivals in a quarter", unlockDate: "2026-05-01", status: "UNLOCKED" },
-  { id: "3", employeeId: "EMP-008", employeeName: "Anna Martinez", title: "Skill Master: React", description: "Achieved expert-level proficiency in React.js", category: "SKILL_MASTERY", badgeIcon: "code", criteria: "Complete advanced certification with 90%+ score", unlockDate: "2026-04-25", status: "UNLOCKED" },
-  { id: "4", employeeId: "EMP-050", employeeName: "Robert Taylor", title: "Mentor of the Quarter", description: "Recognized as the top mentor for Q1 2026", category: "MENTORSHIP", badgeIcon: "users", criteria: "Complete mentorship program with 5+ mentees", unlockDate: "2026-04-15", status: "UNLOCKED" },
-  { id: "5", employeeId: "EMP-001", employeeName: "Sarah Johnson", title: "3-Year Anniversary", description: "Celebrating 3 years of dedicated service", category: "MILESTONE", badgeIcon: "calendar", criteria: "Complete 3 years of continuous employment", unlockDate: "2026-04-10", status: "UNLOCKED" },
-  { id: "6", employeeId: "EMP-042", employeeName: "Michael Chen", title: "Innovation Guru", description: "Filed 3+ patent applications in a year", category: "INNOVATION", badgeIcon: "lightbulb", criteria: "File 3 or more patent applications", unlockDate: "2026-04-05", status: "UNLOCKED" },
-  { id: "7", employeeId: "EMP-018", employeeName: "Emily Rodriguez", title: "Cross-Functional Star", description: "Successfully collaborated with 5+ different departments", category: "COLLABORATION", badgeIcon: "handshake", criteria: "Complete projects with 5+ departments", unlockDate: "2026-03-28", status: "UNLOCKED" },
-  { id: "8", employeeId: "EMP-027", employeeName: "David Kim", title: "Leadership 101", description: "Completed foundational leadership training program", category: "LEADERSHIP", badgeIcon: "crown", criteria: "Complete all leadership training modules", unlockDate: "2026-03-20", status: "UNLOCKED" },
-  { id: "9", employeeId: "EMP-022", employeeName: "Jennifer Brown", title: "Sales Superstar", description: "Exceeded annual sales target by 45%", category: "PERFORMANCE", badgeIcon: "chart", criteria: "Exceed annual target by 30%+", unlockDate: "2026-03-15", status: "UNLOCKED" },
-  { id: "10", employeeId: "EMP-033", employeeName: "Chris Anderson", title: "Process Optimization Master", description: "Identified and implemented efficiency gains saving 200+ hours", category: "INNOVATION", badgeIcon: "zap", criteria: "Implement process improvements saving 100+ hours", unlockDate: "2026-03-10", status: "UNLOCKED" },
-  { id: "11", employeeId: "EMP-038", employeeName: "Daniel Lee", title: "100% Customer Satisfaction", description: "Maintained perfect customer satisfaction score for 6 months", category: "CUSTOMER_SERVICE", badgeIcon: "heart", criteria: "100% satisfaction score for 6 consecutive months", unlockDate: "2026-03-05", status: "UNLOCKED" },
-  { id: "12", employeeId: "EMP-015", employeeName: "Maria Garcia", title: "DEI Advocate", description: "Led 5+ diversity and inclusion initiatives", category: "CULTURE", badgeIcon: "globe", criteria: "Lead 5 DEI initiatives in a year", unlockDate: "2026-02-28", status: "UNLOCKED" },
-  { id: "13", employeeId: "EMP-020", employeeName: "Kevin Park", title: "Cloud Certification Expert", description: "Obtained 3 cloud certifications (AWS, Azure, GCP)", category: "SKILL_MASTERY", badgeIcon: "cloud", criteria: "Obtain 3 cloud certifications", unlockDate: "2026-02-20", status: "LOCKED" },
-  { id: "14", employeeId: "EMP-045", employeeName: "Rachel Green", title: "New Hire Buddy", description: "Successfully onboarded 10 new hires", category: "MENTORSHIP", badgeIcon: "users", criteria: "Onboard 10 new employees", unlockDate: "2026-02-15", status: "UNLOCKED" },
-];
+import { fetchAchievements, createAchievement, updateAchievement, deleteAchievement, AchievementRecord } from "../../../lib/workforce-api";
 
 const categories = ["PROJECT_MILESTONE", "ATTENDANCE", "SKILL_MASTERY", "MENTORSHIP", "MILESTONE", "INNOVATION", "COLLABORATION", "LEADERSHIP", "PERFORMANCE", "CUSTOMER_SERVICE", "CULTURE"];
 
+interface AchievementWithName extends AchievementRecord {
+  employeeName: string;
+}
+
 export default function AchievementsPage() {
-  const [achievements, setAchievements] = useState<typeof mockAchievements>([]);
+  const [achievements, setAchievements] = useState<AchievementWithName[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -41,14 +30,26 @@ export default function AchievementsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const loadAchievements = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await fetchAchievements({ search: search || undefined, category: categoryFilter || undefined, status: statusFilter || undefined });
+      setAchievements(
+        res.data.map((a) => ({
+          ...a,
+          employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : a.employeeId,
+        })),
+      );
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load achievements");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const filtered = mockAchievements.filter((a) => {
-      const matchesSearch = !search || a.employeeName.toLowerCase().includes(search.toLowerCase()) || a.title.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = !categoryFilter || a.category === categoryFilter;
-      const matchesStatus = !statusFilter || a.status === statusFilter;
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-    setTimeout(() => { setAchievements(filtered); setLoading(false); }, 300);
+    loadAchievements();
   }, [search, categoryFilter, statusFilter]);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -63,9 +64,9 @@ export default function AchievementsPage() {
     setShowForm(true);
   };
 
-  const openEdit = (a: typeof mockAchievements[0]) => {
+  const openEdit = (a: AchievementWithName) => {
     setEditId(a.id);
-    setFormData({ employeeId: a.employeeId, title: a.title, description: a.description, category: a.category, badgeIcon: a.badgeIcon ?? "", criteria: a.criteria ?? "", unlockDate: a.unlockDate });
+    setFormData({ employeeId: a.employeeId, title: a.title, description: a.description ?? "", category: a.category, badgeIcon: a.badgeIcon ?? "", criteria: a.criteria ?? "", unlockDate: a.unlockDate });
     setFormError("");
     setShowForm(true);
   };
@@ -77,17 +78,48 @@ export default function AchievementsPage() {
       return;
     }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    showToast("success", editId ? "Achievement updated successfully." : "Achievement created successfully.");
-    setShowForm(false);
-    setSaving(false);
+    try {
+      if (editId) {
+        await updateAchievement(editId, {
+          title: formData.title,
+          description: formData.description || undefined,
+          category: formData.category,
+          badgeIcon: formData.badgeIcon || undefined,
+          criteria: formData.criteria || undefined,
+        });
+        showToast("success", "Achievement updated successfully.");
+      } else {
+        await createAchievement({
+          employeeId: formData.employeeId,
+          title: formData.title,
+          description: formData.description || undefined,
+          category: formData.category,
+          badgeIcon: formData.badgeIcon || undefined,
+          criteria: formData.criteria || undefined,
+          unlockDate: formData.unlockDate,
+        });
+        showToast("success", "Achievement created successfully.");
+      }
+      setShowForm(false);
+      await loadAchievements();
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : "Failed to save achievement");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    await new Promise((r) => setTimeout(r, 300));
-    showToast("success", "Achievement deleted.");
-    setDeleteId(null);
+    try {
+      await deleteAchievement(deleteId);
+      showToast("success", "Achievement deleted.");
+      setDeleteId(null);
+      await loadAchievements();
+    } catch (e: unknown) {
+      showToast("error", e instanceof Error ? e.message : "Failed to delete achievement");
+      setDeleteId(null);
+    }
   };
 
   const totalPages = Math.ceil(achievements.length / pageSize);
@@ -113,6 +145,10 @@ export default function AchievementsPage() {
         }`}>
           {toast.message}
         </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-2xl bg-rose-500/15 px-5 py-3 text-sm font-medium text-rose-300 border border-rose-500/20">{error}</div>
       )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">

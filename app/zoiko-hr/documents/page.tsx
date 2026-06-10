@@ -61,7 +61,7 @@ export default function DocumentsPage() {
     try {
       await deleteDocument(id);
       setRefreshKey((k) => k + 1);
-    } catch {}
+    } catch (err) { console.error("Failed to delete document:", err); }
     setDeleting(null);
   };
 

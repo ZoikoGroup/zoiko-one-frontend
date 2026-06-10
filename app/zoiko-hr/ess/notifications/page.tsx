@@ -50,8 +50,8 @@ export default function NotificationsPage() {
     try {
       await markNotificationRead(id);
       loadData();
-    } catch {
-      // silently fail
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to mark notification as read.");
     }
   };
 

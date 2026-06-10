@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, AlertTriangle, ArrowUpDown, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Package, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Ticket, Trophy, Undo2, User, UserCheck, UserPlus, Users, UserX, WalletCards, Workflow, UserRoundCheck, Wrench } from "lucide-react";
+import { Activity, AlertTriangle, ArrowUpDown, Award, BadgeCheck, BarChart3, Bell, BookOpen, Briefcase, Building2, Calendar, CalendarCheck, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, Clock, CreditCard, FileCheck2, FileText, Globe, GraduationCap, HeartHandshake, History, LayoutDashboard, Layers, MapPin, MessageSquare, MinusCircle, Network, Phone, Plane, PlusCircle, Receipt, Search, Send, Shield, ShieldCheck, SlidersHorizontal, Sparkles, Tags, Target, Ticket, Trophy, User, UserCheck, UserPlus, UserRoundCheck, Users, UserX, WalletCards, Workflow, Wrench } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -54,7 +54,7 @@ const sections: NavSection[] = [
           },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
-          { label: "Assets", href: "/zoiko-hr/assets", icon: Package },
+{ label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           {
             label: "Leave Management",
             icon: Calendar,
@@ -138,19 +138,6 @@ const sections: NavSection[] = [
             ],
           },
           {
-            label: "Asset Management",
-            icon: Package,
-            children: [
-              { label: "Dashboard", href: "/zoiko-hr/assets", icon: LayoutDashboard },
-              { label: "Inventory", href: "/zoiko-hr/assets/inventory", icon: Package },
-              { label: "Categories", href: "/zoiko-hr/assets/categories", icon: Layers },
-              { label: "Allocation", href: "/zoiko-hr/assets/allocation", icon: ClipboardCheck },
-              { label: "Returns", href: "/zoiko-hr/assets/returns", icon: Undo2 },
-              { label: "Maintenance", href: "/zoiko-hr/assets/maintenance", icon: Wrench },
-              { label: "Reports", href: "/zoiko-hr/assets/reports", icon: SlidersHorizontal },
-            ],
-          },
-          {
             label: "Learning & Development",
             icon: GraduationCap,
             children: [
@@ -188,7 +175,6 @@ const sections: NavSection[] = [
               { label: "My Attendance", href: "/zoiko-hr/ess/my-attendance", icon: Clock },
               { label: "My Leave", href: "/zoiko-hr/ess/my-leave", icon: CalendarCheck },
               { label: "My Documents", href: "/zoiko-hr/ess/my-documents", icon: FileText },
-              { label: "My Assets", href: "/zoiko-hr/ess/my-assets", icon: Package },
               { label: "My Learning", href: "/zoiko-hr/ess/my-learning", icon: BookOpen },
               { label: "My Performance", href: "/zoiko-hr/ess/my-performance", icon: Sparkles },
               { label: "My Payslips", href: "/zoiko-hr/ess/my-payslips", icon: WalletCards },

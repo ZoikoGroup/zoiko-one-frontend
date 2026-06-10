@@ -5,19 +5,19 @@ import { Search } from "lucide-react";
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
 import StatusBadge from "../../../components/StatusBadge";
-import { fetchRecognitionPrograms, type RecognitionProgram } from "../../../lib/workforce-api";
+import { fetchEngagementRecognitionPrograms, type EngagementRecognitionProgram } from "../../../lib/workforce-api";
 
 const AWARD_TYPES = ["All", "EMPLOYEE_OF_MONTH", "TEAM_AWARD", "SPOT_AWARD", "MILESTONE"];
 
 export default function RecognitionProgramsPage() {
-  const [programs, setPrograms] = useState<RecognitionProgram[]>([]);
+  const [programs, setPrograms] = useState<EngagementRecognitionProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [awardFilter, setAwardFilter] = useState("All");
 
   useEffect(() => {
     let cancelled = false;
-    fetchRecognitionPrograms()
+    fetchEngagementRecognitionPrograms()
       .then((res) => { if (!cancelled) { setPrograms(res.data); setLoading(false); } })
       .catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

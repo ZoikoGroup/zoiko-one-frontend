@@ -1,6 +1,6 @@
 "use client";
 
-import { HelpCircle, Loader2, Menu } from "lucide-react";
+import { HelpCircle, Menu } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
@@ -26,13 +26,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="hidden items-center gap-3 xl:flex">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-200 transition hover:border-slate-700 hover:bg-slate-900"
-          >
-            <Loader2 className="h-4 w-4 text-slate-400" />
-            Refresh data
-          </button>
           <button
             type="button"
             className="inline-flex items-center gap-2 rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-200 transition hover:border-slate-700 hover:bg-slate-900"

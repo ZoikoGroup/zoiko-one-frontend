@@ -242,6 +242,7 @@ export async function fetchInterviews(filters?: {
   jobId?: string;
   interviewerId?: string;
   status?: string;
+  search?: string;
   skip?: number;
   take?: number;
 }): Promise<{ data: Interview[]; total: number; skip: number; take: number }> {
@@ -250,6 +251,7 @@ export async function fetchInterviews(filters?: {
     jobId: filters?.jobId,
     interviewerId: filters?.interviewerId,
     status: filters?.status,
+    search: filters?.search,
     skip: filters?.skip,
     take: filters?.take,
   });
@@ -275,10 +277,10 @@ export async function createInterview(body: {
   });
 }
 
-export async function updateInterviewStatus(id: string, status: InterviewStatus, feedback?: string): Promise<{ data: Interview }> {
+export async function updateInterviewStatus(id: string, status: InterviewStatus, feedback?: string, rating?: number): Promise<{ data: Interview }> {
   return apiFetch<{ data: Interview }>(`${BASE}/interviews/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status, feedback }),
+    body: JSON.stringify({ status, feedback, rating }),
   });
 }
 
@@ -288,6 +290,7 @@ export async function fetchOffers(filters?: {
   candidateId?: string;
   jobId?: string;
   status?: string;
+  search?: string;
   skip?: number;
   take?: number;
 }): Promise<{ data: Offer[]; total: number; skip: number; take: number }> {
@@ -295,6 +298,7 @@ export async function fetchOffers(filters?: {
     candidateId: filters?.candidateId,
     jobId: filters?.jobId,
     status: filters?.status,
+    search: filters?.search,
     skip: filters?.skip,
     take: filters?.take,
   });

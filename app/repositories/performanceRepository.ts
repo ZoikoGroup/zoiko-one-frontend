@@ -42,7 +42,7 @@ export interface FeedbackFilters {
 function buildCycleWhere(tenantId: string, organizationId: string, filters?: CycleFilters) {
   const where: Prisma.PerformanceCycleWhereInput = { tenantId, organizationId, deletedAt: null };
   if (filters?.search) {
-    where.name = { contains: filters.search, mode: "insensitive" };
+    where.name = { contains: filters.search };
   }
   if (filters?.status) where.status = filters.status as never;
   if (filters?.type) where.type = filters.type as never;
@@ -52,7 +52,7 @@ function buildCycleWhere(tenantId: string, organizationId: string, filters?: Cyc
 function buildGoalWhere(tenantId: string, organizationId: string, filters?: GoalFilters) {
   const where: Prisma.GoalWhereInput = { tenantId, organizationId, deletedAt: null };
   if (filters?.search) {
-    where.title = { contains: filters.search, mode: "insensitive" };
+    where.title = { contains: filters.search };
   }
   if (filters?.status) where.status = filters.status as never;
   if (filters?.progressStatus) where.progressStatus = filters.progressStatus as never;
@@ -68,9 +68,9 @@ function buildReviewWhere(tenantId: string, organizationId: string, filters?: Re
   if (filters?.search) {
     where.employee = {
       OR: [
-        { firstName: { contains: filters.search, mode: "insensitive" } },
-        { lastName: { contains: filters.search, mode: "insensitive" } },
-        { employeeId: { contains: filters.search, mode: "insensitive" } },
+        { firstName: { contains: filters.search } },
+        { lastName: { contains: filters.search } },
+        { employeeId: { contains: filters.search } },
       ],
     };
   }
@@ -84,7 +84,7 @@ function buildReviewWhere(tenantId: string, organizationId: string, filters?: Re
 function buildFeedbackWhere(tenantId: string, organizationId: string, filters?: FeedbackFilters) {
   const where: Prisma.FeedbackWhereInput = { tenantId, organizationId, deletedAt: null };
   if (filters?.search) {
-    where.content = { contains: filters.search, mode: "insensitive" };
+    where.content = { contains: filters.search };
   }
   if (filters?.employeeId) where.employeeId = filters.employeeId;
   if (filters?.giverId) where.giverId = filters.giverId;
@@ -164,7 +164,7 @@ export const performanceRepository = {
   async findTemplates(tenantId: string, organizationId: string, options?: PaginationOptions & { filters?: { search?: string } }) {
     const where: Prisma.ReviewTemplateWhereInput = { tenantId, organizationId, deletedAt: null };
     if (options?.filters?.search) {
-      where.name = { contains: options.filters.search, mode: "insensitive" };
+      where.name = { contains: options.filters.search };
     }
     return prisma.reviewTemplate.findMany({
       where,

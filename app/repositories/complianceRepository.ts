@@ -17,8 +17,8 @@ export class ComplianceRepository {
     const where: PolicyWhere = { tenantId, deletedAt: null };
     if (filters?.search) {
       where.OR = [
-        { policyName: { contains: filters.search, mode: "insensitive" } },
-        { description: { contains: filters.search, mode: "insensitive" } },
+        { policyName: { contains: filters.search } },
+        { description: { contains: filters.search } },
       ];
     }
     if (filters?.category) where.category = filters.category;
@@ -36,8 +36,8 @@ export class ComplianceRepository {
     const where: PolicyWhere = { tenantId, deletedAt: null };
     if (options.filters?.search) {
       where.OR = [
-        { policyName: { contains: options.filters.search, mode: "insensitive" } },
-        { description: { contains: options.filters.search, mode: "insensitive" } },
+        { policyName: { contains: options.filters.search } },
+        { description: { contains: options.filters.search } },
       ];
     }
     if (options.filters?.category) where.category = options.filters.category;
@@ -54,7 +54,7 @@ export class ComplianceRepository {
     return prisma.policy.findFirst({ where: { id, tenantId, deletedAt: null } });
   }
 
-  async createPolicy(data: Prisma.PolicyCreateInput) {
+  async createPolicy(data: Prisma.PolicyUncheckedCreateInput) {
     return prisma.policy.create({ data });
   }
 
@@ -75,8 +75,8 @@ export class ComplianceRepository {
     const where: PolicyCategoryWhere = { tenantId, deletedAt: null };
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { name: { contains: search } },
+        { description: { contains: search } },
       ];
     }
     return prisma.policyCategory.count({ where });
@@ -86,8 +86,8 @@ export class ComplianceRepository {
     const where: PolicyCategoryWhere = { tenantId, deletedAt: null };
     if (options.search) {
       where.OR = [
-        { name: { contains: options.search, mode: "insensitive" } },
-        { description: { contains: options.search, mode: "insensitive" } },
+        { name: { contains: options.search } },
+        { description: { contains: options.search } },
       ];
     }
     return prisma.policyCategory.findMany({
@@ -102,7 +102,7 @@ export class ComplianceRepository {
     return prisma.policyCategory.findFirst({ where: { id, tenantId, deletedAt: null } });
   }
 
-  async createPolicyCategory(data: Prisma.PolicyCategoryCreateInput) {
+  async createPolicyCategory(data: Prisma.PolicyCategoryUncheckedCreateInput) {
     return prisma.policyCategory.create({ data });
   }
 
@@ -116,8 +116,8 @@ export class ComplianceRepository {
     const where: ComplianceRequirementWhere = { tenantId, deletedAt: null };
     if (filters?.search) {
       where.OR = [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { description: { contains: filters.search, mode: "insensitive" } },
+        { title: { contains: filters.search } },
+        { description: { contains: filters.search } },
       ];
     }
     if (filters?.status) where.status = filters.status as any;
@@ -135,8 +135,8 @@ export class ComplianceRepository {
     const where: ComplianceRequirementWhere = { tenantId, deletedAt: null };
     if (options.filters?.search) {
       where.OR = [
-        { title: { contains: options.filters.search, mode: "insensitive" } },
-        { description: { contains: options.filters.search, mode: "insensitive" } },
+        { title: { contains: options.filters.search } },
+        { description: { contains: options.filters.search } },
       ];
     }
     if (options.filters?.status) where.status = options.filters.status as any;
@@ -153,7 +153,7 @@ export class ComplianceRepository {
     return prisma.complianceRequirement.findFirst({ where: { id, tenantId, deletedAt: null } });
   }
 
-  async createRequirement(data: Prisma.ComplianceRequirementCreateInput) {
+  async createRequirement(data: Prisma.ComplianceRequirementUncheckedCreateInput) {
     return prisma.complianceRequirement.create({ data });
   }
 
@@ -165,7 +165,7 @@ export class ComplianceRepository {
 
   async countAudits(tenantId: string, filters?: { search?: string; auditType?: string; status?: string }) {
     const where: ComplianceAuditWhere = { tenantId, deletedAt: null };
-    if (filters?.search) where.auditName = { contains: filters.search, mode: "insensitive" };
+    if (filters?.search) where.auditName = { contains: filters.search };
     if (filters?.auditType) where.auditType = filters.auditType;
     if (filters?.status) where.status = filters.status as any;
     return prisma.complianceAudit.count({ where });
@@ -179,7 +179,7 @@ export class ComplianceRepository {
     }
   ) {
     const where: ComplianceAuditWhere = { tenantId, deletedAt: null };
-    if (options.filters?.search) where.auditName = { contains: options.filters.search, mode: "insensitive" };
+    if (options.filters?.search) where.auditName = { contains: options.filters.search };
     if (options.filters?.auditType) where.auditType = options.filters.auditType;
     if (options.filters?.status) where.status = options.filters.status as any;
     return prisma.complianceAudit.findMany({
@@ -194,7 +194,7 @@ export class ComplianceRepository {
     return prisma.complianceAudit.findFirst({ where: { id, tenantId, deletedAt: null } });
   }
 
-  async createAudit(data: Prisma.ComplianceAuditCreateInput) {
+  async createAudit(data: Prisma.ComplianceAuditUncheckedCreateInput) {
     return prisma.complianceAudit.create({ data });
   }
 
@@ -208,9 +208,9 @@ export class ComplianceRepository {
     const where: PolicyViolationWhere = { tenantId, deletedAt: null };
     if (filters?.search) {
       where.OR = [
-        { description: { contains: filters.search, mode: "insensitive" } },
-        { policy: { policyName: { contains: filters.search, mode: "insensitive" } } },
-        { employee: { firstName: { contains: filters.search, mode: "insensitive" } } },
+        { description: { contains: filters.search } },
+        { policy: { policyName: { contains: filters.search } } },
+        { employee: { firstName: { contains: filters.search } } },
       ];
     }
     if (filters?.severity) where.severity = filters.severity as any;
@@ -228,9 +228,9 @@ export class ComplianceRepository {
     const where: PolicyViolationWhere = { tenantId, deletedAt: null };
     if (options.filters?.search) {
       where.OR = [
-        { description: { contains: options.filters.search, mode: "insensitive" } },
-        { policy: { policyName: { contains: options.filters.search, mode: "insensitive" } } },
-        { employee: { firstName: { contains: options.filters.search, mode: "insensitive" } } },
+        { description: { contains: options.filters.search } },
+        { policy: { policyName: { contains: options.filters.search } } },
+        { employee: { firstName: { contains: options.filters.search } } },
       ];
     }
     if (options.filters?.severity) where.severity = options.filters.severity as any;
@@ -267,8 +267,8 @@ export class ComplianceRepository {
     const where: CorrectiveActionWhere = { tenantId, deletedAt: null };
     if (filters?.search) {
       where.OR = [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { description: { contains: filters.search, mode: "insensitive" } },
+        { title: { contains: filters.search } },
+        { description: { contains: filters.search } },
       ];
     }
     if (filters?.status) where.status = filters.status as any;
@@ -286,8 +286,8 @@ export class ComplianceRepository {
     const where: CorrectiveActionWhere = { tenantId, deletedAt: null };
     if (options.filters?.search) {
       where.OR = [
-        { title: { contains: options.filters.search, mode: "insensitive" } },
-        { description: { contains: options.filters.search, mode: "insensitive" } },
+        { title: { contains: options.filters.search } },
+        { description: { contains: options.filters.search } },
       ];
     }
     if (options.filters?.status) where.status = options.filters.status as any;
@@ -304,7 +304,7 @@ export class ComplianceRepository {
     return prisma.correctiveAction.findFirst({ where: { id, tenantId, deletedAt: null } });
   }
 
-  async createCorrectiveAction(data: Prisma.CorrectiveActionCreateInput) {
+  async createCorrectiveAction(data: Prisma.CorrectiveActionUncheckedCreateInput) {
     return prisma.correctiveAction.create({ data });
   }
 
@@ -318,8 +318,8 @@ export class ComplianceRepository {
     const where: PolicyAcknowledgementWhere = { tenantId, deletedAt: null };
     if (filters?.search) {
       where.OR = [
-        { employee: { firstName: { contains: filters.search, mode: "insensitive" } } },
-        { policy: { policyName: { contains: filters.search, mode: "insensitive" } } },
+        { employee: { firstName: { contains: filters.search } } },
+        { policy: { policyName: { contains: filters.search } } },
       ];
     }
     if (filters?.status) where.status = filters.status as any;
@@ -336,8 +336,8 @@ export class ComplianceRepository {
     const where: PolicyAcknowledgementWhere = { tenantId, deletedAt: null };
     if (options.filters?.search) {
       where.OR = [
-        { employee: { firstName: { contains: options.filters.search, mode: "insensitive" } } },
-        { policy: { policyName: { contains: options.filters.search, mode: "insensitive" } } },
+        { employee: { firstName: { contains: options.filters.search } } },
+        { policy: { policyName: { contains: options.filters.search } } },
       ];
     }
     if (options.filters?.status) where.status = options.filters.status as any;
@@ -359,8 +359,8 @@ export class ComplianceRepository {
     const where: TrainingComplianceWhere = { tenantId, deletedAt: null };
     if (filters?.search) {
       where.OR = [
-        { trainingModule: { contains: filters.search, mode: "insensitive" } },
-        { employee: { firstName: { contains: filters.search, mode: "insensitive" } } },
+        { trainingModule: { contains: filters.search } },
+        { employee: { firstName: { contains: filters.search } } },
       ];
     }
     if (filters?.status) where.status = filters.status as any;
@@ -377,8 +377,8 @@ export class ComplianceRepository {
     const where: TrainingComplianceWhere = { tenantId, deletedAt: null };
     if (options.filters?.search) {
       where.OR = [
-        { trainingModule: { contains: options.filters.search, mode: "insensitive" } },
-        { employee: { firstName: { contains: options.filters.search, mode: "insensitive" } } },
+        { trainingModule: { contains: options.filters.search } },
+        { employee: { firstName: { contains: options.filters.search } } },
       ];
     }
     if (options.filters?.status) where.status = options.filters.status as any;
@@ -479,17 +479,17 @@ export class ComplianceRepository {
   async getDepartmentCompliance(tenantId: string) {
     const violations = await prisma.policyViolation.findMany({
       where: { tenantId, deletedAt: null },
-      include: { employee: { include: { department: { select: { name: true } } } } },
+      include: { employee: { include: { employmentRecords: { where: { expiresAt: null }, select: { department: { select: { name: true } } } } } } },
     });
     const deptMap = new Map<string, number>();
     const totalMap = new Map<string, number>();
     for (const v of violations) {
-      const dept = v.employee?.department?.name ?? "Unknown";
+      const dept = v.employee?.employmentRecords?.[0]?.department?.name ?? "Unknown";
       deptMap.set(dept, (deptMap.get(dept) ?? 0) + 1);
     }
-    const allDepts = await prisma.department.findMany({ where: { tenantId }, select: { name: true, _count: { select: { employees: true } } } });
+    const allDepts = await prisma.department.findMany({ where: { tenantId }, select: { name: true, _count: { select: { employmentRecords: true } } } });
     for (const d of allDepts) {
-      totalMap.set(d.name, d._count.employees);
+      totalMap.set(d.name, d._count.employmentRecords);
     }
     return Array.from(totalMap.entries()).map(([department, total]) => {
       const vCount = deptMap.get(department) ?? 0;

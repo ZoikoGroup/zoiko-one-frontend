@@ -506,7 +506,7 @@ export async function getTimeToHire() {
   const ctx = await getCurrentSecurityContext();
   if (!ctx) throw new AuthorizationError("Unauthorized.", 401);
 
-  return { averageDays: await recruitmentRepository.getAvgTimeToHire(ctx.tenantId) };
+  return [{ month: "All", days: await recruitmentRepository.getAvgTimeToHire(ctx.tenantId) }];
 }
 
 export async function getSourceEffectiveness() {

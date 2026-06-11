@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
-import { fetchShifts, type ShiftRecord } from "../../../lib/workforce-api";
+import { fetchShifts, createShift, updateShift, deleteShift, type ShiftRecord } from "../../../lib/workforce-api";
 
 export default function ShiftsPage() {
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
@@ -13,6 +13,17 @@ export default function ShiftsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const pageSize = 20;
+
+  const [toast, setToast] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const defaultForm = { name: "", startTime: "", endTime: "", gracePeriod: "", weeklyOff: [] as string[] };
+  const [formData, setFormData] = useState(defaultForm);
 
   useEffect(() => {
     if (!toast) return;
@@ -31,7 +42,7 @@ export default function ShiftsPage() {
       .then((res) => {
         setShifts(res.data);
         setTotal(res.total);
-        setLoaded(true);
+        setLoading(false);
       })
       .catch(() => {});
   }, [search, page, refreshKey]);

@@ -4,11 +4,15 @@ export default function NotificationBell() {
   return (
     <button
       type="button"
-      className="relative inline-flex h-12 w-12 items-center justify-center rounded-3xl border border-slate-800 bg-slate-950 text-slate-200 transition hover:border-slate-700 hover:bg-slate-900"
+      className="header-btn relative inline-flex h-12 w-12 items-center justify-center"
       aria-label="View notifications"
+      id="notification-bell"
     >
-      <Bell className="h-5 w-5" />
-      <span className="absolute right-2 top-2 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 ring-1 ring-slate-950" />
+      <Bell className="header-icon h-5 w-5" />
+      <span
+        className="absolute right-2 top-2 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400"
+        style={{ boxShadow: "0 0 0 2px var(--bg-surface)" }}
+      />
     </button>
   );
 }

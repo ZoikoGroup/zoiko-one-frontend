@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Tenant {
@@ -3367,7 +3367,7 @@ model Interview {
   tenantId       String
   candidateId    String
   jobOpeningId   String
-  interviewers   String[]
+  interviewers   Json
   type           String
   scheduledAt    DateTime
   durationMin    Int?

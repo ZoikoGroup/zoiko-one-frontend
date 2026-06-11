@@ -54,7 +54,7 @@ const sections: NavSection[] = [
           },
           { label: "Departments", href: "/zoiko-hr/departments", icon: Building2 },
           { label: "Designations", href: "/zoiko-hr/designations", icon: BadgeCheck },
-{ label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
+          { label: "Documents", href: "/zoiko-hr/documents", icon: FileText },
           {
             label: "Leave Management",
             icon: Calendar,
@@ -325,16 +325,14 @@ function NavLink({
     return (
       <Link
         href={item.href!}
-        className={`flex items-center justify-between gap-3 rounded-3xl px-4 py-3 text-sm transition ${
-          active ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900 hover:text-white"
-        }`}
+        className={`sidebar-nav-link flex items-center justify-between gap-3 px-4 py-3 text-sm ${active ? "active" : ""}`}
         onClick={onClose}
       >
         <span className="flex items-center gap-3">
-          <item.icon className="h-4 w-4 text-slate-400" />
+          <item.icon className={`nav-icon h-4 w-4 ${active ? "text-[var(--primary)]" : ""}`} />
           {item.label}
         </span>
-        {item.badge ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">{item.badge}</span> : null}
+        {item.badge ? <span className="sidebar-badge">{item.badge}</span> : null}
       </Link>
     );
   }
@@ -344,23 +342,25 @@ function NavLink({
       <button
         type="button"
         onClick={() => setOpen((c) => !c)}
-        className={`flex w-full items-center justify-between gap-3 rounded-3xl px-4 py-3 text-left text-sm transition ${
-          active || hasActiveChild(pathname, item.children)
-            ? "bg-slate-900 text-white"
-            : "text-slate-300 hover:bg-slate-900 hover:text-white"
+        className={`sidebar-nav-link flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm ${
+          active || hasActiveChild(pathname, item.children) ? "active" : ""
         }`}
       >
         <span className="flex items-center gap-3">
-          <item.icon className="h-4 w-4 text-slate-400" />
+          <item.icon className="nav-icon h-4 w-4" />
           {item.label}
         </span>
         <span className="flex items-center gap-2">
-          {item.badge ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] uppercase tracking-[0.24em] text-slate-400">{item.badge}</span> : null}
-          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {item.badge ? <span className="sidebar-badge">{item.badge}</span> : null}
+          {open ? (
+            <ChevronDown className="h-4 w-4" style={{ color: "var(--icon-default)" }} />
+          ) : (
+            <ChevronRight className="h-4 w-4" style={{ color: "var(--icon-default)" }} />
+          )}
         </span>
       </button>
       <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-[2000px]" : "max-h-0"}`}>
-        <div className={`space-y-1 ${depth === 0 ? "pl-3" : ""}`}>
+        <div className={`space-y-0.5 ${depth === 0 ? "pl-3" : ""}`}>
           {item.children!.map((child) => (
             <NavLink key={child.label} item={child} pathname={pathname} depth={depth + 1} onClose={onClose} />
           ))}
@@ -376,36 +376,57 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   return (
     <>
-      <div className={`fixed inset-0 z-30 bg-slate-950/70 transition-opacity ${open ? "opacity-100" : "pointer-events-none opacity-0"}`} onClick={onClose} />
+      {/* Mobile overlay */}
+      <div
+        className={`sidebar-overlay fixed inset-0 z-30 transition-opacity ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        onClick={onClose}
+      />
 
-      <aside className={`fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-slate-800 bg-[#0B1220] p-5 shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
-        <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <aside
+        className={`sidebar-root fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto p-5 shadow-2xl transition-transform duration-300 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        {/* Logo / Branding */}
+        <div className="sidebar-header-border flex items-center justify-between gap-4 pb-5">
           <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-slate-500">Zoiko One</p>
-            <h2 className="mt-1 text-2xl font-semibold text-white">Super Admin</h2>
+            <p className="sidebar-logo-label text-xs uppercase tracking-[0.32em]">Zoiko One</p>
+            <h2 className="sidebar-logo-title mt-1 text-2xl font-semibold">Super Admin</h2>
           </div>
-          <button type="button" className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}>
+          <button
+            type="button"
+            className="lg:hidden"
+            onClick={onClose}
+            style={{ color: "var(--text-muted)" }}
+          >
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
 
+        {/* Navigation */}
         <div className="mt-6 space-y-7">
           {sections.map((section) => (
             <div key={section.title}>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">{section.title}</h3>
+              <h3 className="sidebar-section-title text-xs font-semibold uppercase tracking-[0.32em]">
+                {section.title}
+              </h3>
               <div className="mt-3 space-y-1">
                 {section.title === "PRODUCTS" ? (
-                  <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/90">
+                  <div className="sidebar-product-panel">
                     <button
                       type="button"
                       onClick={() => setProductOpen((current) => !current)}
-                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-slate-900"
+                      className="sidebar-product-panel-header flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm"
                     >
                       <span>Product Management</span>
-                      {productOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {productOpen ? (
+                        <ChevronDown className="h-4 w-4" style={{ color: "var(--icon-default)" }} />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" style={{ color: "var(--icon-default)" }} />
+                      )}
                     </button>
                     <div className={`overflow-hidden transition-[max-height] duration-300 ${productOpen ? "max-h-[10000px]" : "max-h-0"}`}>
-                      <div className="space-y-1 p-1">
+                      <div className="space-y-0.5 p-1">
                         {section.items.map((item) => (
                           <NavLink key={item.label} item={item} pathname={pathname} depth={0} onClose={onClose} />
                         ))}
@@ -422,22 +443,26 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           ))}
         </div>
 
-        <div className="mt-8 rounded-3xl border border-slate-800 bg-slate-950/95 p-4">
+        {/* User card */}
+        <div className="sidebar-user-card mt-8 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-800 text-slate-200">SA</div>
+            <div className="sidebar-user-avatar flex h-12 w-12 items-center justify-center rounded-3xl text-sm font-semibold">
+              SA
+            </div>
             <div>
-              <p className="text-sm font-semibold text-white">Super Admin</p>
-              <p className="text-xs uppercase tracking-[0.32em] text-slate-500">Platform Owner</p>
+              <p className="sidebar-user-name text-sm font-semibold">Super Admin</p>
+              <p className="sidebar-user-role text-xs uppercase tracking-[0.32em]">Platform Owner</p>
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-2">
-            <span className="rounded-3xl bg-slate-900 px-3 py-2 text-xs text-slate-300">Active since 2025</span>
-            <span className="rounded-3xl bg-slate-900 px-3 py-2 text-xs text-slate-300">Last login 2h ago</span>
+            <span className="sidebar-user-badge">Active since 2025</span>
+            <span className="sidebar-user-badge">Last login 2h ago</span>
           </div>
         </div>
 
-        <form action="/api/auth/logout" method="post" className="mt-6 border-t border-slate-800 pt-6">
-          <button type="submit" className="flex w-full items-center justify-center gap-3 rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-slate-900 hover:text-white">
+        {/* Logout */}
+        <form action="/api/auth/logout" method="post" className="mt-6 border-t pt-6" style={{ borderColor: "var(--border-default)" }}>
+          <button type="submit" className="sidebar-logout-btn">
             Logout
           </button>
         </form>

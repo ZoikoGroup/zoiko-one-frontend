@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { withPermission } from "../../_security";
-import { listInterviews, createInterview } from "@/app/services/recruitmentService";
+import { listInterviews, scheduleInterview } from "@/app/services/recruitmentService";
 
 export const dynamic = "force-dynamic";
 
@@ -22,27 +22,25 @@ export const POST = withPermission("workforce.*", async function POST(request: N
   const body = (await request.json()) as {
     organizationId?: string;
     candidateId?: string;
-    jobId?: string;
-    interviewerId?: string;
+    jobOpeningId?: string;
+    interviewers?: string[];
     scheduledAt?: string;
     type?: string;
-    duration?: number;
+    durationMin?: number;
     location?: string;
     meetingLink?: string;
-    notes?: string;
   };
 
-  const interview = await createInterview({
+  const interview = await scheduleInterview({
     organizationId: body.organizationId,
-    candidateId: body.candidateId,
-    jobId: body.jobId,
-    interviewerId: body.interviewerId,
-    scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
-    type: body.type,
-    duration: body.duration,
+    candidateId: body.candidateId ?? "",
+    jobOpeningId: body.jobOpeningId ?? "",
+    interviewers: body.interviewers ?? [],
+    scheduledAt: body.scheduledAt ?? new Date().toISOString(),
+    type: body.type ?? "PHONE",
+    durationMin: body.durationMin,
     location: body.location,
     meetingLink: body.meetingLink,
-    notes: body.notes,
   });
 
   return Response.json({ data: interview }, { status: 201 });

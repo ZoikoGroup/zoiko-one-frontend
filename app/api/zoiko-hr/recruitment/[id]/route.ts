@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { withPermission } from "../../_security";
-import { getJob, updateJob, closeJob } from "@/app/services/recruitmentService";
+import { getJob, updateJob, closeJob, reopenJob } from "@/app/services/recruitmentService";
 
 export const dynamic = "force-dynamic";
 
@@ -58,9 +58,12 @@ export const PATCH = withPermission("workforce.*", async function PATCH(
 ) {
   const body = (await request.json()) as { action?: string };
   switch (body.action) {
-    case "close":
+    case "close": {
+      const job = await closeJob(params.id, "Closed by user");
+      return Response.json({ data: job });
+    }
     case "reopen": {
-      const job = await closeJob(params.id, body.action === "close");
+      const job = await reopenJob(params.id);
       return Response.json({ data: job });
     }
     default:

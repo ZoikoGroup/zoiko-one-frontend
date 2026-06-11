@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { withPermission } from "../../_security";
-import { listCandidates, createCandidate } from "@/app/services/recruitmentService";
+import { listCandidates, updateCandidateStage } from "@/app/services/recruitmentService";
 
 export const dynamic = "force-dynamic";
 
@@ -19,32 +19,17 @@ export const GET = withPermission("workforce.*", async function GET(request: Nex
   return Response.json(result);
 });
 
-export const POST = withPermission("workforce.*", async function POST(request: NextRequest) {
+export const PATCH = withPermission("workforce.*", async function PATCH(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const candidateId = searchParams.get("id");
+  if (!candidateId) {
+    return Response.json({ error: "Missing candidate ID" }, { status: 400 });
+  }
+
   const body = (await request.json()) as {
-    organizationId?: string;
-    jobId?: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    resumeUrl?: string;
-    coverLetter?: string;
-    source?: string;
-    stage?: string;
+    stage: string;
   };
 
-  const candidate = await createCandidate({
-    organizationId: body.organizationId,
-    jobId: body.jobId,
-    firstName: body.firstName,
-    lastName: body.lastName,
-    email: body.email,
-    phone: body.phone,
-    resumeUrl: body.resumeUrl,
-    coverLetter: body.coverLetter,
-    source: body.source,
-    stage: body.stage,
-  });
-
-  return Response.json({ data: candidate }, { status: 201 });
+  const candidate = await updateCandidateStage(candidateId, body.stage);
+  return Response.json({ data: candidate }, { status: 200 });
 });

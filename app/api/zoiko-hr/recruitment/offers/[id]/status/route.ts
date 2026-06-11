@@ -14,6 +14,6 @@ export const PATCH = withPermission("workforce.*", async function PATCH(
     return Response.json({ error: "status is required" }, { status: 400 });
   }
 
-  const offer = await updateOfferStatus(params.id, body.status, body.rejectionReason);
+  const offer = await updateOfferStatus(params.id, body.status,);
   return Response.json({ data: offer });
 });

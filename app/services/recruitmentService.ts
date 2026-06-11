@@ -227,6 +227,30 @@ export async function closeJob(id: string, reason?: string) {
   return { ok: true };
 }
 
+export async function reopenJob(id: string) {
+  const ctx = await getCurrentSecurityContext();
+  if (!ctx) throw new AuthorizationError("Unauthorized.", 401);
+
+  const existing = await recruitmentRepository.findJobById(ctx.tenantId, id);
+  if (!existing) throw new AuthorizationError("Job opening not found.", 404);
+
+  const job = await prisma.jobOpening.update({
+    where: { id },
+    data: { deletedAt: null, deletedBy: null, deletionReason: null, updatedBy: ctx.userId },
+  });
+
+  await writeAudit({
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: "Job opening reopened",
+    resourceType: "JobOpening",
+    resourceId: id,
+    resourceName: existing.title,
+  });
+
+  return job;
+}
+
 // ── Candidates ──
 
 export async function listCandidates(options?: CandidateListOptions & { tenantId?: string }) {

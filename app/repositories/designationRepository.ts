@@ -133,8 +133,8 @@ export class DesignationRepository {
     if (!filters) return where;
     if (filters.search) {
       where.OR = [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { code: { contains: filters.search, mode: "insensitive" } },
+        { title: { contains: filters.search } },
+        { code: { contains: filters.search } },
       ];
     }
     if (filters.status) where.status = filters.status;

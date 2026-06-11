@@ -2675,6 +2675,8 @@ export interface RecognitionProgram {
   updatedAt: string;
 }
 
+export type RewardsRecognitionProgram = RecognitionProgram;
+
 export interface RewardPointBalance {
   id: string;
   employeeId: string;
@@ -3697,17 +3699,17 @@ export interface RewardsDashboardStats {
 // ── Mock Data ───────────────────────────────────────────
 
 const mockEmployeeAwards: EmployeeAward[] = [
-  { id: "awd-001", employeeId: "EMP-001", awardName: "Outstanding Performance Q1", category: "PERFORMANCE", description: "Top performer in engineering team", dateAwarded: "2026-04-15", awardedBy: "Sarah Chen", status: "ACTIVE", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" } },
-  { id: "awd-002", employeeId: "EMP-002", awardName: "Innovation Excellence", category: "INNOVATION", description: "Developed a new caching system", dateAwarded: "2026-05-01", awardedBy: "Mike Johnson", status: "ACTIVE", employee: { id: "e2", firstName: "Bob", lastName: "Smith", employeeId: "EMP-002" } },
-  { id: "awd-003", employeeId: "EMP-003", awardName: "Team Player Award", category: "COLLABORATION", description: "Exceptional cross-team collaboration", dateAwarded: "2026-03-20", awardedBy: "Lisa Wang", status: "ACTIVE", employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" } },
-  { id: "awd-004", employeeId: "EMP-004", awardName: "Leadership Excellence", category: "LEADERSHIP", description: "Led successful product launch", dateAwarded: "2026-05-10", awardedBy: "Tom Martinez", status: "ACTIVE", employee: { id: "e4", firstName: "Dan", lastName: "Wilson", employeeId: "EMP-004" } },
-  { id: "awd-005", employeeId: "EMP-005", awardName: "Customer Service Star", category: "CUSTOMER_SERVICE", description: "Exceptional client satisfaction ratings", dateAwarded: "2026-04-28", awardedBy: "Sarah Chen", status: "ACTIVE", employee: { id: "e5", firstName: "Eve", lastName: "Martinez", employeeId: "EMP-005" } },
-  { id: "awd-006", employeeId: "EMP-006", awardName: "Safety Champion Q1", category: "SAFETY", description: "Zero safety incidents in team", dateAwarded: "2026-04-01", awardedBy: "HR Team", status: "ACTIVE", employee: { id: "e6", firstName: "Frank", lastName: "Lee", employeeId: "EMP-006" } },
-  { id: "awd-007", employeeId: "EMP-007", awardName: "Mentorship Award", category: "MENTORSHIP", description: "Guided 3 new hires through onboarding", dateAwarded: "2026-05-15", awardedBy: "Mike Johnson", status: "ACTIVE", employee: { id: "e7", firstName: "Grace", lastName: "Kim", employeeId: "EMP-007" } },
-  { id: "awd-008", employeeId: "EMP-008", awardName: "Culture Champion", category: "CULTURE", description: "Organized team building events", dateAwarded: "2026-03-01", awardedBy: "Lisa Wang", status: "ACTIVE", employee: { id: "e8", firstName: "Henry", lastName: "Brown", employeeId: "EMP-008" } },
+  { id: "awd-001", employeeId: "EMP-001", awardName: "Outstanding Performance Q1", category: "PERFORMANCE", description: "Top performer in engineering team", dateAwarded: "2026-04-15", awardedBy: "Sarah Chen", status: "ACTIVE", employee: { id: "e1", firstName: "Alice", lastName: "Johnson", employeeId: "EMP-001" }, createdAt: "2026-04-15T00:00:00Z", updatedAt: "2026-04-15T00:00:00Z" },
+  { id: "awd-002", employeeId: "EMP-002", awardName: "Innovation Excellence", category: "INNOVATION", description: "Developed a new caching system", dateAwarded: "2026-05-01", awardedBy: "Mike Johnson", status: "ACTIVE", employee: { id: "e2", firstName: "Bob", lastName: "Smith", employeeId: "EMP-002" }, createdAt: "2026-05-01T00:00:00Z", updatedAt: "2026-05-01T00:00:00Z" },
+  { id: "awd-003", employeeId: "EMP-003", awardName: "Team Player Award", category: "COLLABORATION", description: "Exceptional cross-team collaboration", dateAwarded: "2026-03-20", awardedBy: "Lisa Wang", status: "ACTIVE", employee: { id: "e3", firstName: "Carol", lastName: "Davis", employeeId: "EMP-003" }, createdAt: "2026-03-20T00:00:00Z", updatedAt: "2026-03-20T00:00:00Z" },
+  { id: "awd-004", employeeId: "EMP-004", awardName: "Leadership Excellence", category: "LEADERSHIP", description: "Led successful product launch", dateAwarded: "2026-05-10", awardedBy: "Tom Martinez", status: "ACTIVE", employee: { id: "e4", firstName: "Dan", lastName: "Wilson", employeeId: "EMP-004" }, createdAt: "2026-05-10T00:00:00Z", updatedAt: "2026-05-10T00:00:00Z" },
+  { id: "awd-005", employeeId: "EMP-005", awardName: "Customer Service Star", category: "CUSTOMER_SERVICE", description: "Exceptional client satisfaction ratings", dateAwarded: "2026-04-28", awardedBy: "Sarah Chen", status: "ACTIVE", employee: { id: "e5", firstName: "Eve", lastName: "Martinez", employeeId: "EMP-005" }, createdAt: "2026-04-28T00:00:00Z", updatedAt: "2026-04-28T00:00:00Z" },
+  { id: "awd-006", employeeId: "EMP-006", awardName: "Safety Champion Q1", category: "SAFETY", description: "Zero safety incidents in team", dateAwarded: "2026-04-01", awardedBy: "HR Team", status: "ACTIVE", employee: { id: "e6", firstName: "Frank", lastName: "Lee", employeeId: "EMP-006" }, createdAt: "2026-04-01T00:00:00Z", updatedAt: "2026-04-01T00:00:00Z" },
+  { id: "awd-007", employeeId: "EMP-007", awardName: "Mentorship Award", category: "MENTORSHIP", description: "Guided 3 new hires through onboarding", dateAwarded: "2026-05-15", awardedBy: "Mike Johnson", status: "ACTIVE", employee: { id: "e7", firstName: "Grace", lastName: "Kim", employeeId: "EMP-007" }, createdAt: "2026-05-15T00:00:00Z", updatedAt: "2026-05-15T00:00:00Z" },
+  { id: "awd-008", employeeId: "EMP-008", awardName: "Culture Champion", category: "CULTURE", description: "Organized team building events", dateAwarded: "2026-03-01", awardedBy: "Lisa Wang", status: "ACTIVE", employee: { id: "e8", firstName: "Henry", lastName: "Brown", employeeId: "EMP-008" }, createdAt: "2026-03-01T00:00:00Z", updatedAt: "2026-03-01T00:00:00Z" },
 ];
 
-const mockRewardsPrograms: RewardsRecognitionProgram[] = [
+const mockRewardsPrograms: RecognitionProgram[] = [
   { id: "rrp-001", name: "Peer Recognition Program", description: "Employees can nominate peers for recognition", type: "PEER_RECOGNITION", frequency: "ONGOING", eligibilityCriteria: "All employees", rewardAmount: 500, status: "ACTIVE", participantCount: 120, createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-05-01T00:00:00Z" },
   { id: "rrp-002", name: "Manager Excellence Awards", description: "Quarterly manager nomination program", type: "MANAGER_NOMINATION", frequency: "QUARTERLY", eligibilityCriteria: "Managers only", rewardAmount: 2000, status: "ACTIVE", participantCount: 45, createdAt: "2026-01-15T00:00:00Z", updatedAt: "2026-04-01T00:00:00Z" },
   { id: "rrp-003", name: "Spot Recognition", description: "Auto-recognition for milestones and achievements", type: "AUTO_RECOGNITION", frequency: "ONGOING", eligibilityCriteria: "All employees", rewardAmount: 250, status: "ACTIVE", participantCount: 230, createdAt: "2026-02-01T00:00:00Z", updatedAt: "2026-05-15T00:00:00Z" },
@@ -3797,6 +3799,8 @@ export async function createAward(body: {
     dateAwarded: body.dateAwarded,
     awardedBy: body.awardedBy ?? null,
     status: "ACTIVE",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
   mockEmployeeAwards.push(award);
   return { data: award };
@@ -3824,7 +3828,7 @@ export async function deleteAward(id: string): Promise<{ ok: boolean }> {
 export async function fetchRewardsRecognitionPrograms(filters?: {
   search?: string; type?: string; status?: string;
   skip?: number; take?: number; orderBy?: string; orderDir?: string;
-}): Promise<{ data: RewardsRecognitionProgram[]; total: number; skip: number; take: number }> {
+}): Promise<{ data: RecognitionProgram[]; total: number; skip: number; take: number }> {
   let filtered = [...mockRewardsPrograms];
   if (filters?.search) { const q = filters.search.toLowerCase(); filtered = filtered.filter((p) => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q))); }
   if (filters?.type) filtered = filtered.filter((p) => p.type === filters.type);
@@ -3838,8 +3842,8 @@ export async function fetchRewardsRecognitionPrograms(filters?: {
 export async function createRewardsRecognitionProgram(body: {
   name: string; description?: string; type: string; frequency: string;
   eligibilityCriteria?: string; rewardAmount?: number;
-}): Promise<{ data: RewardsRecognitionProgram }> {
-  const program: RewardsRecognitionProgram = {
+}): Promise<{ data: RecognitionProgram }> {
+  const program: RecognitionProgram = {
     id: `rrp-${String(mockRewardsPrograms.length + 1).padStart(3, "0")}`,
     name: body.name,
     description: body.description ?? null,
@@ -3859,7 +3863,7 @@ export async function createRewardsRecognitionProgram(body: {
 export async function updateRewardsRecognitionProgram(id: string, body: {
   name?: string; description?: string; type?: string; frequency?: string;
   eligibilityCriteria?: string; rewardAmount?: number; status?: string;
-}): Promise<{ data: RewardsRecognitionProgram }> {
+}): Promise<{ data: RecognitionProgram }> {
   const idx = mockRewardsPrograms.findIndex((p) => p.id === id);
   if (idx === -1) throw new Error("Program not found");
   Object.assign(mockRewardsPrograms[idx], { ...body, updatedAt: new Date().toISOString() });
@@ -3971,8 +3975,10 @@ export async function updateAchievement(id: string, body: {
 }
 
 export async function deleteAchievement(id: string): Promise<{ ok: boolean }> {
-  return handleRewardsResponse<{ ok: boolean }>(
-    await fetch(`${REWARDS_BASE}/achievements/${id}`, { method: "DELETE" }),
-  );
+  const idx = mockAchievementRecords.findIndex((a) => a.id === id);
+  if (idx === -1) throw new Error("Achievement not found");
+  mockAchievementRecords.splice(idx, 1);
+  return { ok: true };
 }
+
 

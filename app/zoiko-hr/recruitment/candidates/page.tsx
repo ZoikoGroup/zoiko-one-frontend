@@ -10,7 +10,7 @@ import {
   type Candidate, type CandidateStage,
 } from "../../../lib/workforce-api";
 
-const STAGES: CandidateStage[] = ["APPLIED", "SCREENING", "TECHNICAL_INTERVIEW", "HR_INTERVIEW", "SELECTED", "REJECTED"];
+const STAGES: CandidateStage[] = ["APPLIED", "SCREENING", "SHORTLISTED", "INTERVIEW_SCHEDULED", "INTERVIEWED", "OFFERED", "HIRED", "REJECTED", "WITHDRAWN"];
 
 export default function CandidatesPage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);

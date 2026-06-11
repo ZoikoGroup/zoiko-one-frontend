@@ -163,7 +163,7 @@ export default function EmployeeListPage() {
                     </td>
                     <td className="border-t border-slate-800 px-5 py-4">
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
-                        {emp.employmentType.replace(/_/g, " ")}
+                                                {(emp.employmentType ?? "").replace(/_/g, " ") || "N/A"}
                       </span>
                     </td>
                     <td className="border-t border-slate-800 px-5 py-4 text-slate-300">

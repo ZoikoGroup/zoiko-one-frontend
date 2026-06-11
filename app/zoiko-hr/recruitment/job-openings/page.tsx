@@ -6,15 +6,15 @@ import SuperAdminShell from "../../../components/SuperAdminShell";
 import PageHeader from "../../../components/PageHeader";
 import StatusBadge from "../../../components/StatusBadge";
 import {
-  fetchJobOpenings, createJobOpening, updateJobOpening, closeJobOpening,
-  type JobOpening, type JobStatus,
+  fetchJobOpenings, fetchDepartments, createJobOpening, updateJobOpening, closeJobOpening,
+  type JobOpening, type JobStatus, type Department,
 } from "../../../lib/workforce-api";
 
 const EMPLOYMENT_TYPES = ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN", "TEMPORARY"];
 const JOB_STATUSES = ["OPEN", "CLOSED", "DRAFT", "ON_HOLD"];
 
 const defaultFormData = {
-  title: "", department: "", location: "", employmentType: "FULL_TIME",
+  title: "", departmentId: "", location: "", employmentType: "FULL_TIME",
   openPositions: 1, status: "OPEN" as string, description: "", requirements: "",
   salaryMin: 0, salaryMax: 0,
 };
@@ -38,6 +38,7 @@ export default function JobOpeningsPage() {
   const [saving, setSaving] = useState(false);
 
   const [closeId, setCloseId] = useState<string | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   const loadData = async () => {
     setLoading(true); setError("");
@@ -54,6 +55,12 @@ export default function JobOpeningsPage() {
 
   useEffect(() => { loadData(); }, [search, statusFilter, page]);
 
+  useEffect(() => {
+    fetchDepartments({ take: 100, orderBy: "name", orderDir: "asc" })
+      .then((res) => setDepartments(res.data))
+      .catch(() => {});
+  }, []);
+
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
@@ -69,7 +76,8 @@ export default function JobOpeningsPage() {
   const openEdit = (j: JobOpening) => {
     setEditId(j.id);
     setFormData({
-      title: j.title, department: j.department, location: j.location,
+      title: j.title, departmentId: departments.find((d) => d.name === j.department)?.id ?? "",
+      location: j.location,
       employmentType: j.employmentType, openPositions: j.openPositions,
       status: j.status, description: j.description ?? "",
       requirements: j.requirements ?? "", salaryMin: j.salaryMin ?? 0, salaryMax: j.salaryMax ?? 0,
@@ -80,17 +88,17 @@ export default function JobOpeningsPage() {
 
   const handleSave = async () => {
     setFormError("");
-    if (!formData.title || !formData.department) {
+    if (!formData.title || !formData.departmentId) {
       setFormError("Title and Department are required.");
       return;
     }
     setSaving(true);
     try {
       const body = {
-        title: formData.title, department: formData.department,
+        title: formData.title, departmentId: formData.departmentId,
         location: formData.location || undefined,
         employmentType: formData.employmentType,
-        openPositions: formData.openPositions,
+        openingsCount: formData.openPositions,
         status: formData.status as JobStatus,
         description: formData.description || undefined,
         requirements: formData.requirements || undefined,
@@ -264,8 +272,11 @@ export default function JobOpeningsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-1.5">Department *</label>
-                  <input type="text" value={formData.department} onChange={(e) => setFormData((f) => ({ ...f, department: e.target.value }))}
-                    className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-white outline-none transition focus:border-indigo-500 placeholder-slate-500" />
+                  <select value={formData.departmentId} onChange={(e) => setFormData((f) => ({ ...f, departmentId: e.target.value }))}
+                    className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500">
+                    <option value="">Select Department</option>
+                    {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

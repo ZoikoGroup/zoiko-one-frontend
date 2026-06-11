@@ -46,7 +46,7 @@ function buildWhere(tenantId: string, filters?: ShiftFilters) {
   const where: Prisma.ShiftWhereInput = { tenantId, deletedAt: null };
   if (filters?.search) {
     where.OR = [
-      { name: { contains: filters.search, mode: "insensitive" } },
+      { name: { contains: filters.search } },
     ];
   }
   return where;

@@ -131,8 +131,8 @@ export class DocumentRepository {
     if (filters.status) where.status = filters.status;
     if (filters.search) {
       where.OR = [
-        { fileName: { contains: filters.search, mode: "insensitive" } },
-        { notes: { contains: filters.search, mode: "insensitive" } },
+        { fileName: { contains: filters.search } },
+        { notes: { contains: filters.search } },
         { employee: { firstName: { contains: filters.search, mode: "insensitive" } } },
         { employee: { lastName: { contains: filters.search, mode: "insensitive" } } },
       ];

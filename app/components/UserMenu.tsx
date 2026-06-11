@@ -10,27 +10,34 @@ export default function UserMenu() {
     <div className="relative">
       <button
         type="button"
+        id="user-menu-trigger"
         onClick={() => setOpen((c) => !c)}
-        className="inline-flex items-center gap-3 rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white transition hover:border-slate-700 hover:bg-slate-900"
+        className="user-menu-btn inline-flex items-center gap-3 px-4 py-3 text-sm"
       >
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-800">
-          <UserCircle className="h-5 w-5 text-slate-300" />
+        <span className="user-menu-avatar inline-flex h-10 w-10 items-center justify-center rounded-3xl">
+          <UserCircle className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
         </span>
-        <span className="text-left">
-          <span className="block text-sm font-semibold text-white">Super Admin</span>
-          <span className="text-xs text-slate-500">zoiko@admin.one</span>
+        <span className="text-left hidden sm:block">
+          <span className="user-menu-name block text-sm font-semibold">Super Admin</span>
+          <span className="user-menu-email text-xs">zoiko@admin.one</span>
         </span>
-        <ChevronDown className="h-4 w-4 text-slate-400" />
+        <ChevronDown
+          className="h-4 w-4 transition-transform duration-200"
+          style={{
+            color: "var(--icon-default)",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+          }}
+        />
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-950 p-2 shadow-2xl">
+          <div className="user-menu-dropdown absolute right-0 top-full z-20 mt-2 w-56 p-2">
             <form action="/api/auth/logout" method="post">
               <button
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                className="user-menu-item"
               >
                 <LogOut className="h-4 w-4" />
                 Logout

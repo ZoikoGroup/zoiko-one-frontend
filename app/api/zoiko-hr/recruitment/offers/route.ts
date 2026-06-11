@@ -29,14 +29,19 @@ export const POST = withPermission("workforce.*", async function POST(request: N
     notes?: string;
   };
 
+  const { candidateId, jobId } = body;
+  if (!candidateId || !jobId) {
+    return Response.json({ error: "candidateId and jobId are required." }, { status: 400 });
+  }
+
   const offer = await createOffer({
     organizationId: body.organizationId,
-    candidateId: body.candidateId,
-    jobId: body.jobId,
-    salary: body.salary,
+    candidateId,
+    jobOpeningId: jobId,
+    salaryOffered: body.salary,
     benefits: body.benefits,
-    startDate: body.startDate ? new Date(body.startDate) : undefined,
-    expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
+    offerLetterUrl: body.startDate,
+    expiryDate: body.expiresAt,
     notes: body.notes,
   });
 

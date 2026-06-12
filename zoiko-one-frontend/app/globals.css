@@ -1,0 +1,615 @@
+@import "tailwindcss";
+
+/* ============================================================
+   DARK THEME (default)
+   ============================================================ */
+:root,
+[data-theme="dark"] {
+  --bg-base: #0a0f1c;
+  --bg-surface: #0b1220;
+  --bg-surface-2: #111827;
+  --bg-raised: #162032;
+  --bg-overlay: rgba(10, 15, 28, 0.95);
+
+  --border-default: #1f2937;
+  --border-muted: #1a2540;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+
+  --icon-default: #94a3b8;
+
+  --badge-bg: #1e293b;
+  --badge-text: #94a3b8;
+
+  --nav-hover-bg: rgba(255, 255, 255, 0.05);
+  --nav-active-bg: #1e293b;
+  --nav-active-text: #ffffff;
+
+  --product-panel-bg: rgba(15, 23, 42, 0.9);
+
+  --scrollbar-track: #0b1220;
+  --scrollbar-thumb: #1e293b;
+  --scrollbar-thumb-hover: #2d3f5e;
+
+  /* Semantic accent colors */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-glow: rgba(79, 70, 229, 0.25);
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --live-bg: rgba(16, 185, 129, 0.1);
+  --live-text: #34d399;
+
+  color-scheme: dark;
+}
+
+/* ============================================================
+   LIGHT THEME
+   ============================================================ */
+[data-theme="light"] {
+  /* Soft pastel gradient background */
+  --bg-base: linear-gradient(135deg, #fefeff, #e9ecf7);
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f7f9fc;
+  --bg-raised: #f0f4ff;
+  --bg-overlay: rgba(255, 255, 255, 0.95);
+
+  --border-default: #cbd5e1;
+  --border-muted: #e2e8f0;
+  --border-subtle: rgba(0,0,0,0.05);
+
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-muted: #475569;
+  --text-faint: #64748b;
+
+  --icon-default: #667085;
+
+  --badge-bg: #e2e8f0;
+  --badge-text: #475569;
+
+  --nav-hover-bg: rgba(79,70,229,0.07);
+  --nav-active-bg: #e5e7eb;
+  --nav-active-text: #4f46e5;
+
+  --product-panel-bg: rgba(248,250,255,0.95);
+
+  --scrollbar-track: #f0f4ff;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #9ca3af;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-glow: rgba(79,70,229,0.12);
+
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+
+  --live-bg: rgba(5,150,105,0.1);
+  --live-text: #059669;
+
+  color-scheme: light;
+}
+
+
+
+/* ============================================================
+   TAILWIND THEME TOKENS
+   ============================================================ */
+@theme inline {
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+html {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: "Inter", "Segoe UI", Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   SCROLLBAR STYLING
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ============================================================
+   THEME TOGGLE BUTTON
+   ============================================================ */
+.theme-toggle-btn {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+  color: var(--text-muted);
+}
+.theme-toggle-btn:hover {
+  background: var(--bg-raised);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.theme-icon-moon {
+  color: #818cf8;
+}
+.theme-icon-sun {
+  color: #f59e0b;
+}
+
+/* ============================================================
+   SIDEBAR SEMANTIC CLASSES
+   ============================================================ */
+.sidebar-root {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-default);
+}
+.sidebar-header-border {
+  border-bottom: 1px solid var(--border-default);
+}
+.sidebar-logo-label {
+  color: var(--text-faint);
+}
+.sidebar-logo-title {
+  color: var(--text-primary);
+}
+.sidebar-section-title {
+  color: var(--text-faint);
+}
+.sidebar-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-nav-link {
+  color: var(--text-muted);
+  border-radius: 0.75rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sidebar-nav-link:hover {
+  background: var(--nav-hover-bg);
+  color: var(--text-primary);
+}
+.sidebar-nav-link.active {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-text);
+  font-weight: 500;
+}
+.sidebar-nav-link.active .nav-icon {
+  color: var(--primary);
+}
+
+.nav-icon {
+  color: var(--icon-default);
+}
+
+.sidebar-badge {
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.sidebar-product-panel {
+  background: var(--product-panel-bg);
+  border: 1px solid var(--border-default);
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+.sidebar-product-panel-header {
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+.sidebar-product-panel-header:hover {
+  background: var(--nav-hover-bg);
+}
+
+.sidebar-user-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 1.5rem;
+}
+.sidebar-user-avatar {
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+.sidebar-user-name {
+  color: var(--text-primary);
+}
+.sidebar-user-role {
+  color: var(--text-faint);
+}
+.sidebar-user-badge {
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
+  border-radius: 1.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.sidebar-logout-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  border-radius: 1.5rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.sidebar-logout-btn:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+/* ============================================================
+   HEADER SEMANTIC CLASSES
+   ============================================================ */
+.header-root {
+  background: var(--bg-overlay);
+  border-bottom: 1px solid var(--border-default);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.header-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  border-radius: 1.5rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.header-btn:hover {
+  background: var(--bg-raised);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.header-icon {
+  color: var(--icon-default);
+}
+
+.live-badge {
+  background: var(--live-bg);
+  color: var(--live-text);
+  border-radius: 1.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ============================================================
+   USER MENU SEMANTIC CLASSES
+   ============================================================ */
+.user-menu-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 1.5rem;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.user-menu-btn:hover {
+  background: var(--bg-raised);
+}
+
+.user-menu-avatar {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+}
+.user-menu-name {
+  color: var(--text-primary);
+}
+.user-menu-email {
+  color: var(--text-faint);
+}
+
+.user-menu-dropdown {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  border-radius: 1rem;
+}
+.user-menu-item {
+  color: var(--text-muted);
+  border-radius: 0.625rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  width: 100%;
+}
+.user-menu-item:hover {
+  background: var(--nav-hover-bg);
+  color: var(--danger);
+}
+
+/* ============================================================
+   SEARCH BAR
+   ============================================================ */
+.search-input {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 1.5rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-input::placeholder {
+  color: var(--text-faint);
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.search-icon {
+  color: var(--icon-default);
+}
+
+/* ============================================================
+   TRANSITION - apply to themed containers
+   ============================================================ */
+aside, header, main, .themed {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================================
+   ELEGANT CUSTOM BUTTON (Uiverse.io by FColombati)
+   ============================================================ */
+.uiverse-button {
+  all: unset;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  position: relative;
+  border-radius: 100em;
+  background-color: rgba(0, 0, 0, 0.75);
+  box-shadow:
+    -0.15em -0.15em 0.15em -0.075em rgba(5, 5, 5, 0.25),
+    0.0375em 0.0375em 0.0675em 0 rgba(5, 5, 5, 0.1);
+  display: inline-block;
+}
+
+.uiverse-button::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: calc(100% + 0.3em);
+  height: calc(100% + 0.3em);
+  top: -0.15em;
+  left: -0.15em;
+  border-radius: inherit;
+  background: linear-gradient(
+    -135deg,
+    rgba(5, 5, 5, 0.5),
+    transparent 20%,
+    transparent 100%
+  );
+  filter: blur(0.0125em);
+  opacity: 0.25;
+  mix-blend-mode: multiply;
+}
+
+.uiverse-button .button-outer {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+  transition: box-shadow 300ms ease;
+  will-change: box-shadow;
+  box-shadow:
+    0 0.05em 0.05em -0.01em rgba(5, 5, 5, 1),
+    0 0.01em 0.01em -0.01em rgba(5, 5, 5, 0.5),
+    0.15em 0.3em 0.1em -0.01em rgba(5, 5, 5, 0.25);
+}
+
+.uiverse-button:hover .button-outer {
+  box-shadow:
+    0 0 0 0 rgba(5, 5, 5, 1),
+    0 0 0 0 rgba(5, 5, 5, 0.5),
+    0 0 0 0 rgba(5, 5, 5, 0.25);
+}
+
+.uiverse-button-inner {
+  --inset: 0.035em;
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 0.6em 1.2em;
+  background-image: linear-gradient(
+    135deg,
+    rgba(240, 240, 240, 1),
+    rgba(190, 190, 190, 1)
+  );
+  transition:
+    box-shadow 300ms ease,
+    clip-path 250ms ease,
+    background-image 250ms ease,
+    transform 250ms ease;
+  will-change: box-shadow, clip-path, background-image, transform;
+  overflow: clip;
+  clip-path: inset(0 0 0 0 round 100em);
+  box-shadow:
+    0 0 0 0 inset rgba(5, 5, 5, 0.1),
+    -0.05em -0.05em 0.05em 0 inset rgba(5, 5, 5, 0.25),
+    0 0 0 0 inset rgba(5, 5, 5, 0.1),
+    0 0 0.05em 0.2em inset rgba(255, 255, 255, 0.25),
+    0.025em 0.05em 0.1em 0 inset rgba(255, 255, 255, 1),
+    0.12em 0.12em 0.12em inset rgba(255, 255, 255, 0.25),
+    -0.075em -0.25em 0.25em 0.1em inset rgba(5, 5, 5, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.uiverse-button-inner.uiverse-circular {
+  padding: 0.6em;
+}
+
+.uiverse-button:hover .uiverse-button-inner {
+  clip-path: inset(
+    clamp(1px, 0.0625em, 2px) clamp(1px, 0.0625em, 2px)
+      clamp(1px, 0.0625em, 2px) clamp(1px, 0.0625em, 2px) round 100em
+  );
+  box-shadow:
+    0.1em 0.15em 0.05em 0 inset rgba(5, 5, 5, 0.75),
+    -0.025em -0.03em 0.05em 0.025em inset rgba(5, 5, 5, 0.5),
+    0.25em 0.25em 0.2em 0 inset rgba(5, 5, 5, 0.5),
+    0 0 0.05em 0.5em inset rgba(255, 255, 255, 0.15),
+    0 0 0 0 inset rgba(255, 255, 255, 1),
+    0.12em 0.12em 0.12em inset rgba(255, 255, 255, 0.25),
+    -0.075em -0.12em 0.2em 0.1em inset rgba(5, 5, 5, 0.25);
+}
+
+.uiverse-button .uiverse-button-inner span {
+  position: relative;
+  z-index: 4;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 0.825rem;
+  color: rgba(0, 0, 0, 0);
+  background-image: linear-gradient(
+    135deg,
+    rgba(25, 25, 25, 1),
+    rgba(75, 75, 75, 1)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: transform 250ms ease;
+  display: block;
+  will-change: transform;
+  text-shadow: rgba(0, 0, 0, 0.1) 0 0 0.1em;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.uiverse-button:hover .uiverse-button-inner span {
+  transform: scale(0.975);
+}
+
+.uiverse-button:active .uiverse-button-inner {
+  transform: scale(0.975);
+}
+
+/* ============================================================
+   THEME TOGGLE BUTTON SWAP (Uiverse.io by rishichawda)
+   ============================================================ */
+#theme-toggle-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 34px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#toggle {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+#container,
+#patches,
+#stars,
+#button,
+#sun,
+#moon,
+#cloud {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.25s;
+}
+
+#toggle:checked + svg #container {
+  fill: #2b4360;
+}
+
+#toggle:checked + svg #button {
+  transform: translate(45px, 0px);
+}
+
+#sun {
+  opacity: 1;
+}
+
+#toggle:checked + svg #sun {
+  opacity: 0;
+}
+
+#moon {
+  opacity: 0;
+}
+
+#toggle:checked + svg #moon {
+  opacity: 1;
+}
+
+#cloud {
+  opacity: 1;
+}
+
+#toggle:checked + svg #cloud {
+  opacity: 0;
+}
+
+#stars {
+  opacity: 0;
+}
+
+#toggle:checked + svg #stars {
+  opacity: 1;
+}

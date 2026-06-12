@@ -33,7 +33,7 @@ export default function RecruitmentReportsPage() {
       .then(([funnelRes, tthRes, acceptRes, deptRes, actRes]) => {
         setFunnel(funnelRes.data);
         setTimeToHire(tthRes.data);
-        setAcceptanceRate(acceptRes.data);
+        setAcceptanceRate(acceptRes.data.acceptanceRate);
         setDeptHires(deptRes.data);
         setActivity(actRes.data);
       })

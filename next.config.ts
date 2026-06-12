@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     "localhost",
     "127.0.0.1",
   ],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

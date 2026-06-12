@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=8192 --max-semi-space-size=64\" next dev",
+    "build": "cross-env NODE_OPTIONS=\"--max-old-space-size=8192 --max-semi-space-size=64\" next build",
     "start": "next start",
     "lint": "eslint",
     "prisma": "prisma",
@@ -23,6 +23,7 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "cross-env": "^7",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

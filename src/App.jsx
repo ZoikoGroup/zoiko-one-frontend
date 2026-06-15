@@ -148,6 +148,15 @@ import DashboardPage from "./modules/platform/DashboardPage";
 import OrganizationsPage from "./modules/platform/OrganizationsPage";
 import SubscriptionsPage from "./modules/platform/SubscriptionsPage";
 
+// Platform Operations modules
+import AdminProfilePage from "./modules/operations/AdminProfilePage";
+import IntegrationsPage from "./modules/operations/IntegrationsPage";
+import ApiManagementPage from "./modules/operations/ApiManagementPage";
+import FeatureFlagsPage from "./modules/operations/FeatureFlagsPage";
+import NotificationsPage from "./modules/operations/NotificationsPage";
+import SystemMonitoringPage from "./modules/operations/SystemMonitoringPage";
+import SupportCenterPage from "./modules/operations/SupportCenterPage";
+
 // Shared Layers modules
 import ZoikoIdPage from "./modules/shared-layers/ZoikoIdPage";
 import ZoikoWorkflowPage from "./modules/shared-layers/ZoikoWorkflowPage";
@@ -337,6 +346,16 @@ const routeOverrides = {
   "/zoiko-hr/documents": <ZoikoHRDocuments />,
   "/zoikotime": <ZoikoTimeModule />,
   "/payroll": <ZoikoPayrollModule />,
+  "/payroll/company-setup": <ZoikoPayrollModule />,
+  "/payroll/employees": <ZoikoPayrollModule />,
+  "/payroll/payroll-runs": <ZoikoPayrollModule />,
+  "/payroll/exceptions": <ZoikoPayrollModule />,
+  "/payroll/approvals": <ZoikoPayrollModule />,
+  "/payroll/payments": <ZoikoPayrollModule />,
+  "/payroll/payslips": <ZoikoPayrollModule />,
+  "/payroll/reports": <ZoikoPayrollModule />,
+  "/payroll/audit": <ZoikoPayrollModule />,
+  "/payroll/settings": <ZoikoPayrollModule />,
   "/billing": <ZoikoBillingModule />,
   "/comply": <ZoikoComplyModule />,
   "/insights": <ZoikoInsightsModule />,
@@ -345,6 +364,13 @@ const routeOverrides = {
   "/trust-center": <TrustPage />,
   "/audit-center": <AuditPage />,
   "/compliance-center": <CompliancePage />,
+  "/operations/integrations": <IntegrationsPage />,
+  "/operations/api-management": <ApiManagementPage />,
+  "/operations/feature-flags": <FeatureFlagsPage />,
+  "/operations/notifications": <NotificationsPage />,
+  "/operations/system-monitoring": <SystemMonitoringPage />,
+  "/operations/support-center": <SupportCenterPage />,
+  "/admin-profile": <AdminProfilePage />,
 };
 
 export default function App() {

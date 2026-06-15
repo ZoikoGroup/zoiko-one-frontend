@@ -57,6 +57,28 @@ function MenuItem({ item, pathname }) {
 
   const isCurrent = isActive(item.href, pathname);
 
+  if (item.dp) {
+    return (
+      <NavLink
+        to={item.href ?? "/"}
+        className={({ isActive: navActive }) => {
+          const active = navActive || isCurrent;
+          return `group flex items-center gap-3 rounded-3xl border px-4 py-3 text-sm transition-all duration-200 ${
+            active
+              ? "border-[#FF7A00]/30 bg-gradient-to-r from-[#FF7A00]/10 to-transparent text-[#FF7A00] font-semibold shadow-[0_4px_12px_rgba(255,122,0,0.05)]"
+              : "border-slate-100 bg-slate-50/50 text-slate-600 hover:border-slate-200 hover:bg-slate-100/70 hover:text-slate-900"
+          }`;
+        }}
+        end
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#FF7A00] to-orange-400 text-white text-xs font-bold shadow-[0_2px_8px_rgba(255,122,0,0.25)]">
+          PO
+        </div>
+        <span>{item.label}</span>
+      </NavLink>
+    );
+  }
+
   return (
     <NavLink
       to={item.href ?? "/"}

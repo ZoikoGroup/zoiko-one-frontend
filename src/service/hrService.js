@@ -795,3 +795,4 @@ export const getCorrectiveActionById = (id) => api.get(`/hr/compliance/correctiv
 export const createCorrectiveAction = (payload) => api.post("/hr/compliance/corrective-actions", payload);
 export const updateCorrectiveAction = (id, payload) => api.put(`/hr/compliance/corrective-actions/${id}`, payload);
 export const deleteCorrectiveAction = (id) => api.delete(`/hr/compliance/corrective-actions/${id}`);
+// Add more helpers as needed

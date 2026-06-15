@@ -31,6 +31,7 @@ import {
   Package,
   Phone,
   Plane,
+  PlayCircle,
   PlusCircle,
   Receipt,
   Search,
@@ -71,6 +72,18 @@ const platform = {
   ],
 };
 
+// Super Admin / Platform Owner
+const superAdmin = {
+  title: "SUPER ADMIN",
+  items: [
+    {
+      label: "Platform Owner",
+      href: "/admin-profile",
+      icon: User,
+      dp: true,
+    },
+  ],
+};
 // Platform Command collapsible section
 const platformCommand = {
   title: "PLATFORM COMMAND",
@@ -282,7 +295,24 @@ const products = {
           ],
         },
         { label: "ZoikoTime", href: "/zoikotime", icon: ShieldCheck, badge: "Time" },
-        { label: "Zoiko Payroll", href: "/payroll", icon: WalletCards, badge: "Payroll" },
+        {
+          label: "Zoiko Payroll",
+          icon: WalletCards,
+          badge: "Payroll",
+          children: [
+            { label: "Dashboard", href: "/payroll", icon: LayoutDashboard },
+            { label: "Company Setup", href: "/payroll/company-setup", icon: Building2 },
+            { label: "Employees", href: "/payroll/employees", icon: Users },
+            { label: "Payroll Runs", href: "/payroll/payroll-runs", icon: PlayCircle },
+            { label: "Exceptions", href: "/payroll/exceptions", icon: AlertTriangle },
+            { label: "Approvals", href: "/payroll/approvals", icon: FileCheck2 },
+            { label: "Payments", href: "/payroll/payments", icon: CreditCard },
+            { label: "Payslips", href: "/payroll/payslips", icon: FileText },
+            { label: "Reports", href: "/payroll/reports", icon: BarChart3 },
+            { label: "Audit & Compliance", href: "/payroll/audit", icon: ShieldCheck },
+            { label: "Settings", href: "/payroll/settings", icon: SlidersHorizontal },
+          ],
+        },
         { label: "Zoiko Billing", href: "/billing", icon: CreditCard, badge: "Billing" },
         { label: "Zoiko Projects", href: "/projects", icon: Layers, badge: "Projects" },
         { label: "Zoiko Comply", href: "/comply", icon: FileCheck2, badge: "Comply" },
@@ -301,6 +331,24 @@ const infrastructure = {
   ],
 };
 
+// Platform Operations
+const platformOperations = {
+  title: "PLATFORM OPERATIONS",
+  items: [
+    {
+      label: "Platform Operations",
+      icon: Wrench,
+      children: [
+        { label: "Integrations", href: "/operations/integrations", icon: Globe },
+        { label: "API Management", href: "/operations/api-management", icon: Network },
+        { label: "Feature Flags", href: "/operations/feature-flags", icon: SlidersHorizontal },
+        { label: "Notifications", href: "/operations/notifications", icon: Bell },
+        { label: "System Monitoring", href: "/operations/system-monitoring", icon: Activity },
+        { label: "Support Center", href: "/operations/support-center", icon: MessageSquare },
+      ],
+    },
+  ],
+};
 // Platform Governance – directly after Platform
 const platformGovernance = {
   title: "PLATFORM GOVERNANCE",
@@ -341,11 +389,13 @@ const sharedLayersSection = {
 };
 
 export const sections = [
+  superAdmin,
   platformCommand,
   platformGovernance,
   products,
   sharedLayersSection,
   infrastructure,
+  platformOperations,
 ];
 
 function flattenItems(items) {

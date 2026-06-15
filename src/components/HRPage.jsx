@@ -8,10 +8,11 @@ export default function HRPage({ title, description, subtitle, resource, childre
 
   // Support both `description` and `subtitle` prop names
   const desc = description ?? subtitle;
+  const hasChildren = !!children;
 
   useEffect(() => {
     // If children are provided, skip fetching — the parent controls the content
-    if (children || !resource) {
+    if (hasChildren || !resource) {
       setLoading(false);
       return;
     }
@@ -28,8 +29,10 @@ export default function HRPage({ title, description, subtitle, resource, childre
       .finally(() => {
         if (mounted) setLoading(false);
       });
-    return () => (mounted = false);
-  }, [resource, children]);
+    return () => {
+      mounted = false;
+    };
+  }, [resource, hasChildren]);
 
   return (
     <div className="p-4">

@@ -1,0 +1,11 @@
+export { default as RecruitmentDashboard } from "./pages/Dashboard";
+export { default as JobRequisitions } from "./pages/JobRequisitions";
+export { default as OpenPositions } from "./pages/OpenPositions";
+export { default as Candidates } from "./pages/Candidates";
+export { default as CandidateDetails } from "./pages/CandidateDetails";
+export { default as InterviewPipeline } from "./pages/InterviewPipeline";
+export { default as OfferManagement } from "./pages/OfferManagement";
+export { default as HiringSchedule } from "./pages/HiringSchedule";
+export { default as RecruitmentAnalytics } from "./pages/HiringAnalytics";
+export { default as RecruitmentReports } from "./pages/Reports";
+export { default as RecruitmentSettings } from "./pages/Settings";

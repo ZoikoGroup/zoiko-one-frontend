@@ -12,20 +12,123 @@ import ZoikoHRModule from "./modules/zoiko-hr/HrDashBoard.jsx";
 
 // Sub-module imports pointing explicitly to their component files inside each directory
 import ZoikoHRWorkforce from "./modules/zoiko-hr/workforce/workforce.jsx";
-import ZoikoHRDepartments from "./modules/zoiko-hr/departments/departments.jsx";
-import ZoikoHRLeave from "./modules/zoiko-hr/leave/leave.jsx";
-import ZoikoHRAttendance from "./modules/zoiko-hr/attendance/attendance.jsx";
+import {
+  LeaveDashboard, MyLeave, LeaveRequests, LeaveCalendar,
+  LeaveTypes, LeaveReports, LeaveSettings,
+} from "./modules/zoiko-hr/leave/Index";
+
+import {
+  DepartmentsDashboard, DepartmentList, DepartmentStructure,
+  DepartmentReports, DepartmentSettings,
+} from "./modules/zoiko-hr/departments/Index";
+
+import {
+  DesignationsDashboard, DesignationList, LevelMatrix,
+  DesignationReports, DesignationSettings,
+} from "./modules/zoiko-hr/designations/Index";
+
 import ZoikoHRPerformance from "./modules/zoiko-hr/performance/performance.jsx";
 import ZoikoHRRecruitment from "./modules/zoiko-hr/recruitment/recruitment.jsx";
-import ZoikoHROnboarding from "./modules/zoiko-hr/onboarding/onboarding.jsx";
-import ZoikoHRAssets from "./modules/zoiko-hr/assets/assets.jsx";
+import ZoikoHROnboardingDashboard from "./modules/zoiko-hr/onboarding/dashboard.jsx";
+import ZoikoHROnboardingNewHires from "./modules/zoiko-hr/onboarding/new-hires.jsx";
+import ZoikoHROnboardingPreOnboarding from "./modules/zoiko-hr/onboarding/pre-onboarding.jsx";
+import ZoikoHROnboardingDocuments from "./modules/zoiko-hr/onboarding/documents.jsx";
+import ZoikoHROnboardingChecklists from "./modules/zoiko-hr/onboarding/checklists.jsx";
+import ZoikoHROnboardingDeptAssignment from "./modules/zoiko-hr/onboarding/department-assignment.jsx";
+import ZoikoHROnboardingManagerAssignment from "./modules/zoiko-hr/onboarding/manager-assignment.jsx";
+import ZoikoHROnboardingAssetsAccess from "./modules/zoiko-hr/onboarding/assets-access.jsx";
+import ZoikoHROnboardingOrientation from "./modules/zoiko-hr/onboarding/orientation.jsx";
+import ZoikoHROnboardingTraining from "./modules/zoiko-hr/onboarding/training.jsx";
+import ZoikoHROnboardingProgress from "./modules/zoiko-hr/onboarding/progress.jsx";
+import ZoikoHROnboardingReports from "./modules/zoiko-hr/onboarding/reports.jsx";
+import ZoikoHROnboardingSettings from "./modules/zoiko-hr/onboarding/settings.jsx";
 import ZoikoHRLearning from "./modules/zoiko-hr/learning/learning.jsx";
 import ZoikoHRCompensation from "./modules/zoiko-hr/compensation/compensation.jsx";
-import ZoikoHREss from "./modules/zoiko-hr/ess/ess.jsx";
-import ZoikoHRTravel from "./modules/zoiko-hr/travel/travel.jsx";
-import ZoikoHRCompliance from "./modules/zoiko-hr/compliance/compliance.jsx";
-import ZoikoHREngagement from "./modules/zoiko-hr/engagement/engagement.jsx";
-import ZoikoHRWorkforcePlanning from "./modules/zoiko-hr/workforce-planning/workforce-planning.jsx";
+import { 
+  WellnessPrograms, CSRActivities, Communications, Announcements, 
+  NPSSurveys, EngagementAnalytics, EngagementReports, EngagementSettings 
+} from "./pages/engagement/Index";
+
+import {
+  EssDashboard, EssProfile, EssLeaveManagement, EssAttendance,
+  EssMyDocuments, EssRequests, EssSettings,
+} from "./modules/zoiko-hr/ess/Index";
+
+import {
+  TravelDashboard, TravelRequests, TravelApprovals, TravelItineraries,
+  TravelExpenses, TravelReports, TravelSettings,
+} from "./modules/zoiko-hr/travel/Index";
+
+import {
+  AssetsDashboard, MyAssets, AssetCatalog, AssetRequests,
+  AssetMaintenance, AssetReports, AssetSettings,
+} from "./modules/zoiko-hr/assets/Index";
+
+import {
+  RecruitmentDashboard, JobRequisitions, OpenPositions, Candidates,
+  CandidateDetails, InterviewPipeline, OfferManagement, HiringSchedule,
+  RecruitmentAnalytics, RecruitmentReports, RecruitmentSettings,
+} from "./modules/zoiko-hr/recruitment/Index";
+
+import {
+  PerformanceDashboard, GoalsOKRs, PerformanceReviews, Appraisals,
+  Feedback, FortySixtyReviews, KpiTracking, Competencies,
+  PerformanceAnalytics, PerformanceReports, PerformanceSettings,
+} from "./modules/zoiko-hr/performance/Index";
+
+import {
+  DocumentsDashboard, EmployeeDocuments, CompanyDocuments, Templates,
+  Policies, ComplianceDocuments, ApprovalWorkflow, ExpiringDocuments,
+  Archive, DocumentsReports, DocumentsSettings,
+} from "./modules/zoiko-hr/documents/Index";
+
+import {
+  ComplianceDashboard, PolicyLibrary, ComplianceTracking, Audits,
+  Violations, RiskAssessment, Regulations, CorrectiveActions,
+  ComplianceReports, ComplianceSettings,
+} from "./modules/zoiko-hr/compliance/Index";
+
+import {
+  AttendanceDashboard, DailyRecords, MyAttendance, AttendanceCorrections,
+  AttendanceSchedule, AttendanceReports, AttendanceSettings,
+} from "./modules/zoiko-hr/attendance/Index";
+
+import {
+  WorkforceDashboard, WorkforcePlans, HeadcountPlanning, SuccessionPlanning,
+  ScenarioPlanning, WorkforceReports, WorkforceSettings,
+} from "./modules/zoiko-hr/workforce-planning/Index";
+
+import ZoikoHRDocuments from "./modules/zoiko-hr/documents/documents.jsx";
+import ZoikoHRLearningDashboard from "./modules/zoiko-hr/learning/dashboard.jsx";
+import ZoikoHRLearningCourses from "./modules/zoiko-hr/learning/courses.jsx";
+import ZoikoHRLearningTrainingPrograms from "./modules/zoiko-hr/learning/training-programs.jsx";
+import ZoikoHRLearningPaths from "./modules/zoiko-hr/learning/learning-paths.jsx";
+import ZoikoHRLearningCertifications from "./modules/zoiko-hr/learning/certifications.jsx";
+import ZoikoHRLearningSkillMatrix from "./modules/zoiko-hr/learning/skill-matrix.jsx";
+import ZoikoHRLearningAssessments from "./modules/zoiko-hr/learning/assessments.jsx";
+import ZoikoHRLearningCalendar from "./modules/zoiko-hr/learning/calendar.jsx";
+import ZoikoHRLearningProgress from "./modules/zoiko-hr/learning/progress.jsx";
+import ZoikoHRLearningReports from "./modules/zoiko-hr/learning/reports.jsx";
+import ZoikoHRCompDashboard from "./modules/zoiko-hr/compensation/dashboard.jsx";
+import ZoikoHRCompSalaryStructures from "./modules/zoiko-hr/compensation/salary-structures.jsx";
+import ZoikoHRCompPayGrades from "./modules/zoiko-hr/compensation/pay-grades.jsx";
+import ZoikoHRCompSalaryComponents from "./modules/zoiko-hr/compensation/salary-components.jsx";
+import ZoikoHRCompBands from "./modules/zoiko-hr/compensation/compensation-bands.jsx";
+import ZoikoHRCompRevisions from "./modules/zoiko-hr/compensation/salary-revisions.jsx";
+import ZoikoHRCompIncrements from "./modules/zoiko-hr/compensation/increments.jsx";
+import ZoikoHRCompBonuses from "./modules/zoiko-hr/compensation/bonuses.jsx";
+import ZoikoHRCompIncentives from "./modules/zoiko-hr/compensation/incentives.jsx";
+import ZoikoHRCompAllowances from "./modules/zoiko-hr/compensation/allowances.jsx";
+import ZoikoHRCompDeductions from "./modules/zoiko-hr/compensation/deductions.jsx";
+import ZoikoHRCompBenefits from "./modules/zoiko-hr/compensation/benefits.jsx";
+import ZoikoHRCompMedical from "./modules/zoiko-hr/compensation/medical-benefits.jsx";
+import ZoikoHRCompInsurance from "./modules/zoiko-hr/compensation/insurance-benefits.jsx";
+import ZoikoHRCompRetirement from "./modules/zoiko-hr/compensation/retirement-benefits.jsx";
+import ZoikoHRCompReimbursements from "./modules/zoiko-hr/compensation/reimbursements.jsx";
+import ZoikoHRCompPayroll from "./modules/zoiko-hr/compensation/payroll.jsx";
+import ZoikoHRCompReports from "./modules/zoiko-hr/compensation/reports.jsx";
+import ZoikoHRCompAnalytics from "./modules/zoiko-hr/compensation/analytics.jsx";
+import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
@@ -78,20 +181,169 @@ const routeOverrides = {
   "/shared/ai-assistance": <AiAssistancePage />,
   "/zoiko-hr": <ZoikoHRModule />,
   "/zoiko-hr/workforce": <ZoikoHRWorkforce />,
-  "/zoiko-hr/departments": <ZoikoHRDepartments />,
-  "/zoiko-hr/leave": <ZoikoHRLeave />,
-  "/zoiko-hr/attendance": <ZoikoHRAttendance />,
+  // Departments submodule routes
+  "/zoiko-hr/departments": <DepartmentsDashboard />,
+  "/zoiko-hr/departments/list": <DepartmentList />,
+  "/zoiko-hr/departments/structure": <DepartmentStructure />,
+  "/zoiko-hr/departments/reports": <DepartmentReports />,
+  "/zoiko-hr/departments/settings": <DepartmentSettings />,
+  // Designations submodule routes
+  "/zoiko-hr/designations": <DesignationsDashboard />,
+  "/zoiko-hr/designations/list": <DesignationList />,
+  "/zoiko-hr/designations/levels": <LevelMatrix />,
+  "/zoiko-hr/designations/reports": <DesignationReports />,
+  "/zoiko-hr/designations/settings": <DesignationSettings />,
+  // Leave submodule routes
+  "/zoiko-hr/leave": <LeaveDashboard />,
+  "/zoiko-hr/leave/my-leave": <MyLeave />,
+  "/zoiko-hr/leave/requests": <LeaveRequests />,
+  "/zoiko-hr/leave/calendar": <LeaveCalendar />,
+  "/zoiko-hr/leave/leave-types": <LeaveTypes />,
+  "/zoiko-hr/leave/reports": <LeaveReports />,
+  "/zoiko-hr/leave/settings": <LeaveSettings />,
+  // Attendance submodule routes
+  "/zoiko-hr/attendance": <AttendanceDashboard />,
+  "/zoiko-hr/attendance/daily": <DailyRecords />,
+  "/zoiko-hr/attendance/my-attendance": <MyAttendance />,
+  "/zoiko-hr/attendance/corrections": <AttendanceCorrections />,
+  "/zoiko-hr/attendance/schedule": <AttendanceSchedule />,
+  "/zoiko-hr/attendance/reports": <AttendanceReports />,
+  "/zoiko-hr/attendance/settings": <AttendanceSettings />,
   "/zoiko-hr/performance": <ZoikoHRPerformance />,
   "/zoiko-hr/recruitment": <ZoikoHRRecruitment />,
-  "/zoiko-hr/onboarding": <ZoikoHROnboarding />,
-  "/zoiko-hr/assets": <ZoikoHRAssets />,
-  "/zoiko-hr/learning": <ZoikoHRLearning />,
-  "/zoiko-hr/compensation": <ZoikoHRCompensation />,
-  "/zoiko-hr/ess": <ZoikoHREss />,
-  "/zoiko-hr/travel": <ZoikoHRTravel />,
-  "/zoiko-hr/compliance": <ZoikoHRCompliance />,
-  "/zoiko-hr/engagement": <ZoikoHREngagement />,
-  "/zoiko-hr/workforce-planning": <ZoikoHRWorkforcePlanning />,
+  "/zoiko-hr/onboarding": <ZoikoHROnboardingDashboard />,
+  "/zoiko-hr/onboarding/new-hires": <ZoikoHROnboardingNewHires />,
+  "/zoiko-hr/onboarding/pre-onboarding": <ZoikoHROnboardingPreOnboarding />,
+  "/zoiko-hr/onboarding/documents": <ZoikoHROnboardingDocuments />,
+  "/zoiko-hr/onboarding/checklists": <ZoikoHROnboardingChecklists />,
+  "/zoiko-hr/onboarding/department-assignment": <ZoikoHROnboardingDeptAssignment />,
+  "/zoiko-hr/onboarding/manager-assignment": <ZoikoHROnboardingManagerAssignment />,
+  "/zoiko-hr/onboarding/assets-access": <ZoikoHROnboardingAssetsAccess />,
+  "/zoiko-hr/onboarding/orientation": <ZoikoHROnboardingOrientation />,
+  "/zoiko-hr/onboarding/training": <ZoikoHROnboardingTraining />,
+  "/zoiko-hr/onboarding/progress": <ZoikoHROnboardingProgress />,
+  "/zoiko-hr/onboarding/reports": <ZoikoHROnboardingReports />,
+  "/zoiko-hr/onboarding/settings": <ZoikoHROnboardingSettings />,
+  // Assets submodule routes
+  "/zoiko-hr/assets": <AssetsDashboard />,
+  "/zoiko-hr/assets/my-assets": <MyAssets />,
+  "/zoiko-hr/assets/catalog": <AssetCatalog />,
+  "/zoiko-hr/assets/requests": <AssetRequests />,
+  "/zoiko-hr/assets/maintenance": <AssetMaintenance />,
+  "/zoiko-hr/assets/reports": <AssetReports />,
+  "/zoiko-hr/assets/settings": <AssetSettings />,
+  "/zoiko-hr/learning": <ZoikoHRLearningDashboard />,
+  "/zoiko-hr/learning/courses": <ZoikoHRLearningCourses />,
+  "/zoiko-hr/learning/training-programs": <ZoikoHRLearningTrainingPrograms />,
+  "/zoiko-hr/learning/paths": <ZoikoHRLearningPaths />,
+  "/zoiko-hr/learning/certifications": <ZoikoHRLearningCertifications />,
+  "/zoiko-hr/learning/skills": <ZoikoHRLearningSkillMatrix />,
+  "/zoiko-hr/learning/assessments": <ZoikoHRLearningAssessments />,
+  "/zoiko-hr/learning/calendar": <ZoikoHRLearningCalendar />,
+  "/zoiko-hr/learning/progress": <ZoikoHRLearningProgress />,
+  "/zoiko-hr/learning/reports": <ZoikoHRLearningReports />,
+  "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
+  "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
+  "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
+  "/zoiko-hr/compensation/salary-components": <ZoikoHRCompSalaryComponents />,
+  "/zoiko-hr/compensation/bands": <ZoikoHRCompBands />,
+  "/zoiko-hr/compensation/revisions": <ZoikoHRCompRevisions />,
+  "/zoiko-hr/compensation/increments": <ZoikoHRCompIncrements />,
+  "/zoiko-hr/compensation/bonuses": <ZoikoHRCompBonuses />,
+  "/zoiko-hr/compensation/incentives": <ZoikoHRCompIncentives />,
+  "/zoiko-hr/compensation/allowances": <ZoikoHRCompAllowances />,
+  "/zoiko-hr/compensation/deductions": <ZoikoHRCompDeductions />,
+  "/zoiko-hr/compensation/benefits": <ZoikoHRCompBenefits />,
+  "/zoiko-hr/compensation/medical": <ZoikoHRCompMedical />,
+  "/zoiko-hr/compensation/insurance": <ZoikoHRCompInsurance />,
+  "/zoiko-hr/compensation/retirement": <ZoikoHRCompRetirement />,
+  "/zoiko-hr/compensation/reimbursements": <ZoikoHRCompReimbursements />,
+  "/zoiko-hr/compensation/payroll": <ZoikoHRCompPayroll />,
+  "/zoiko-hr/compensation/reports": <ZoikoHRCompReports />,
+  "/zoiko-hr/compensation/analytics": <ZoikoHRCompAnalytics />,
+  "/zoiko-hr/compensation/settings": <ZoikoHRCompSettings />,
+  // ESS submodule routes
+  "/zoiko-hr/ess": <EssDashboard />,
+  "/zoiko-hr/ess/profile": <EssProfile />,
+  "/zoiko-hr/ess/leave": <EssLeaveManagement />,
+  "/zoiko-hr/ess/attendance": <EssAttendance />,
+  "/zoiko-hr/ess/my-documents": <EssMyDocuments />,
+  "/zoiko-hr/ess/requests": <EssRequests />,
+  "/zoiko-hr/ess/settings": <EssSettings />,
+
+  // Travel submodule routes
+  "/zoiko-hr/travel": <TravelDashboard />,
+  "/zoiko-hr/travel/requests": <TravelRequests />,
+  "/zoiko-hr/travel/approvals": <TravelApprovals />,
+  "/zoiko-hr/travel/itineraries": <TravelItineraries />,
+  "/zoiko-hr/travel/expenses": <TravelExpenses />,
+  "/zoiko-hr/travel/reports": <TravelReports />,
+  "/zoiko-hr/travel/settings": <TravelSettings />,
+  // Compliance submodule routes
+  "/zoiko-hr/compliance": <ComplianceDashboard />,
+  "/zoiko-hr/compliance/policies": <PolicyLibrary />,
+  "/zoiko-hr/compliance/tracking": <ComplianceTracking />,
+  "/zoiko-hr/compliance/audits": <Audits />,
+  "/zoiko-hr/compliance/violations": <Violations />,
+  "/zoiko-hr/compliance/risks": <RiskAssessment />,
+  "/zoiko-hr/compliance/regulations": <Regulations />,
+  "/zoiko-hr/compliance/corrective-actions": <CorrectiveActions />,
+  "/zoiko-hr/compliance/reports": <ComplianceReports />,
+  "/zoiko-hr/compliance/settings": <ComplianceSettings />,
+  "/zoiko-hr/engagement/wellness": <WellnessPrograms />,
+  "/zoiko-hr/engagement/csr": <CSRActivities />,
+  "/zoiko-hr/engagement/communications": <Communications />,
+  "/zoiko-hr/engagement/announcements": <Announcements />,
+  "/zoiko-hr/engagement/nps": <NPSSurveys />,
+  "/zoiko-hr/engagement/analytics": <EngagementAnalytics />,
+  "/zoiko-hr/engagement/reports": <EngagementReports />,
+  "/zoiko-hr/engagement/settings": <EngagementSettings />,
+
+  // Recruitment submodule routes
+  "/zoiko-hr/recruitment/job-requisitions": <JobRequisitions />,
+  "/zoiko-hr/recruitment/open-positions": <OpenPositions />,
+  "/zoiko-hr/recruitment/candidates": <Candidates />,
+  "/zoiko-hr/recruitment/candidates/:id": <CandidateDetails />,
+  "/zoiko-hr/recruitment/interview-pipeline": <InterviewPipeline />,
+  "/zoiko-hr/recruitment/offers": <OfferManagement />,
+  "/zoiko-hr/recruitment/hiring-schedule": <HiringSchedule />,
+  "/zoiko-hr/recruitment/analytics": <RecruitmentAnalytics />,
+  "/zoiko-hr/recruitment/reports": <RecruitmentReports />,
+  "/zoiko-hr/recruitment/settings": <RecruitmentSettings />,
+
+  // Performance submodule routes
+  "/zoiko-hr/performance/goals": <GoalsOKRs />,
+  "/zoiko-hr/performance/reviews": <PerformanceReviews />,
+  "/zoiko-hr/performance/appraisals": <Appraisals />,
+  "/zoiko-hr/performance/feedback": <Feedback />,
+  "/zoiko-hr/performance/360-reviews": <FortySixtyReviews />,
+  "/zoiko-hr/performance/kpis": <KpiTracking />,
+  "/zoiko-hr/performance/competencies": <Competencies />,
+  "/zoiko-hr/performance/analytics": <PerformanceAnalytics />,
+  "/zoiko-hr/performance/reports": <PerformanceReports />,
+  "/zoiko-hr/performance/settings": <PerformanceSettings />,
+
+  // Documents submodule routes
+  "/zoiko-hr/documents/employee-documents": <EmployeeDocuments />,
+  "/zoiko-hr/documents/company-documents": <CompanyDocuments />,
+  "/zoiko-hr/documents/templates": <Templates />,
+  "/zoiko-hr/documents/policies": <Policies />,
+  "/zoiko-hr/documents/compliance": <ComplianceDocuments />,
+  "/zoiko-hr/documents/approvals": <ApprovalWorkflow />,
+  "/zoiko-hr/documents/expiring-documents": <ExpiringDocuments />,
+  "/zoiko-hr/documents/archive": <Archive />,
+  "/zoiko-hr/documents/reports": <DocumentsReports />,
+  "/zoiko-hr/documents/settings": <DocumentsSettings />,
+
+  // Workforce Planning submodule routes
+  "/zoiko-hr/workforce-planning": <WorkforceDashboard />,
+  "/zoiko-hr/workforce-planning/plans": <WorkforcePlans />,
+  "/zoiko-hr/workforce-planning/headcount": <HeadcountPlanning />,
+  "/zoiko-hr/workforce-planning/succession": <SuccessionPlanning />,
+  "/zoiko-hr/workforce-planning/scenarios": <ScenarioPlanning />,
+  "/zoiko-hr/workforce-planning/reports": <WorkforceReports />,
+  "/zoiko-hr/workforce-planning/settings": <WorkforceSettings />,
+  "/zoiko-hr/documents": <ZoikoHRDocuments />,
   "/zoikotime": <ZoikoTimeModule />,
   "/payroll": <ZoikoPayrollModule />,
   "/payroll/company-setup": <ZoikoPayrollModule />,

@@ -1,3 +1,4 @@
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const TOKEN_KEY = "zoiko_access_token";
 const REFRESH_KEY = "zoiko_refresh_token";
@@ -35,6 +36,7 @@ export function clearSession() {
  */
 export async function apiRequest(path, { method = "GET", body, headers = {}, auth = true, retry = true } = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  console.log(`API Request: ${method} ${url}`);
 
   const finalHeaders = { ...headers };
   if (body !== undefined && !(body instanceof FormData)) {
@@ -60,12 +62,15 @@ export async function apiRequest(path, { method = "GET", body, headers = {}, aut
   }
 
   if (!res.ok) {
+    console.error(`API Error: ${method} ${url} failed with status ${res.status}`);
     let detail;
     try {
       const data = await res.json();
       detail = data?.detail || data?.message;
+      console.error("API Error Detail:", detail);
     } catch {
       detail = res.statusText;
+      console.error("API Error Text:", detail);
     }
     const error = new Error(detail || `Request failed with status ${res.status}`);
     error.status = res.status;

@@ -1,4 +1,19 @@
+import { api } from "./api";
 import { createResourceClient } from "./resourceClient";
+
+export const getTimeEntries = (employeeId) =>
+  api.get(`/time/entries${employeeId ? `?employee_id=${employeeId}` : ""}`);
+
+export const createTimeEntry = (payload) => api.post("/time/entries", payload);
+
+export const updateTimeEntry = (id, payload) => api.put(`/time/entries/${id}`, payload);
+
+export const getLeaveRequests = (employeeId) =>
+  api.get(`/time/leaves${employeeId ? `?employee_id=${employeeId}` : ""}`);
+
+export const createLeaveRequest = (payload) => api.post("/time/leaves", payload);
+
+export const reviewLeaveRequest = (id, payload) => api.put(`/time/leaves/${id}/review`, payload);
 
 const mockData = {
   overview: { message: "ZoikoTime overview (mock)" },

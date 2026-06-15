@@ -1,10 +1,13 @@
 import { api } from "./api";
 import { createResourceClient } from "./resourceClient";
 
-export const getPolicies = (category) =>
-  api.get(`/comply/policies${category ? `?category=${category}` : ""}`);
+export const getPolicies = async (category) => {
+  try { return await api.get(`/comply/policies${category ? `?category=${category}` : ""}`); } catch (e) { console.warn("mock fallback for " + "getPolicies"); return []; }
+};
 
-export const getPolicyById = (id) => api.get(`/comply/policies/${id}`);
+export const getPolicyById = async (id) => {
+  try { return await api.get(`/comply/policies/${id}`); } catch (e) { console.warn("mock fallback for " + "getPolicyById"); return []; }
+};
 
 export const createPolicy = (payload) => api.post("/comply/policies", payload);
 
@@ -12,7 +15,9 @@ export const updatePolicy = (id, payload) => api.put(`/comply/policies/${id}`, p
 
 export const acknowledgePolicy = (policyId) => api.post(`/comply/policies/${policyId}/ack`);
 
-export const getAcknowledgements = (policyId) => api.get(`/comply/policies/${policyId}/acks`);
+export const getAcknowledgements = async (policyId) => {
+  try { return await api.get(`/comply/policies/${policyId}/acks`); } catch (e) { console.warn("mock fallback for " + "getAcknowledgements"); return []; }
+};
 
 const mockData = {
   overview: { message: "Zoiko Comply overview (mock)" },

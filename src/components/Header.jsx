@@ -1,0 +1,62 @@
+import React, { useEffect } from "react";
+import { Menu, Search } from "lucide-react";
+import UserMenu from "./UserMenu";
+import logo from "../assets/logo.png";
+
+/**
+ * Header component for Super Admin UI.
+ * - Shows Zoiko One logo and "Super Admin" badge.
+ * - Provides a mobile menu button (hamburger) to toggle the sidebar.
+ * - Includes a search button that triggers the command palette (Cmd+K / Ctrl+K).
+ */
+export default function Header({ onMenuClick, onSearch }) {
+  // Keyboard shortcut for command palette
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (onSearch) onSearch();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onSearch]);
+
+  return (
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-xl backdrop-saturate-150">
+      <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden"
+          aria-label="Open sidebar"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
+        {/* Branding */}
+        <div className="flex items-center space-x-2">
+          <img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain" />
+          <span className="ml-2 rounded-full bg-[#FF7A00]/10 border border-[#FF7A00]/25 px-2.5 py-0.5 text-xs font-semibold text-[#FF7A00]">
+            Super Admin
+          </span>
+        </div>
+
+        {/* Search / Command Palette */}
+        <button
+          onClick={onSearch}
+          className="flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:border-slate-300 transition-all"
+          aria-label="Open command palette"
+        >
+          <Search className="h-3.5 w-3.5 mr-1.5 text-slate-400" /> Cmd+K / Ctrl+K
+        </button>
+
+        {/* User menu */}
+        <div className="ml-auto">
+          <UserMenu />
+        </div>
+      </div>
+    </header>
+  );
+}

@@ -1,0 +1,10 @@
+export { default as ComplianceDashboard } from "./pages/Dashboard";
+export { default as PolicyLibrary } from "./pages/PolicyLibrary";
+export { default as ComplianceTracking } from "./pages/ComplianceTracking";
+export { default as Audits } from "./pages/Audits";
+export { default as Violations } from "./pages/Violations";
+export { default as RiskAssessment } from "./pages/RiskAssessment";
+export { default as Regulations } from "./pages/Regulations";
+export { default as CorrectiveActions } from "./pages/CorrectiveActions";
+export { default as ComplianceReports } from "./pages/Reports";
+export { default as ComplianceSettings } from "./pages/Settings";

@@ -1,12 +1,9 @@
-import PagePlaceholder from "../../components/PagePlaceholder";
-
-export default function ZoikoBillingModule() {
-  return (
-    <PagePlaceholder
-      title="Zoiko Billing"
-      description="This is the Zoiko Billing module root."
-      path="/billing"
-      badge="Billing"
-    />
-  );
-}
+export { default as ZoikoBillingModule } from "./dashboard";
+export { default as InvoicingPage } from "./invoicing";
+export { default as InvoiceSchedulesPage } from "./invoice-schedules";
+export { default as UsageBillingPage } from "./usage-billing";
+export { default as TaxPage } from "./tax";
+export { default as CollectionsReceivablesPage } from "./collections-receivables";
+export { default as CreditNotesPage } from "./credit-notes";
+export { default as DunningPage } from "./dunning";
+export { default as ReportsPage } from "./reports";

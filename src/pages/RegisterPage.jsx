@@ -8,7 +8,18 @@ export default function RegisterPage() {
   const { register, error: authError } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ name: "", organization: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    orgName: "",
+    orgType: "",
+    registeredEmail: "",
+    phone: "",
+    address: "",
+    adminName: "",
+    adminEmail: "",
+    password: "",
+    taxNumber: "",
+    termsAccepted: false
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
@@ -39,7 +50,7 @@ export default function RegisterPage() {
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       padding: "40px 24px"
     }}>
-      <div style={{ width: "100%", maxWidth: "440px" }}>
+      <div style={{ width: "100%", maxWidth: "680px" }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
           <Link to="/">
@@ -71,90 +82,21 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-            <div>
-              <label htmlFor="name" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
-                Full name
-              </label>
-              <input
-                id="name"
-                type="text"
-                required
-                autoComplete="name"
-                value={form.name}
-                onChange={(e) => update("name", e.target.value)}
-                placeholder="Jane Doe"
-                style={{
-                  width: "100%", padding: "11px 14px", borderRadius: "10px",
-                  border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
-                  outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
-                  background: "#F9FAFB"
-                }}
-                onFocus={e => e.target.style.borderColor = "#FF6B00"}
-                onBlur={e => e.target.style.borderColor = "#E5E7EB"}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="organization" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
-                Organization
-              </label>
-              <input
-                id="organization"
-                type="text"
-                autoComplete="organization"
-                value={form.organization}
-                onChange={(e) => update("organization", e.target.value)}
-                placeholder="Acme Inc."
-                style={{
-                  width: "100%", padding: "11px 14px", borderRadius: "10px",
-                  border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
-                  outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
-                  background: "#F9FAFB"
-                }}
-                onFocus={e => e.target.style.borderColor = "#FF6B00"}
-                onBlur={e => e.target.style.borderColor = "#E5E7EB"}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
-                Work email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={form.email}
-                onChange={(e) => update("email", e.target.value)}
-                placeholder="you@company.com"
-                style={{
-                  width: "100%", padding: "11px 14px", borderRadius: "10px",
-                  border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
-                  outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
-                  background: "#F9FAFB"
-                }}
-                onFocus={e => e.target.style.borderColor = "#FF6B00"}
-                onBlur={e => e.target.style.borderColor = "#E5E7EB"}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
-                Password
-              </label>
-              <div style={{ position: "relative" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
+              <div>
+                <label htmlFor="orgName" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Organization Name
+                </label>
                 <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
+                  id="orgName"
+                  type="text"
                   required
-                  minLength={8}
-                  autoComplete="new-password"
-                  value={form.password}
-                  onChange={(e) => update("password", e.target.value)}
-                  placeholder="At least 8 characters"
+                  autoComplete="organization"
+                  value={form.orgName}
+                  onChange={(e) => update("orgName", e.target.value)}
+                  placeholder="Acme Inc."
                   style={{
-                    width: "100%", padding: "11px 44px 11px 14px", borderRadius: "10px",
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
                     border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
                     outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
                     background: "#F9FAFB"
@@ -162,18 +104,228 @@ export default function RegisterPage() {
                   onFocus={e => e.target.style.borderColor = "#FF6B00"}
                   onBlur={e => e.target.style.borderColor = "#E5E7EB"}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  style={{
-                    position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
-                    background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", padding: 0
-                  }}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
               </div>
+
+              <div>
+                <label htmlFor="adminName" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Admin Name
+                </label>
+                <input
+                  id="adminName"
+                  type="text"
+                  required
+                  autoComplete="name"
+                  value={form.adminName}
+                  onChange={(e) => update("adminName", e.target.value)}
+                  placeholder="Jane Doe"
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
+                    border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                    background: "#F9FAFB"
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                  onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="orgType" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Organization Type
+                </label>
+                <select
+                  id="orgType"
+                  required
+                  value={form.orgType}
+                  onChange={(e) => update("orgType", e.target.value)}
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
+                    border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                    background: "#F9FAFB", appearance: "auto"
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                  onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                >
+                  <option value="">Select organization type</option>
+                  <option value="sole_proprietorship">Sole Proprietorship</option>
+                  <option value="partnership">Partnership</option>
+                  <option value="llc">LLC</option>
+                  <option value="corporation">Corporation</option>
+                  <option value="nonprofit">Non-Profit</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="adminEmail" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Admin Email
+                </label>
+                <input
+                  id="adminEmail"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={form.adminEmail}
+                  onChange={(e) => update("adminEmail", e.target.value)}
+                  placeholder="admin@company.com"
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
+                    border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                    background: "#F9FAFB"
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                  onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="registeredEmail" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Registered Email
+                </label>
+                <input
+                  id="registeredEmail"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={form.registeredEmail}
+                  onChange={(e) => update("registeredEmail", e.target.value)}
+                  placeholder="company@example.com"
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
+                    border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                    background: "#F9FAFB"
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                  onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Password
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={(e) => update("password", e.target.value)}
+                    placeholder="At least 8 characters"
+                    style={{
+                      width: "100%", padding: "11px 44px 11px 14px", borderRadius: "10px",
+                      border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                      outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                      background: "#F9FAFB"
+                    }}
+                    onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                    onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    style={{
+                      position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", padding: 0
+                    }}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="phone" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  required
+                  autoComplete="tel"
+                  value={form.phone}
+                  onChange={(e) => update("phone", e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
+                    border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                    background: "#F9FAFB"
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                  onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="taxNumber" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                  Tax / Registration Number
+                </label>
+                <input
+                  id="taxNumber"
+                  type="text"
+                  required
+                  value={form.taxNumber}
+                  onChange={(e) => update("taxNumber", e.target.value)}
+                  placeholder="GSTIN / VAT / EIN"
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: "10px",
+                    border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                    background: "#F9FAFB"
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                  onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="address" style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "6px" }}>
+                Address
+              </label>
+              <textarea
+                id="address"
+                required
+                value={form.address}
+                onChange={(e) => update("address", e.target.value)}
+                placeholder="123 Main St, City, State, ZIP"
+                rows={2}
+                style={{
+                  width: "100%", padding: "11px 14px", borderRadius: "10px",
+                  border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
+                  outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
+                  background: "#F9FAFB", resize: "vertical", fontFamily: "inherit"
+                }}
+                onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+              <input
+                id="termsAccepted"
+                type="checkbox"
+                required
+                checked={form.termsAccepted}
+                onChange={(e) => update("termsAccepted", e.target.checked)}
+                style={{
+                  marginTop: "2px", width: "16px", height: "16px", flexShrink: 0,
+                  accentColor: "#FF6B00", cursor: "pointer"
+                }}
+              />
+              <label htmlFor="termsAccepted" style={{ fontSize: "13px", color: "#374151", cursor: "pointer", lineHeight: "1.4" }}>
+                I accept the{" "}
+                <Link to="/terms" style={{ color: "#FF6B00", fontWeight: "600", textDecoration: "none" }}>
+                  Terms & Conditions
+                </Link>
+              </label>
             </div>
 
             <button

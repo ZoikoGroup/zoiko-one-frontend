@@ -1,12 +1,10 @@
-import PagePlaceholder from "../../components/PagePlaceholder";
-
-export default function ZoikoInsightsModule() {
-  return (
-    <PagePlaceholder
-      title="Zoiko Insights"
-      description="This is the Zoiko Insights module root."
-      path="/insights"
-      badge="Insights"
-    />
-  );
-}
+export { default as InsightsDashboard } from "./pages/Dashboard.jsx";
+export { default as InsightsWorkforceAnalytics } from "./pages/WorkforceAnalytics.jsx";
+export { default as InsightsPayrollAnalytics } from "./pages/PayrollAnalytics.jsx";
+export { default as InsightsFinancialAnalytics } from "./pages/FinancialAnalytics.jsx";
+export { default as InsightsProjectAnalytics } from "./pages/ProjectAnalytics.jsx";
+export { default as InsightsInventoryAnalytics } from "./pages/InventoryAnalytics.jsx";
+export { default as InsightsComplianceAnalytics } from "./pages/ComplianceAnalytics.jsx";
+export { default as InsightsForecasting } from "./pages/Forecasting.jsx";
+export { default as InsightsCustomReports } from "./pages/CustomReports.jsx";
+export { default as InsightsSavedReports } from "./pages/SavedReports.jsx";

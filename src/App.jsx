@@ -12,20 +12,25 @@ import ZoikoHRModule from "./modules/zoiko-hr/HrDashBoard.jsx";
 
 // Sub-module imports pointing explicitly to their component files inside each directory
 import ZoikoHRWorkforce from "./modules/zoiko-hr/workforce/workforce.jsx";
-import {
-  LeaveDashboard, MyLeave, LeaveRequests, LeaveCalendar,
-  LeaveTypes, LeaveReports, LeaveSettings,
-} from "./modules/zoiko-hr/leave/Index";
+import ZoikoHRLeaveDashboard from "./modules/zoiko-hr/leave/dashboard.jsx";
+import ZoikoHRLeaveMyLeave from "./modules/zoiko-hr/leave/my-leave.jsx";
+import ZoikoHRLeaveRequests from "./modules/zoiko-hr/leave/leave-requests.jsx";
+import ZoikoHRLeaveCalendar from "./modules/zoiko-hr/leave/leave-calendar.jsx";
+import ZoikoHRLeaveLeaveTypes from "./modules/zoiko-hr/leave/leave-types.jsx";
+import ZoikoHRLeaveReports from "./modules/zoiko-hr/leave/reports.jsx";
+import ZoikoHRLeaveSettings from "./modules/zoiko-hr/leave/settings.jsx";
 
-import {
-  DepartmentsDashboard, DepartmentList, DepartmentStructure,
-  DepartmentReports, DepartmentSettings,
-} from "./modules/zoiko-hr/departments/Index";
+import ZoikoHRDepartmentsDashboard from "./modules/zoiko-hr/departments/dashboard.jsx";
+import ZoikoHRDepartmentsDepartmentList from "./modules/zoiko-hr/departments/department-list.jsx";
+import ZoikoHRDepartmentsDepartmentStructure from "./modules/zoiko-hr/departments/department-structure.jsx";
+import ZoikoHRDepartmentsReports from "./modules/zoiko-hr/departments/reports.jsx";
+import ZoikoHRDepartmentsSettings from "./modules/zoiko-hr/departments/settings.jsx";
 
-import {
-  DesignationsDashboard, DesignationList, LevelMatrix,
-  DesignationReports, DesignationSettings,
-} from "./modules/zoiko-hr/designations/Index";
+import ZoikoHRDesignationsDashboard from "./modules/zoiko-hr/designations/dashboard.jsx";
+import ZoikoHRDesignationList from "./modules/zoiko-hr/designations/designation-list.jsx";
+import ZoikoHRDesignationStructure from "./modules/zoiko-hr/designations/designation-structure.jsx";
+import ZoikoHRDesignationReports from "./modules/zoiko-hr/designations/reports.jsx";
+import ZoikoHRDesignationSettings from "./modules/zoiko-hr/designations/settings.jsx";
 
 import ZoikoHRPerformance from "./modules/zoiko-hr/performance/performance.jsx";
 import ZoikoHRRecruitment from "./modules/zoiko-hr/recruitment/recruitment.jsx";
@@ -88,10 +93,13 @@ import {
   ComplianceReports, ComplianceSettings,
 } from "./modules/zoiko-hr/compliance/Index";
 
-import {
-  AttendanceDashboard, DailyRecords, MyAttendance, AttendanceCorrections,
-  AttendanceSchedule, AttendanceReports, AttendanceSettings,
-} from "./modules/zoiko-hr/attendance/Index";
+import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
+import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
+import ZoikoHRAttendanceMyAttendance from "./modules/zoiko-hr/attendance/my-attendance.jsx";
+import ZoikoHRAttendanceCorrections from "./modules/zoiko-hr/attendance/corrections.jsx";
+import ZoikoHRAttendanceSchedule from "./modules/zoiko-hr/attendance/schedule.jsx";
+import ZoikoHRAttendanceReports from "./modules/zoiko-hr/attendance/reports.jsx";
+import ZoikoHRAttendanceSettings from "./modules/zoiko-hr/attendance/settings.jsx";
 
 import {
   WorkforceDashboard, WorkforcePlans, HeadcountPlanning, SuccessionPlanning,
@@ -201,33 +209,33 @@ const routeOverrides = {
   "/zoiko-hr": <ZoikoHRModule />,
   "/zoiko-hr/workforce": <ZoikoHRWorkforce />,
   // Departments submodule routes
-  "/zoiko-hr/departments": <DepartmentsDashboard />,
-  "/zoiko-hr/departments/list": <DepartmentList />,
-  "/zoiko-hr/departments/structure": <DepartmentStructure />,
-  "/zoiko-hr/departments/reports": <DepartmentReports />,
-  "/zoiko-hr/departments/settings": <DepartmentSettings />,
+  "/zoiko-hr/departments": <ZoikoHRDepartmentsDashboard />,
+  "/zoiko-hr/departments/list": <ZoikoHRDepartmentsDepartmentList />,
+  "/zoiko-hr/departments/structure": <ZoikoHRDepartmentsDepartmentStructure />,
+  "/zoiko-hr/departments/reports": <ZoikoHRDepartmentsReports />,
+  "/zoiko-hr/departments/settings": <ZoikoHRDepartmentsSettings />,
   // Designations submodule routes
-  "/zoiko-hr/designations": <DesignationsDashboard />,
-  "/zoiko-hr/designations/list": <DesignationList />,
-  "/zoiko-hr/designations/levels": <LevelMatrix />,
-  "/zoiko-hr/designations/reports": <DesignationReports />,
-  "/zoiko-hr/designations/settings": <DesignationSettings />,
+  "/zoiko-hr/designations": <ZoikoHRDesignationsDashboard />,
+  "/zoiko-hr/designations/list": <ZoikoHRDesignationList />,
+  "/zoiko-hr/designations/levels": <ZoikoHRDesignationStructure />,
+  "/zoiko-hr/designations/reports": <ZoikoHRDesignationReports />,
+  "/zoiko-hr/designations/settings": <ZoikoHRDesignationSettings />,
   // Leave submodule routes
-  "/zoiko-hr/leave": <LeaveDashboard />,
-  "/zoiko-hr/leave/my-leave": <MyLeave />,
-  "/zoiko-hr/leave/requests": <LeaveRequests />,
-  "/zoiko-hr/leave/calendar": <LeaveCalendar />,
-  "/zoiko-hr/leave/leave-types": <LeaveTypes />,
-  "/zoiko-hr/leave/reports": <LeaveReports />,
-  "/zoiko-hr/leave/settings": <LeaveSettings />,
+  "/zoiko-hr/leave": <ZoikoHRLeaveDashboard />,
+  "/zoiko-hr/leave/my-leave": <ZoikoHRLeaveMyLeave />,
+  "/zoiko-hr/leave/requests": <ZoikoHRLeaveRequests />,
+  "/zoiko-hr/leave/calendar": <ZoikoHRLeaveCalendar />,
+  "/zoiko-hr/leave/leave-types": <ZoikoHRLeaveLeaveTypes />,
+  "/zoiko-hr/leave/reports": <ZoikoHRLeaveReports />,
+  "/zoiko-hr/leave/settings": <ZoikoHRLeaveSettings />,
   // Attendance submodule routes
-  "/zoiko-hr/attendance": <AttendanceDashboard />,
-  "/zoiko-hr/attendance/daily": <DailyRecords />,
-  "/zoiko-hr/attendance/my-attendance": <MyAttendance />,
-  "/zoiko-hr/attendance/corrections": <AttendanceCorrections />,
-  "/zoiko-hr/attendance/schedule": <AttendanceSchedule />,
-  "/zoiko-hr/attendance/reports": <AttendanceReports />,
-  "/zoiko-hr/attendance/settings": <AttendanceSettings />,
+  "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
+  "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
+  "/zoiko-hr/attendance/my-attendance": <ZoikoHRAttendanceMyAttendance />,
+  "/zoiko-hr/attendance/corrections": <ZoikoHRAttendanceCorrections />,
+  "/zoiko-hr/attendance/schedule": <ZoikoHRAttendanceSchedule />,
+  "/zoiko-hr/attendance/reports": <ZoikoHRAttendanceReports />,
+  "/zoiko-hr/attendance/settings": <ZoikoHRAttendanceSettings />,
   "/zoiko-hr/performance": <ZoikoHRPerformance />,
   "/zoiko-hr/recruitment": <ZoikoHRRecruitment />,
   "/zoiko-hr/onboarding": <ZoikoHROnboardingDashboard />,

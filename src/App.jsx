@@ -76,17 +76,28 @@ import {
   PerformanceAnalytics, PerformanceReports, PerformanceSettings,
 } from "./modules/zoiko-hr/performance/Index";
 
-import {
-  DocumentsDashboard, EmployeeDocuments, CompanyDocuments, Templates,
-  Policies, ComplianceDocuments, ApprovalWorkflow, ExpiringDocuments,
-  Archive, DocumentsReports, DocumentsSettings,
-} from "./modules/zoiko-hr/documents/Index";
+import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
+import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
+import CompanyDocuments from "./modules/zoiko-hr/documents/company-documents.jsx";
+import Templates from "./modules/zoiko-hr/documents/templates.jsx";
+import Policies from "./modules/zoiko-hr/documents/policies.jsx";
+import ComplianceDocuments from "./modules/zoiko-hr/documents/compliance-documents.jsx";
+import ApprovalWorkflow from "./modules/zoiko-hr/documents/approvals.jsx";
+import ExpiringDocuments from "./modules/zoiko-hr/documents/expiring-documents.jsx";
+import Archive from "./modules/zoiko-hr/documents/archive.jsx";
+import DocumentsReports from "./modules/zoiko-hr/documents/reports.jsx";
+import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 
-import {
-  ComplianceDashboard, PolicyLibrary, ComplianceTracking, Audits,
-  Violations, RiskAssessment, Regulations, CorrectiveActions,
-  ComplianceReports, ComplianceSettings,
-} from "./modules/zoiko-hr/compliance/Index";
+import ComplianceDashboard from "./modules/zoiko-hr/compliance/dashboard.jsx";
+import PolicyLibrary from "./modules/zoiko-hr/compliance/policy-library.jsx";
+import ComplianceTracking from "./modules/zoiko-hr/compliance/compliance-tracking.jsx";
+import Audits from "./modules/zoiko-hr/compliance/audits.jsx";
+import Violations from "./modules/zoiko-hr/compliance/violations.jsx";
+import RiskAssessment from "./modules/zoiko-hr/compliance/risk-assessment.jsx";
+import Regulations from "./modules/zoiko-hr/compliance/regulations.jsx";
+import CorrectiveActions from "./modules/zoiko-hr/compliance/corrective-actions.jsx";
+import ComplianceReports from "./modules/zoiko-hr/compliance/reports.jsx";
+import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
 
 import {
   AttendanceDashboard, DailyRecords, MyAttendance, AttendanceCorrections,
@@ -98,7 +109,6 @@ import {
   ScenarioPlanning, WorkforceReports, WorkforceSettings,
 } from "./modules/zoiko-hr/workforce-planning/Index";
 
-import ZoikoHRDocuments from "./modules/zoiko-hr/documents/documents.jsx";
 import ZoikoHRLearningDashboard from "./modules/zoiko-hr/learning/dashboard.jsx";
 import ZoikoHRLearningCourses from "./modules/zoiko-hr/learning/courses.jsx";
 import ZoikoHRLearningTrainingPrograms from "./modules/zoiko-hr/learning/training-programs.jsx";
@@ -352,7 +362,7 @@ const routeOverrides = {
   "/zoiko-hr/workforce-planning/scenarios": <ScenarioPlanning />,
   "/zoiko-hr/workforce-planning/reports": <WorkforceReports />,
   "/zoiko-hr/workforce-planning/settings": <WorkforceSettings />,
-  "/zoiko-hr/documents": <ZoikoHRDocuments />,
+  "/zoiko-hr/documents": <DocumentsDashboard />,
   "/zoikotime": <ZoikoTimeModule />,
   "/payroll": <ZoikoPayrollModule />,
   "/payroll/company-setup": <ZoikoPayrollModule />,

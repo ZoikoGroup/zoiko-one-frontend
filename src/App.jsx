@@ -132,7 +132,16 @@ import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
-import ZoikoBillingModule from "./modules/billing";
+import {
+  ZoikoSpendModule, PurchaseRequestsPage, PosPage,
+  VendorsPage, SupplierInvoicesPage, ApWorkflowPage,
+  SpendPolicyPage, SpendApprovalsPage, PaymentPreparationPage,
+} from "./modules/spend";
+import {
+  ZoikoBillingModule, InvoicingPage, InvoiceSchedulesPage,
+  UsageBillingPage, TaxPage, CollectionsReceivablesPage,
+  CreditNotesPage, DunningPage, ReportsPage,
+} from "./modules/billing";
 import {
   ComplyDashboard, ComplyObligations, ComplyControlsLibrary, ControlDetail,
   ComplyRiskRegister, ComplyAudits, ComplyEvidence, ComplyPolicies,
@@ -144,6 +153,7 @@ import {
   InsightsComplianceAnalytics, InsightsForecasting, InsightsCustomReports,
   InsightsSavedReports,
 } from "./modules/insights";
+import ItemsPage from "./modules/inventory/pages/ItemsPage";
 
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
@@ -365,7 +375,34 @@ const routeOverrides = {
   "/payroll/reports": <ZoikoPayrollModule />,
   "/payroll/audit": <ZoikoPayrollModule />,
   "/payroll/settings": <ZoikoPayrollModule />,
+  "/spend/purchase-requests": <PurchaseRequestsPage />,
+  "/spend/purchase-orders": <PosPage />,
+  "/spend/vendors": <VendorsPage />,
+  "/spend/supplier-invoices": <SupplierInvoicesPage />,
+  "/spend/ap-workflow": <ApWorkflowPage />,
+  "/spend/spend-policy": <SpendPolicyPage />,
+  "/spend/approvals": <SpendApprovalsPage />,
+  "/spend/payment-preparation": <PaymentPreparationPage />,
   "/billing": <ZoikoBillingModule />,
+  "/billing/invoices": <InvoicingPage />,
+  "/billing/invoice-schedules": <InvoiceSchedulesPage />,
+  "/billing/usage-billing": <UsageBillingPage />,
+  "/billing/tax": <TaxPage />,
+  "/billing/collections-receivables": <CollectionsReceivablesPage />,
+  "/billing/credit-notes": <CreditNotesPage />,
+  "/billing/dunning": <DunningPage />,
+  "/billing/reports": <ReportsPage />,
+  // Zoiko Inventory routes
+  "/inventory/items": <ItemsPage />,
+  "/inventory/locations": <PagePlaceholder title="Locations" path="/inventory/locations" badge="Inventory" />,
+  "/inventory/stock": <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />,
+  "/inventory/receiving": <PagePlaceholder title="Receiving" path="/inventory/receiving" badge="Inventory" />,
+  "/inventory/goods-issue": <PagePlaceholder title="Goods Issue" path="/inventory/goods-issue" badge="Inventory" />,
+  "/inventory/transfers": <PagePlaceholder title="Transfers" path="/inventory/transfers" badge="Inventory" />,
+  "/inventory/stock-counts": <PagePlaceholder title="Stock Counts" path="/inventory/stock-counts" badge="Inventory" />,
+  "/inventory/reorder": <PagePlaceholder title="Reorder" path="/inventory/reorder" badge="Inventory" />,
+  "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
+  "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
   "/comply": <ComplyDashboard />,
   "/comply/obligations": <ComplyObligations />,
   "/comply/controls": <ComplyControlsLibrary />,

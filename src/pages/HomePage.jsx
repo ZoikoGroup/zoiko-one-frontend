@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight, CheckCircle2, Users, Clock, WalletCards, CreditCard,
   FileCheck2, Sparkles, ShieldCheck, Network, MessageSquare, Globe,
-  Rocket, Building2, ChevronRight, Star, TrendingUp, Zap, Lock, BarChart3
+  Rocket, Building2, ChevronRight, Star, TrendingUp, Zap, Lock, BarChart3, Wallet
 } from "lucide-react";
 import LandingHeader from "../components/LandingHeader";
 import LandingFooter from "../components/LandingFooter";
@@ -11,7 +11,6 @@ const coreProducts = [
   { name: "Zoiko HR", href: "/zoiko-hr", icon: Users, desc: "Employee records, onboarding, leave, performance and full lifecycle management.", color: "#4F46E5", bg: "#EEF2FF" },
   { name: "ZoikoTime", href: "/zoikotime", icon: Clock, desc: "Time tracking, attendance, shifts, scheduling and payroll-ready evidence.", color: "#0891B2", bg: "#E0F2FE" },
   { name: "Zoiko Payroll", href: "/payroll", icon: WalletCards, desc: "Pay runs, payslips, deductions, filings, approvals and payment readiness.", color: "#059669", bg: "#ECFDF5" },
-  { name: "Zoiko Billing", href: "/billing", icon: CreditCard, desc: "Invoicing, recurring billing, collections, payment links and revenue dashboards.", color: "#D97706", bg: "#FFFBEB" },
   { name: "Zoiko Comply", href: "/comply", icon: FileCheck2, desc: "Compliance dashboards, filing calendars, audit logs and governance workflows.", color: "#DC2626", bg: "#FEF2F2" },
   { name: "Zoiko Insights", href: "/insights", icon: Sparkles, desc: "Executive dashboards, payroll analytics, revenue insights and forecasting.", color: "#7C3AED", bg: "#F5F3FF" },
 ];
@@ -27,9 +26,8 @@ const workflowSteps = [
   { step: "01", title: "Manage people", body: "Zoiko HR creates and governs the employee record from hire to retire.", icon: Users, color: "#4F46E5" },
   { step: "02", title: "Capture work", body: "ZoikoTime records time, attendance, shifts and billable work automatically.", icon: Clock, color: "#0891B2" },
   { step: "03", title: "Run payroll", body: "Zoiko Payroll converts approved inputs into governed, compliant pay runs.", icon: WalletCards, color: "#059669" },
-  { step: "04", title: "Bill clients", body: "Zoiko Billing turns billable work into invoices and manages collections.", icon: CreditCard, color: "#D97706" },
-  { step: "05", title: "Settle money", body: "ZoikoPay handles settlement, disbursement, FX and reconciliation.", icon: Network, color: "#DC2626" },
-  { step: "06", title: "Govern & see", body: "Zoiko Comply and Insights provide controls, audit trails and forecasts.", icon: BarChart3, color: "#7C3AED" },
+  { step: "04", title: "Settle money", body: "ZoikoPay handles settlement, disbursement, FX and reconciliation.", icon: Network, color: "#DC2626" },
+  { step: "05", title: "Govern & see", body: "Zoiko Comply and Insights provide controls, audit trails and forecasts.", icon: BarChart3, color: "#7C3AED" },
 ];
 
 const ecosystem = [
@@ -54,7 +52,7 @@ const pricingPlans = [
     price: "$12",
     per: "/user/month",
     desc: "Connected workflows for growing mid-market businesses.",
-    points: ["All 6 core products", "Unlimited users", "Advanced analytics", "Priority support", "API access", "Custom workflows"],
+    points: ["All 5 core products", "Unlimited users", "Advanced analytics", "Priority support", "API access", "Custom workflows"],
     cta: "Start Free Trial",
     href: "/register",
     highlighted: true,
@@ -125,7 +123,7 @@ export default function HomePage() {
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "#6B7280", lineHeight: "1.7", margin: "0 0 36px 0", maxWidth: "620px", marginLeft: "auto", marginRight: "auto" }}>
-            Zoiko One brings together HR, Time, Payroll, Billing, Compliance and Insights into one connected platform — built for businesses that need flexible adoption today and scalable governance tomorrow.
+            Zoiko One brings together HR, Time, Payroll, Compliance and Insights into one connected platform — built for businesses that need flexible adoption today and scalable governance tomorrow.
           </p>
 
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap", marginBottom: "40px" }}>
@@ -174,7 +172,7 @@ export default function HomePage() {
               Core Products
             </p>
             <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: "800", color: "#111827", margin: "0 0 16px 0", letterSpacing: "-0.5px" }}>
-              Six products. One platform.
+              Five products. One platform.
             </h2>
             <p style={{ fontSize: "17px", color: "#6B7280", maxWidth: "560px", margin: "0 auto", lineHeight: "1.6" }}>
               Buy standalone, combine in bundles, or adopt the enterprise framework as your business scales.
@@ -239,7 +237,7 @@ export default function HomePage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr", gap: "20px" }}>
             {[
               { label: "Adjacent Platforms", color: "#6B7280", bg: "#F9FAFB", border: "#E5E7EB", desc: "Zoiko Sema, Zoiko Local, ZoikoVertex, and Zoiko Web Services — standalone platforms that integrate with Zoiko One and create expansion pathways.", icon: Globe },
-              { label: "Zoiko One Core", color: "#FF6B00", bg: "#fff7f0", border: "#FFD4B3", desc: "Zoiko HR, ZoikoTime, Zoiko Payroll, Zoiko Billing, Zoiko Comply and Zoiko Insights — the six core products customers buy as standalone, bundles or enterprise packages.", icon: Zap, featured: true },
+              { label: "Zoiko One Core", color: "#FF6B00", bg: "#fff7f0", border: "#FFD4B3", desc: "Zoiko HR, ZoikoTime, Zoiko Payroll, Zoiko Comply and Zoiko Insights — the five core products customers buy as standalone, bundles or enterprise packages.", icon: Zap, featured: true },
               { label: "Infrastructure", color: "#6B7280", bg: "#F9FAFB", border: "#E5E7EB", desc: "ZoikoPay and ZoikoCoreX power settlement, disbursement, FX, reconciliation and financial truth beneath the platform.", icon: Network },
             ].map((item) => (
               <div key={item.label} style={{
@@ -257,6 +255,64 @@ export default function HomePage() {
                 <p style={{ fontSize: "12px", fontWeight: "700", color: item.color, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 10px 0" }}>{item.label}</p>
                 <p style={{ fontSize: "14px", color: "#4B5563", lineHeight: "1.7", margin: 0 }}>{item.desc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── MONEY ─── */}
+      <section id="money" style={{ padding: "80px 24px", background: "white" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "52px" }}>
+            <p style={{ fontSize: "13px", fontWeight: "600", color: "#FF6B00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+              Money
+            </p>
+            <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: "800", color: "#111827", margin: "0 0 16px 0", letterSpacing: "-0.5px" }}>
+              Manage, move and grow your money
+            </h2>
+            <p style={{ fontSize: "17px", color: "#6B7280", maxWidth: "560px", margin: "0 auto", lineHeight: "1.6" }}>
+              From invoicing and collections to vendor spend and AP workflows — everything money in one place.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+            {[
+              { name: "Zoiko Billing", href: "/billing", icon: CreditCard, desc: "Control money in with invoicing, recurring billing, collections, payment links and revenue dashboards.", color: "#D97706", bg: "#FFFBEB" },
+              { name: "Zoiko Spend", href: "/spend", icon: Wallet, desc: "Control money out with vendor records, purchase requests, purchase orders, supplier invoices, spend policies, approvals, and payment-ready workflows.", color: "#059669", bg: "#ECFDF5" },
+            ].map((p) => (
+              <Link
+                key={p.href}
+                to={p.href}
+                style={{
+                  display: "block", padding: "28px", borderRadius: "16px",
+                  background: "white", border: "1.5px solid #E5E7EB",
+                  textDecoration: "none", transition: "all 0.25s",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)"
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = p.color;
+                  e.currentTarget.style.boxShadow = `0 8px 32px rgba(0,0,0,0.1)`;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = "#E5E7EB";
+                  e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                <div style={{
+                  width: "48px", height: "48px", borderRadius: "12px",
+                  background: p.bg, display: "flex", alignItems: "center", justifyContent: "center",
+                  marginBottom: "16px"
+                }}>
+                  <p.icon size={22} color={p.color} />
+                </div>
+                <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#111827", margin: "0 0 8px 0" }}>{p.name}</h3>
+                <p style={{ fontSize: "14px", color: "#6B7280", lineHeight: "1.6", margin: "0 0 16px 0" }}>{p.desc}</p>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "13px", fontWeight: "600", color: p.color }}>
+                  Learn more <ArrowRight size={14} />
+                </span>
+              </Link>
             ))}
           </div>
         </div>
@@ -430,7 +486,7 @@ export default function HomePage() {
                 Security, privacy & governance — before you ever pick up the phone.
               </h2>
               <p style={{ fontSize: "14px", color: "#9CA3AF", lineHeight: "1.7", margin: 0 }}>
-                Zoiko One handles sensitive operational data across HR, payroll, time, billing, compliance and analytics. Review our security, privacy, data-processing and governance materials whenever you're ready.
+                Zoiko One handles sensitive operational data across HR, payroll, time, compliance and analytics. Review our security, privacy, data-processing and governance materials whenever you're ready.
               </p>
             </div>
             <Link to="/trust-center" style={{

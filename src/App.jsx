@@ -12,20 +12,25 @@ import ZoikoHRModule from "./modules/zoiko-hr/HrDashBoard.jsx";
 
 // Sub-module imports pointing explicitly to their component files inside each directory
 import ZoikoHRWorkforce from "./modules/zoiko-hr/workforce/workforce.jsx";
-import {
-  LeaveDashboard, MyLeave, LeaveRequests, LeaveCalendar,
-  LeaveTypes, LeaveReports, LeaveSettings,
-} from "./modules/zoiko-hr/leave/Index";
+import ZoikoHRLeaveDashboard from "./modules/zoiko-hr/leave/dashboard.jsx";
+import ZoikoHRLeaveMyLeave from "./modules/zoiko-hr/leave/my-leave.jsx";
+import ZoikoHRLeaveRequests from "./modules/zoiko-hr/leave/leave-requests.jsx";
+import ZoikoHRLeaveCalendar from "./modules/zoiko-hr/leave/leave-calendar.jsx";
+import ZoikoHRLeaveLeaveTypes from "./modules/zoiko-hr/leave/leave-types.jsx";
+import ZoikoHRLeaveReports from "./modules/zoiko-hr/leave/reports.jsx";
+import ZoikoHRLeaveSettings from "./modules/zoiko-hr/leave/settings.jsx";
 
-import {
-  DepartmentsDashboard, DepartmentList, DepartmentStructure,
-  DepartmentReports, DepartmentSettings,
-} from "./modules/zoiko-hr/departments/Index";
+import ZoikoHRDepartmentsDashboard from "./modules/zoiko-hr/departments/dashboard.jsx";
+import ZoikoHRDepartmentsDepartmentList from "./modules/zoiko-hr/departments/department-list.jsx";
+import ZoikoHRDepartmentsDepartmentStructure from "./modules/zoiko-hr/departments/department-structure.jsx";
+import ZoikoHRDepartmentsReports from "./modules/zoiko-hr/departments/reports.jsx";
+import ZoikoHRDepartmentsSettings from "./modules/zoiko-hr/departments/settings.jsx";
 
-import {
-  DesignationsDashboard, DesignationList, LevelMatrix,
-  DesignationReports, DesignationSettings,
-} from "./modules/zoiko-hr/designations/Index";
+import ZoikoHRDesignationsDashboard from "./modules/zoiko-hr/designations/dashboard.jsx";
+import ZoikoHRDesignationList from "./modules/zoiko-hr/designations/designation-list.jsx";
+import ZoikoHRDesignationStructure from "./modules/zoiko-hr/designations/designation-structure.jsx";
+import ZoikoHRDesignationReports from "./modules/zoiko-hr/designations/reports.jsx";
+import ZoikoHRDesignationSettings from "./modules/zoiko-hr/designations/settings.jsx";
 
 import ZoikoHRPerformance from "./modules/zoiko-hr/performance/performance.jsx";
 import ZoikoHRRecruitment from "./modules/zoiko-hr/recruitment/recruitment.jsx";
@@ -99,10 +104,13 @@ import CorrectiveActions from "./modules/zoiko-hr/compliance/corrective-actions.
 import ComplianceReports from "./modules/zoiko-hr/compliance/reports.jsx";
 import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
 
-import {
-  AttendanceDashboard, DailyRecords, MyAttendance, AttendanceCorrections,
-  AttendanceSchedule, AttendanceReports, AttendanceSettings,
-} from "./modules/zoiko-hr/attendance/Index";
+import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
+import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
+import ZoikoHRAttendanceMyAttendance from "./modules/zoiko-hr/attendance/my-attendance.jsx";
+import ZoikoHRAttendanceCorrections from "./modules/zoiko-hr/attendance/corrections.jsx";
+import ZoikoHRAttendanceSchedule from "./modules/zoiko-hr/attendance/schedule.jsx";
+import ZoikoHRAttendanceReports from "./modules/zoiko-hr/attendance/reports.jsx";
+import ZoikoHRAttendanceSettings from "./modules/zoiko-hr/attendance/settings.jsx";
 
 import {
   WorkforceDashboard, WorkforcePlans, HeadcountPlanning, SuccessionPlanning,
@@ -142,7 +150,16 @@ import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
-import ZoikoBillingModule from "./modules/billing";
+import {
+  ZoikoSpendModule, PurchaseRequestsPage, PosPage,
+  VendorsPage, SupplierInvoicesPage, ApWorkflowPage,
+  SpendPolicyPage, SpendApprovalsPage, PaymentPreparationPage,
+} from "./modules/spend";
+import {
+  ZoikoBillingModule, InvoicingPage, InvoiceSchedulesPage,
+  UsageBillingPage, TaxPage, CollectionsReceivablesPage,
+  CreditNotesPage, DunningPage, ReportsPage,
+} from "./modules/billing";
 import {
   ComplyDashboard, ComplyObligations, ComplyControlsLibrary, ControlDetail,
   ComplyRiskRegister, ComplyAudits, ComplyEvidence, ComplyPolicies,
@@ -154,6 +171,7 @@ import {
   InsightsComplianceAnalytics, InsightsForecasting, InsightsCustomReports,
   InsightsSavedReports,
 } from "./modules/insights";
+import ItemsPage from "./modules/inventory/pages/ItemsPage";
 
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
@@ -201,33 +219,33 @@ const routeOverrides = {
   "/zoiko-hr": <ZoikoHRModule />,
   "/zoiko-hr/workforce": <ZoikoHRWorkforce />,
   // Departments submodule routes
-  "/zoiko-hr/departments": <DepartmentsDashboard />,
-  "/zoiko-hr/departments/list": <DepartmentList />,
-  "/zoiko-hr/departments/structure": <DepartmentStructure />,
-  "/zoiko-hr/departments/reports": <DepartmentReports />,
-  "/zoiko-hr/departments/settings": <DepartmentSettings />,
+  "/zoiko-hr/departments": <ZoikoHRDepartmentsDashboard />,
+  "/zoiko-hr/departments/list": <ZoikoHRDepartmentsDepartmentList />,
+  "/zoiko-hr/departments/structure": <ZoikoHRDepartmentsDepartmentStructure />,
+  "/zoiko-hr/departments/reports": <ZoikoHRDepartmentsReports />,
+  "/zoiko-hr/departments/settings": <ZoikoHRDepartmentsSettings />,
   // Designations submodule routes
-  "/zoiko-hr/designations": <DesignationsDashboard />,
-  "/zoiko-hr/designations/list": <DesignationList />,
-  "/zoiko-hr/designations/levels": <LevelMatrix />,
-  "/zoiko-hr/designations/reports": <DesignationReports />,
-  "/zoiko-hr/designations/settings": <DesignationSettings />,
+  "/zoiko-hr/designations": <ZoikoHRDesignationsDashboard />,
+  "/zoiko-hr/designations/list": <ZoikoHRDesignationList />,
+  "/zoiko-hr/designations/levels": <ZoikoHRDesignationStructure />,
+  "/zoiko-hr/designations/reports": <ZoikoHRDesignationReports />,
+  "/zoiko-hr/designations/settings": <ZoikoHRDesignationSettings />,
   // Leave submodule routes
-  "/zoiko-hr/leave": <LeaveDashboard />,
-  "/zoiko-hr/leave/my-leave": <MyLeave />,
-  "/zoiko-hr/leave/requests": <LeaveRequests />,
-  "/zoiko-hr/leave/calendar": <LeaveCalendar />,
-  "/zoiko-hr/leave/leave-types": <LeaveTypes />,
-  "/zoiko-hr/leave/reports": <LeaveReports />,
-  "/zoiko-hr/leave/settings": <LeaveSettings />,
+  "/zoiko-hr/leave": <ZoikoHRLeaveDashboard />,
+  "/zoiko-hr/leave/my-leave": <ZoikoHRLeaveMyLeave />,
+  "/zoiko-hr/leave/requests": <ZoikoHRLeaveRequests />,
+  "/zoiko-hr/leave/calendar": <ZoikoHRLeaveCalendar />,
+  "/zoiko-hr/leave/leave-types": <ZoikoHRLeaveLeaveTypes />,
+  "/zoiko-hr/leave/reports": <ZoikoHRLeaveReports />,
+  "/zoiko-hr/leave/settings": <ZoikoHRLeaveSettings />,
   // Attendance submodule routes
-  "/zoiko-hr/attendance": <AttendanceDashboard />,
-  "/zoiko-hr/attendance/daily": <DailyRecords />,
-  "/zoiko-hr/attendance/my-attendance": <MyAttendance />,
-  "/zoiko-hr/attendance/corrections": <AttendanceCorrections />,
-  "/zoiko-hr/attendance/schedule": <AttendanceSchedule />,
-  "/zoiko-hr/attendance/reports": <AttendanceReports />,
-  "/zoiko-hr/attendance/settings": <AttendanceSettings />,
+  "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
+  "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
+  "/zoiko-hr/attendance/my-attendance": <ZoikoHRAttendanceMyAttendance />,
+  "/zoiko-hr/attendance/corrections": <ZoikoHRAttendanceCorrections />,
+  "/zoiko-hr/attendance/schedule": <ZoikoHRAttendanceSchedule />,
+  "/zoiko-hr/attendance/reports": <ZoikoHRAttendanceReports />,
+  "/zoiko-hr/attendance/settings": <ZoikoHRAttendanceSettings />,
   "/zoiko-hr/performance": <ZoikoHRPerformance />,
   "/zoiko-hr/recruitment": <ZoikoHRRecruitment />,
   "/zoiko-hr/onboarding": <ZoikoHROnboardingDashboard />,
@@ -375,7 +393,34 @@ const routeOverrides = {
   "/payroll/reports": <ZoikoPayrollModule />,
   "/payroll/audit": <ZoikoPayrollModule />,
   "/payroll/settings": <ZoikoPayrollModule />,
+  "/spend/purchase-requests": <PurchaseRequestsPage />,
+  "/spend/purchase-orders": <PosPage />,
+  "/spend/vendors": <VendorsPage />,
+  "/spend/supplier-invoices": <SupplierInvoicesPage />,
+  "/spend/ap-workflow": <ApWorkflowPage />,
+  "/spend/spend-policy": <SpendPolicyPage />,
+  "/spend/approvals": <SpendApprovalsPage />,
+  "/spend/payment-preparation": <PaymentPreparationPage />,
   "/billing": <ZoikoBillingModule />,
+  "/billing/invoices": <InvoicingPage />,
+  "/billing/invoice-schedules": <InvoiceSchedulesPage />,
+  "/billing/usage-billing": <UsageBillingPage />,
+  "/billing/tax": <TaxPage />,
+  "/billing/collections-receivables": <CollectionsReceivablesPage />,
+  "/billing/credit-notes": <CreditNotesPage />,
+  "/billing/dunning": <DunningPage />,
+  "/billing/reports": <ReportsPage />,
+  // Zoiko Inventory routes
+  "/inventory/items": <ItemsPage />,
+  "/inventory/locations": <PagePlaceholder title="Locations" path="/inventory/locations" badge="Inventory" />,
+  "/inventory/stock": <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />,
+  "/inventory/receiving": <PagePlaceholder title="Receiving" path="/inventory/receiving" badge="Inventory" />,
+  "/inventory/goods-issue": <PagePlaceholder title="Goods Issue" path="/inventory/goods-issue" badge="Inventory" />,
+  "/inventory/transfers": <PagePlaceholder title="Transfers" path="/inventory/transfers" badge="Inventory" />,
+  "/inventory/stock-counts": <PagePlaceholder title="Stock Counts" path="/inventory/stock-counts" badge="Inventory" />,
+  "/inventory/reorder": <PagePlaceholder title="Reorder" path="/inventory/reorder" badge="Inventory" />,
+  "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
+  "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
   "/comply": <ComplyDashboard />,
   "/comply/obligations": <ComplyObligations />,
   "/comply/controls": <ComplyControlsLibrary />,

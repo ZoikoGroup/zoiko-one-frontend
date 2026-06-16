@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Shield, FileText, CheckCircle, AlertTriangle, ClipboardList, TrendingUp } from "lucide-react";
+import { Shield, FileText, CheckCircle, AlertTriangle, ClipboardList, TrendingUp, TrendingDown } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getComplianceDashboard } from "../../../service/hrService";
 
@@ -35,16 +35,16 @@ function SubNav() {
 }
 
 function StatsCard({ title, value, icon: Icon, change, trend }) {
-  const trendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingUp : null;
+  const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : null;
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="p-2 bg-emerald-50 rounded-lg">
           <Icon size={20} className="text-emerald-600" />
         </div>
-        {trendIcon && (
+        {TrendIcon && (
           <span className={`flex items-center gap-0.5 text-xs font-medium ${trend === "up" ? "text-red-500" : trend === "down" ? "text-emerald-500" : "text-gray-400"}`}>
-            <trendIcon size={14} className={trend === "down" ? "rotate-180" : ""} />
+            <TrendIcon size={14} className={trend === "down" ? "rotate-180" : ""} />
             {Math.abs(change)}
           </span>
         )}

@@ -32,8 +32,28 @@ import ZoikoHRDesignationStructure from "./modules/zoiko-hr/designations/designa
 import ZoikoHRDesignationReports from "./modules/zoiko-hr/designations/reports.jsx";
 import ZoikoHRDesignationSettings from "./modules/zoiko-hr/designations/settings.jsx";
 
-import ZoikoHRPerformance from "./modules/zoiko-hr/performance/performance.jsx";
-import ZoikoHRRecruitment from "./modules/zoiko-hr/recruitment/recruitment.jsx";
+import PerformanceDashboard from "./modules/zoiko-hr/performance/dashboard.jsx";
+import GoalsOKRs from "./modules/zoiko-hr/performance/goals.jsx";
+import PerformanceReviews from "./modules/zoiko-hr/performance/reviews.jsx";
+import Appraisals from "./modules/zoiko-hr/performance/appraisals.jsx";
+import Feedback from "./modules/zoiko-hr/performance/feedback.jsx";
+import FortySixtyReviews from "./modules/zoiko-hr/performance/forty-sixty-reviews.jsx";
+import KpiTracking from "./modules/zoiko-hr/performance/kpi-tracking.jsx";
+import Competencies from "./modules/zoiko-hr/performance/competencies.jsx";
+import PerformanceAnalytics from "./modules/zoiko-hr/performance/analytics.jsx";
+import PerformanceReports from "./modules/zoiko-hr/performance/reports.jsx";
+import PerformanceSettings from "./modules/zoiko-hr/performance/settings.jsx";
+import RecruitmentDashboard from "./modules/zoiko-hr/recruitment/dashboard.jsx";
+import JobRequisitions from "./modules/zoiko-hr/recruitment/job-requisitions.jsx";
+import OpenPositions from "./modules/zoiko-hr/recruitment/open-positions.jsx";
+import Candidates from "./modules/zoiko-hr/recruitment/candidates.jsx";
+import CandidateDetails from "./modules/zoiko-hr/recruitment/candidate-details.jsx";
+import InterviewPipeline from "./modules/zoiko-hr/recruitment/interview-pipeline.jsx";
+import OfferManagement from "./modules/zoiko-hr/recruitment/offer-management.jsx";
+import HiringSchedule from "./modules/zoiko-hr/recruitment/hiring-schedule.jsx";
+import RecruitmentAnalytics from "./modules/zoiko-hr/recruitment/analytics.jsx";
+import RecruitmentReports from "./modules/zoiko-hr/recruitment/reports.jsx";
+import RecruitmentSettings from "./modules/zoiko-hr/recruitment/settings.jsx";
 import ZoikoHROnboardingDashboard from "./modules/zoiko-hr/onboarding/dashboard.jsx";
 import ZoikoHROnboardingNewHires from "./modules/zoiko-hr/onboarding/new-hires.jsx";
 import ZoikoHROnboardingPreOnboarding from "./modules/zoiko-hr/onboarding/pre-onboarding.jsx";
@@ -49,37 +69,38 @@ import ZoikoHROnboardingReports from "./modules/zoiko-hr/onboarding/reports.jsx"
 import ZoikoHROnboardingSettings from "./modules/zoiko-hr/onboarding/settings.jsx";
 import ZoikoHRLearning from "./modules/zoiko-hr/learning/learning.jsx";
 import ZoikoHRCompensation from "./modules/zoiko-hr/compensation/compensation.jsx";
-import { 
-  WellnessPrograms, CSRActivities, Communications, Announcements, 
-  NPSSurveys, EngagementAnalytics, EngagementReports, EngagementSettings 
-} from "./pages/engagement/Index";
+import EngagementDashboard from "./modules/zoiko-hr/engagement/engagement-dashboard.jsx";
+import EngagementWellness from "./modules/zoiko-hr/engagement/engagement-wellness.jsx";
+import EngagementCSR from "./modules/zoiko-hr/engagement/engagement-csr.jsx";
+import EngagementCommunications from "./modules/zoiko-hr/engagement/engagement-communications.jsx";
+import EngagementAnnouncements from "./modules/zoiko-hr/engagement/engagement-announcements.jsx";
+import EngagementNPS from "./modules/zoiko-hr/engagement/engagement-nps.jsx";
+import EngagementSurveys from "./modules/zoiko-hr/engagement/engagement-surveys.jsx";
+import EngagementReports from "./modules/zoiko-hr/engagement/engagement-reports.jsx";
+import EngagementSettings from "./modules/zoiko-hr/engagement/engagement-settings.jsx";
 
-import {
-  EssDashboard, EssProfile, EssLeaveManagement, EssAttendance,
-  EssMyDocuments, EssRequests, EssSettings,
-} from "./modules/zoiko-hr/ess/Index";
+import EssDashboard from "./modules/zoiko-hr/ess/dashboard.jsx";
+import EssProfile from "./modules/zoiko-hr/ess/profile.jsx";
+import EssLeaveManagement from "./modules/zoiko-hr/ess/leave-management.jsx";
+import EssAttendance from "./modules/zoiko-hr/ess/attendance.jsx";
+import EssMyDocuments from "./modules/zoiko-hr/ess/my-documents.jsx";
+import EssRequests from "./modules/zoiko-hr/ess/requests.jsx";
+import EssSettings from "./modules/zoiko-hr/ess/settings.jsx";
 
-import {
-  TravelDashboard, TravelRequests, TravelApprovals, TravelItineraries,
-  TravelExpenses, TravelReports, TravelSettings,
-} from "./modules/zoiko-hr/travel/Index";
+import TravelDashboard from "./modules/zoiko-hr/travel/dashboard.jsx";
+import TravelRequests from "./modules/zoiko-hr/travel/travel-requests.jsx";
+import TravelApprovals from "./modules/zoiko-hr/travel/approvals.jsx";
+import TravelItineraries from "./modules/zoiko-hr/travel/itineraries.jsx";
+import TravelExpenses from "./modules/zoiko-hr/travel/expenses.jsx";
+import TravelReports from "./modules/zoiko-hr/travel/reports.jsx";
+import TravelSettings from "./modules/zoiko-hr/travel/settings.jsx";
 
 import {
   AssetsDashboard, MyAssets, AssetCatalog, AssetRequests,
   AssetMaintenance, AssetReports, AssetSettings,
 } from "./modules/zoiko-hr/assets/Index";
 
-import {
-  RecruitmentDashboard, JobRequisitions, OpenPositions, Candidates,
-  CandidateDetails, InterviewPipeline, OfferManagement, HiringSchedule,
-  RecruitmentAnalytics, RecruitmentReports, RecruitmentSettings,
-} from "./modules/zoiko-hr/recruitment/Index";
 
-import {
-  PerformanceDashboard, GoalsOKRs, PerformanceReviews, Appraisals,
-  Feedback, FortySixtyReviews, KpiTracking, Competencies,
-  PerformanceAnalytics, PerformanceReports, PerformanceSettings,
-} from "./modules/zoiko-hr/performance/Index";
 
 import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
 import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
@@ -112,10 +133,13 @@ import ZoikoHRAttendanceSchedule from "./modules/zoiko-hr/attendance/schedule.js
 import ZoikoHRAttendanceReports from "./modules/zoiko-hr/attendance/reports.jsx";
 import ZoikoHRAttendanceSettings from "./modules/zoiko-hr/attendance/settings.jsx";
 
-import {
-  WorkforceDashboard, WorkforcePlans, HeadcountPlanning, SuccessionPlanning,
-  ScenarioPlanning, WorkforceReports, WorkforceSettings,
-} from "./modules/zoiko-hr/workforce-planning/Index";
+import WorkforceDashboard from "./modules/zoiko-hr/workforce-planning/dashboard.jsx";
+import WorkforcePlans from "./modules/zoiko-hr/workforce-planning/plans.jsx";
+import HeadcountPlanning from "./modules/zoiko-hr/workforce-planning/headcount.jsx";
+import Succession from "./modules/zoiko-hr/workforce-planning/succession.jsx";
+import ScenarioPlanning from "./modules/zoiko-hr/workforce-planning/scenario-planning.jsx";
+import WorkforceReports from "./modules/zoiko-hr/workforce-planning/reports.jsx";
+import WorkforceSettings from "./modules/zoiko-hr/workforce-planning/settings.jsx";
 
 import ZoikoHRLearningDashboard from "./modules/zoiko-hr/learning/dashboard.jsx";
 import ZoikoHRLearningCourses from "./modules/zoiko-hr/learning/courses.jsx";
@@ -246,8 +270,8 @@ const routeOverrides = {
   "/zoiko-hr/attendance/schedule": <ZoikoHRAttendanceSchedule />,
   "/zoiko-hr/attendance/reports": <ZoikoHRAttendanceReports />,
   "/zoiko-hr/attendance/settings": <ZoikoHRAttendanceSettings />,
-  "/zoiko-hr/performance": <ZoikoHRPerformance />,
-  "/zoiko-hr/recruitment": <ZoikoHRRecruitment />,
+  "/zoiko-hr/performance": <PerformanceDashboard />,
+  "/zoiko-hr/recruitment": <RecruitmentDashboard />,
   "/zoiko-hr/onboarding": <ZoikoHROnboardingDashboard />,
   "/zoiko-hr/onboarding/new-hires": <ZoikoHROnboardingNewHires />,
   "/zoiko-hr/onboarding/pre-onboarding": <ZoikoHROnboardingPreOnboarding />,
@@ -327,12 +351,13 @@ const routeOverrides = {
   "/zoiko-hr/compliance/corrective-actions": <CorrectiveActions />,
   "/zoiko-hr/compliance/reports": <ComplianceReports />,
   "/zoiko-hr/compliance/settings": <ComplianceSettings />,
-  "/zoiko-hr/engagement/wellness": <WellnessPrograms />,
-  "/zoiko-hr/engagement/csr": <CSRActivities />,
-  "/zoiko-hr/engagement/communications": <Communications />,
-  "/zoiko-hr/engagement/announcements": <Announcements />,
-  "/zoiko-hr/engagement/nps": <NPSSurveys />,
-  "/zoiko-hr/engagement/analytics": <EngagementAnalytics />,
+  "/zoiko-hr/engagement": <EngagementDashboard />,
+  "/zoiko-hr/engagement/wellness": <EngagementWellness />,
+  "/zoiko-hr/engagement/csr": <EngagementCSR />,
+  "/zoiko-hr/engagement/communications": <EngagementCommunications />,
+  "/zoiko-hr/engagement/announcements": <EngagementAnnouncements />,
+  "/zoiko-hr/engagement/nps": <EngagementNPS />,
+  "/zoiko-hr/engagement/surveys": <EngagementSurveys />,
   "/zoiko-hr/engagement/reports": <EngagementReports />,
   "/zoiko-hr/engagement/settings": <EngagementSettings />,
 
@@ -376,7 +401,7 @@ const routeOverrides = {
   "/zoiko-hr/workforce-planning": <WorkforceDashboard />,
   "/zoiko-hr/workforce-planning/plans": <WorkforcePlans />,
   "/zoiko-hr/workforce-planning/headcount": <HeadcountPlanning />,
-  "/zoiko-hr/workforce-planning/succession": <SuccessionPlanning />,
+  "/zoiko-hr/workforce-planning/succession": <Succession />,
   "/zoiko-hr/workforce-planning/scenarios": <ScenarioPlanning />,
   "/zoiko-hr/workforce-planning/reports": <WorkforceReports />,
   "/zoiko-hr/workforce-planning/settings": <WorkforceSettings />,

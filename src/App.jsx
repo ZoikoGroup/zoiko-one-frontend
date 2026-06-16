@@ -133,8 +133,17 @@ import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
 import ZoikoBillingModule from "./modules/billing";
-import ZoikoComplyModule from "./modules/comply";
-import ZoikoInsightsModule from "./modules/insights";
+import {
+  ComplyDashboard, ComplyObligations, ComplyControlsLibrary, ControlDetail,
+  ComplyRiskRegister, ComplyAudits, ComplyEvidence, ComplyPolicies,
+  ComplyCalendar, ComplyIncidents, ComplyReports,
+} from "./modules/comply";
+import {
+  InsightsDashboard, InsightsWorkforceAnalytics, InsightsPayrollAnalytics,
+  InsightsFinancialAnalytics, InsightsProjectAnalytics, InsightsInventoryAnalytics,
+  InsightsComplianceAnalytics, InsightsForecasting, InsightsCustomReports,
+  InsightsSavedReports,
+} from "./modules/insights";
 
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
@@ -357,8 +366,27 @@ const routeOverrides = {
   "/payroll/audit": <ZoikoPayrollModule />,
   "/payroll/settings": <ZoikoPayrollModule />,
   "/billing": <ZoikoBillingModule />,
-  "/comply": <ZoikoComplyModule />,
-  "/insights": <ZoikoInsightsModule />,
+  "/comply": <ComplyDashboard />,
+  "/comply/obligations": <ComplyObligations />,
+  "/comply/controls": <ComplyControlsLibrary />,
+  "/comply/controls/:id": <ControlDetail />,
+  "/comply/risks": <ComplyRiskRegister />,
+  "/comply/audits": <ComplyAudits />,
+  "/comply/evidence": <ComplyEvidence />,
+  "/comply/policies": <ComplyPolicies />,
+  "/comply/calendar": <ComplyCalendar />,
+  "/comply/incidents": <ComplyIncidents />,
+  "/comply/reports": <ComplyReports />,
+  "/insights": <InsightsDashboard />,
+  "/insights/workforce": <InsightsWorkforceAnalytics />,
+  "/insights/payroll": <InsightsPayrollAnalytics />,
+  "/insights/financial": <InsightsFinancialAnalytics />,
+  "/insights/projects": <InsightsProjectAnalytics />,
+  "/insights/inventory": <InsightsInventoryAnalytics />,
+  "/insights/compliance": <InsightsComplianceAnalytics />,
+  "/insights/forecasting": <InsightsForecasting />,
+  "/insights/custom-reports": <InsightsCustomReports />,
+  "/insights/saved-reports": <InsightsSavedReports />,
   "/roles": <RolesPage />,
   "/security-center": <SecurityPage />,
   "/trust-center": <TrustPage />,

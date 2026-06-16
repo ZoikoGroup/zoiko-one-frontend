@@ -1,12 +1,11 @@
-import PagePlaceholder from "../../components/PagePlaceholder";
-
-export default function ZoikoComplyModule() {
-  return (
-    <PagePlaceholder
-      title="Zoiko Comply"
-      description="This is the Zoiko Comply module root."
-      path="/comply"
-      badge="Comply"
-    />
-  );
-}
+export { default as ComplyDashboard } from "./pages/Dashboard";
+export { default as ComplyObligations } from "./pages/Obligations";
+export { default as ComplyControlsLibrary } from "./pages/ControlsLibrary";
+export { default as ControlDetail } from "./pages/ControlDetail";
+export { default as ComplyRiskRegister } from "./pages/RiskRegister";
+export { default as ComplyAudits } from "./pages/Audits";
+export { default as ComplyEvidence } from "./pages/EvidenceRepository";
+export { default as ComplyPolicies } from "./pages/Policies";
+export { default as ComplyCalendar } from "./pages/ComplianceCalendar";
+export { default as ComplyIncidents } from "./pages/Incidents";
+export { default as ComplyReports } from "./pages/Reports";

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronRight, ChevronDown, Building2, Users, CircleDollarSign, ChevronsDownUp } from "lucide-react";
 import HRPage from "../../../components/HRPage";

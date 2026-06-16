@@ -2,15 +2,20 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight, CheckCircle2, Users, Clock, WalletCards, CreditCard,
   FileCheck2, Sparkles, ShieldCheck, Network, MessageSquare, Globe,
-  Rocket, Building2, ChevronRight, Star, TrendingUp, Zap, Lock, BarChart3, Wallet
+  Rocket, Building2, ChevronRight, Star, TrendingUp, Zap, Lock, BarChart3, Wallet,
+  Briefcase, Package
 } from "lucide-react";
 import LandingHeader from "../components/LandingHeader";
 import LandingFooter from "../components/LandingFooter";
 
 const coreProducts = [
   { name: "Zoiko HR", href: "/zoiko-hr", icon: Users, desc: "Employee records, onboarding, leave, performance and full lifecycle management.", color: "#4F46E5", bg: "#EEF2FF" },
-  { name: "ZoikoTime", href: "/zoikotime", icon: Clock, desc: "Time tracking, attendance, shifts, scheduling and payroll-ready evidence.", color: "#0891B2", bg: "#E0F2FE" },
+  { name: "Zoiko Time", href: "/zoikotime", icon: Clock, desc: "Time tracking, attendance, shifts, scheduling and payroll-ready evidence.", color: "#0891B2", bg: "#E0F2FE" },
   { name: "Zoiko Payroll", href: "/payroll", icon: WalletCards, desc: "Pay runs, payslips, deductions, filings, approvals and payment readiness.", color: "#059669", bg: "#ECFDF5" },
+  { name: "Zoiko Billing", href: "/billing", icon: CreditCard, desc: "Invoicing, recurring billing, collections, payment links and revenue dashboards.", color: "#D97706", bg: "#FFFBEB" },
+  { name: "Zoiko Spend", href: "/spend", icon: Wallet, desc: "Vendor records, purchase requests, supplier invoices, spend policies and approvals.", color: "#0D9488", bg: "#F0FDFA" },
+  { name: "Zoiko Projects", href: "/projects", icon: Briefcase, desc: "Project planning, task tracking, timesheets, budgets and team collaboration.", color: "#6366F1", bg: "#EEF2FF" },
+  { name: "Zoiko Inventory", href: "/inventory", icon: Package, desc: "Stock tracking, locations, goods receipt, transfers, counts and asset management.", color: "#0284C7", bg: "#E0F2FE" },
   { name: "Zoiko Comply", href: "/comply", icon: FileCheck2, desc: "Compliance dashboards, filing calendars, audit logs and governance workflows.", color: "#DC2626", bg: "#FEF2F2" },
   { name: "Zoiko Insights", href: "/insights", icon: Sparkles, desc: "Executive dashboards, payroll analytics, revenue insights and forecasting.", color: "#7C3AED", bg: "#F5F3FF" },
 ];
@@ -52,7 +57,7 @@ const pricingPlans = [
     price: "$12",
     per: "/user/month",
     desc: "Connected workflows for growing mid-market businesses.",
-    points: ["All 5 core products", "Unlimited users", "Advanced analytics", "Priority support", "API access", "Custom workflows"],
+    points: ["All 9 core products", "Unlimited users", "Advanced analytics", "Priority support", "API access", "Custom workflows"],
     cta: "Start Free Trial",
     href: "/register",
     highlighted: true,
@@ -172,7 +177,7 @@ export default function HomePage() {
               Core Products
             </p>
             <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: "800", color: "#111827", margin: "0 0 16px 0", letterSpacing: "-0.5px" }}>
-              Five products. One platform.
+              Nine products. One platform.
             </h2>
             <p style={{ fontSize: "17px", color: "#6B7280", maxWidth: "560px", margin: "0 auto", lineHeight: "1.6" }}>
               Buy standalone, combine in bundles, or adopt the enterprise framework as your business scales.
@@ -237,7 +242,7 @@ export default function HomePage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr", gap: "20px" }}>
             {[
               { label: "Adjacent Platforms", color: "#6B7280", bg: "#F9FAFB", border: "#E5E7EB", desc: "Zoiko Sema, Zoiko Local, ZoikoVertex, and Zoiko Web Services — standalone platforms that integrate with Zoiko One and create expansion pathways.", icon: Globe },
-              { label: "Zoiko One Core", color: "#FF6B00", bg: "#fff7f0", border: "#FFD4B3", desc: "Zoiko HR, ZoikoTime, Zoiko Payroll, Zoiko Comply and Zoiko Insights — the five core products customers buy as standalone, bundles or enterprise packages.", icon: Zap, featured: true },
+              { label: "Zoiko One Core", color: "#FF6B00", bg: "#fff7f0", border: "#FFD4B3", desc: "Zoiko HR, Zoiko Time, Zoiko Payroll, Zoiko Billing, Zoiko Spend, Zoiko Projects, Zoiko Inventory, Zoiko Comply and Zoiko Insights — the nine core products customers buy as standalone, bundles or enterprise packages.", icon: Zap, featured: true },
               { label: "Infrastructure", color: "#6B7280", bg: "#F9FAFB", border: "#E5E7EB", desc: "ZoikoPay and ZoikoCoreX power settlement, disbursement, FX, reconciliation and financial truth beneath the platform.", icon: Network },
             ].map((item) => (
               <div key={item.label} style={{

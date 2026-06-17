@@ -184,17 +184,27 @@ import {
   UsageBillingPage, TaxPage, CollectionsReceivablesPage,
   CreditNotesPage, DunningPage, ReportsPage,
 } from "./modules/billing";
-import {
-  ComplyDashboard, ComplyObligations, ComplyControlsLibrary, ControlDetail,
-  ComplyRiskRegister, ComplyAudits, ComplyEvidence, ComplyPolicies,
-  ComplyCalendar, ComplyIncidents, ComplyReports,
-} from "./modules/comply";
-import {
-  InsightsDashboard, InsightsWorkforceAnalytics, InsightsPayrollAnalytics,
-  InsightsFinancialAnalytics, InsightsProjectAnalytics, InsightsInventoryAnalytics,
-  InsightsComplianceAnalytics, InsightsForecasting, InsightsCustomReports,
-  InsightsSavedReports,
-} from "./modules/insights";
+import ComplyDashboard from "./modules/comply/dashboard";
+import ComplyPolicies from "./modules/comply/policies";
+import ComplyAudits from "./modules/comply/audits";
+import ComplyIncidents from "./modules/comply/incidents";
+import ComplyCertifications from "./modules/comply/certifications";
+import ComplyComplianceMonitoring from "./modules/comply/compliance-monitoring";
+import ComplyReports from "./modules/comply/reports";
+import ComplySettings from "./modules/comply/settings";
+import ComplyRiskManagement from "./modules/comply/risk-management";
+import ComplyControls from "./modules/comply/controls";
+import ComplyTraining from "./modules/comply/compliance-training";
+import InsightsDashboard from "./modules/insights/dashboard.jsx";
+import WorkforceInsights from "./modules/insights/workforce-insights.jsx";
+import PayrollInsights from "./modules/insights/payroll-insights.jsx";
+import Analytics from "./modules/insights/analytics.jsx";
+import Reports from "./modules/insights/reports.jsx";
+import AttendanceInsights from "./modules/insights/attendance-insights.jsx";
+import EngagementInsights from "./modules/insights/engagement-insights.jsx";
+import PerformanceInsights from "./modules/insights/performance-insights.jsx";
+import RecruitmentInsights from "./modules/insights/recruitment-insights.jsx";
+import InsightsSettings from "./modules/insights/settings.jsx";
 import ItemsPage from "./modules/inventory/pages/ItemsPage";
 
 // Platform Governance modules
@@ -447,26 +457,33 @@ const routeOverrides = {
   "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
   "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
   "/comply": <ComplyDashboard />,
-  "/comply/obligations": <ComplyObligations />,
-  "/comply/controls": <ComplyControlsLibrary />,
-  "/comply/controls/:id": <ControlDetail />,
-  "/comply/risks": <ComplyRiskRegister />,
-  "/comply/audits": <ComplyAudits />,
-  "/comply/evidence": <ComplyEvidence />,
   "/comply/policies": <ComplyPolicies />,
-  "/comply/calendar": <ComplyCalendar />,
+  "/comply/audits": <ComplyAudits />,
   "/comply/incidents": <ComplyIncidents />,
+  "/comply/certifications": <ComplyCertifications />,
+  "/comply/compliance-monitoring": <ComplyComplianceMonitoring />,
   "/comply/reports": <ComplyReports />,
+  "/comply/settings": <ComplySettings />,
+  "/comply/risk-management": <ComplyRiskManagement />,
+  "/comply/controls": <ComplyControls />,
+  "/comply/training": <ComplyTraining />,
   "/insights": <InsightsDashboard />,
-  "/insights/workforce": <InsightsWorkforceAnalytics />,
-  "/insights/payroll": <InsightsPayrollAnalytics />,
-  "/insights/financial": <InsightsFinancialAnalytics />,
-  "/insights/projects": <InsightsProjectAnalytics />,
-  "/insights/inventory": <InsightsInventoryAnalytics />,
-  "/insights/compliance": <InsightsComplianceAnalytics />,
-  "/insights/forecasting": <InsightsForecasting />,
-  "/insights/custom-reports": <InsightsCustomReports />,
-  "/insights/saved-reports": <InsightsSavedReports />,
+  "/insights/workforce": <WorkforceInsights />,
+  "/insights/payroll": <PayrollInsights />,
+  "/insights/financial": <Analytics defaultTab="financial" />,
+  "/insights/projects": <Analytics defaultTab="projects" />,
+  "/insights/inventory": <Analytics defaultTab="inventory" />,
+  "/insights/compliance": <Analytics defaultTab="compliance" />,
+  "/insights/forecasting": <Analytics defaultTab="forecasting" />,
+  "/insights/analytics": <Analytics />,
+  "/insights/custom-reports": <Reports defaultTab="custom" />,
+  "/insights/saved-reports": <Reports defaultTab="saved" />,
+  "/insights/reports": <Reports />,
+  "/insights/attendance": <AttendanceInsights />,
+  "/insights/engagement": <EngagementInsights />,
+  "/insights/performance": <PerformanceInsights />,
+  "/insights/recruitment": <RecruitmentInsights />,
+  "/insights/settings": <InsightsSettings />,
   "/roles": <RolesPage />,
   "/security-center": <SecurityPage />,
   "/trust-center": <TrustPage />,

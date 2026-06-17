@@ -2,7 +2,14 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
 import { DataTable } from "./DataTable.jsx";
-import { formatCurrency } from "./helpers.js";
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/travel" },

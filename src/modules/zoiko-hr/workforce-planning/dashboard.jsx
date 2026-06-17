@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
-import { Users, Briefcase, DollarSign, Target, TrendingUp, UserPlus } from "lucide-react";
-import { StatsCard, DataTable } from "./StatsCard.jsx";
-import { StatusBadge } from "./DataTable.jsx";
-import { formatCurrency } from "./helpers.js";
+import { fetchList } from "../../../service/hrService.js";
+
+// Inlined helper instead of importing from deleted file
+const formatCurrency = (amount) => 
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount || 0);
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/workforce-planning" },
@@ -39,132 +40,86 @@ function SubNav() {
   );
 }
 
-const mockDashboardData = {
-  stats: {
-    totalPlans: 24,
-    activePlans: 18,
-    totalHeadcount: 1250,
-    totalBudget: 15000000,
-    utilizationRate: 85,
-    openPositions: 42,
-  },
-  departmentBreakdown: [
-    { dept: "Engineering", headcount: 450, budget: 8500000 },
-    { dept: "Sales", headcount: 320, budget: 4200000 },
-    { dept: "Marketing", headcount: 180, budget: 2500000 },
-    { dept: "HR", headcount: 95, budget: 1200000 },
-    { dept: "Operations", headcount: 205, budget: 2100000 },
-  ],
-  headcountTrend: [
-    { month: "Jan", actual: 1200, planned: 1200 },
-    { month: "Feb", actual: 1220, planned: 1250 },
-    { month: "Mar", actual: 1240, planned: 1300 },
-    { month: "Apr", actual: 1260, planned: 1350 },
-    { month: "May", actual: 1280, planned: 1400 },
-    { month: "Jun", actual: 1300, planned: 1450 },
-  ],
-  recentPlans: [
-    { id: 1, title: "Q3 Engineering Hiring", department: "Engineering", year: "2025", headcount: 50, targetHeadcount: 60, status: "active" },
-    { id: 2, title: "Sales Expansion", department: "Sales", year: "2025", headcount: 30, targetHeadcount: 40, status: "active" },
-    { id: 3, title: "Marketing Campaign", department: "Marketing", year: "2025", headcount: 20, targetHeadcount: 25, status: "pending" },
-    { id: 4, title: "HR Staffing", department: "HR", year: "2025", headcount: 15, targetHeadcount: 20, status: "active" },
-    { id: 5, title: "Ops Automation", department: "Operations", year: "2025", headcount: 25, targetHeadcount: 30, status: "planning" },
-  ],
-};
-
 export default function WorkforceDashboard() {
-  const [dash] = useState(mockDashboardData);
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!dash) {
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        setLoading(true);
+        const plans = await fetchList("workforce-planning") || [];
+        const headcount = await fetchList("headcount") || [];
+        
+        const totalBudget = plans.reduce((sum, p) => sum + (p.budget || 0), 0);
+        const activePlansCount = plans.filter(p => p.status === "Active" || p.status === "approved").length;
+        const totalEmployees = headcount.reduce((sum, h) => sum + (h.current || 0), 0);
+
+        setMetrics({
+          totalBudget,
+          activePlansCount,
+          totalEmployees,
+          recentPlans: plans.slice(0, 5)
+        });
+      } catch (err) {
+        console.error("Failed to compile dashboard context:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, []);
+
+  if (loading || !metrics) {
     return (
-      <HRPage title="Workforce Planning" subtitle="Overview of workforce planning metrics and trends">
+      <HRPage title="Workforce Planning" subtitle="Dashboard overview">
         <SubNav />
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <span className="ml-3 text-gray-500">Loading dashboard...</span>
-        </div>
+        <div className="text-center py-10 text-gray-500">Loading metrics...</div>
       </HRPage>
     );
   }
 
-  const { stats, departmentBreakdown, headcountTrend, recentPlans } = dash;
-
-  const statCards = [
-    { title: "Total Plans", value: stats.totalPlans, icon: Briefcase, change: 4, trend: "up" },
-    { title: "Active Plans", value: stats.activePlans, icon: Target, change: 2, trend: "up" },
-    { title: "Total Headcount", value: stats.totalHeadcount, icon: Users, change: 3, trend: "up" },
-    { title: "Total Budget", value: formatCurrency(stats.totalBudget), icon: DollarSign, change: 5, trend: "up" },
-    { title: "Utilization Rate", value: `${stats.utilizationRate}%`, icon: TrendingUp, change: -1, trend: "down" },
-    { title: "Open Positions", value: stats.openPositions, icon: UserPlus, change: 6, trend: "up" },
-  ];
-
-  const departmentColumns = [
-    { key: "dept", label: "Department", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
-    { key: "headcount", label: "Headcount" },
-    { key: "budget", label: "Budget", render: (v) => formatCurrency(v) },
-  ];
-
-  const planColumns = [
-    { key: "title", label: "Plan", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
-    { key: "department", label: "Department" },
-    { key: "year", label: "Year" },
-    { key: "headcount", label: "Headcount", render: (v, r) => `${v}/${r.targetHeadcount}` },
-    { key: "status", label: "Status", render: (v) => <StatusBadge status={v} /> },
-  ];
-
-  const maxHC = Math.max(...headcountTrend.map((m) => Math.max(m.planned, m.actual)));
-
   return (
-    <HRPage title="Workforce Planning" subtitle="Overview of workforce planning metrics and trends">
+    <HRPage title="Workforce Planning" subtitle="Strategic organizational alignment">
       <SubNav />
-
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Workforce Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Overview of workforce planning metrics and trends</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {statCards.map((s) => <StatsCard key={s.title} {...s} />)}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Headcount Trend</h2>
-            <div className="flex items-end gap-3 h-48">
-              {headcountTrend.map((m) => (
-                <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-xs text-gray-500">{m.actual}</span>
-                  <div className="w-full flex flex-col gap-0.5 items-center">
-                    <div className="w-full bg-teal-200 rounded-t" style={{ height: `${(m.actual / maxHC) * 100}%` }}>
-                      <div className="w-full bg-teal-500 rounded-t h-full" />
-                    </div>
-                    <div className="w-full bg-blue-200 rounded-t" style={{ height: `${((m.planned - m.actual) / maxHC) * 100}%` }}>
-                      <div className="w-full bg-blue-500 rounded-t h-full opacity-70" />
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">{m.month}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-4 mt-3 text-xs text-gray-500">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-teal-500" /> Actual</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-500" /> Planned</span>
-            </div>
+            <p className="text-sm text-gray-500">Allocated Budget</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(metrics.totalBudget)}</p>
           </div>
-
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Department Breakdown</h2>
-            <DataTable columns={departmentColumns} data={departmentBreakdown} />
+            <p className="text-sm text-gray-500">Active Plans</p>
+            <p className="text-2xl font-bold text-teal-600 mt-1">{metrics.activePlansCount}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <p className="text-sm text-gray-500">Total Tracked Employees</p>
+            <p className="text-2xl font-bold text-blue-600 mt-1">{metrics.totalEmployees}</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Workforce Plans</h2>
-            <span className="text-xs text-teal-600 font-medium">View all</span>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Workforce Initiatives</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 text-gray-400">
+                  <th className="py-2">Plan Name</th>
+                  <th className="py-2">Department</th>
+                  <th className="py-2">Budget Target</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metrics.recentPlans.map(p => (
+                  <tr key={p.id} className="border-b border-gray-50 text-gray-700">
+                    <td className="py-2 font-medium">{p.name || p.title}</td>
+                    <td className="py-2">{p.department}</td>
+                    <td className="py-2">{formatCurrency(p.budget)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <DataTable columns={planColumns} data={recentPlans.slice(0, 5)} />
         </div>
       </div>
     </HRPage>

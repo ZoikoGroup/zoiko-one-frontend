@@ -2,11 +2,11 @@ import { api, setSession, clearSession, getStoredUser, getAccessToken } from "./
 
 /**
  * Expects a FastAPI backend exposing:
- *   POST /auth/login        { email, password }            -> { access_token, refresh_token, user }
- *   POST /auth/register      { name, email, password, ... } -> { access_token, refresh_token, user }
- *   GET  /auth/me             (bearer token)                -> user
- *   POST /auth/logout         (bearer token)                -> 204
- *   POST /auth/refresh        { refresh_token }             -> { access_token, refresh_token }
+ * POST /auth/login        { email, password }            -> { access_token, refresh_token, user }
+ * POST /auth/register      { name, email, password, ... } -> { access_token, refresh_token, user }
+ * GET  /auth/me             (bearer token)                -> user
+ * POST /auth/logout         (bearer token)                -> 204
+ * POST /auth/refresh        { refresh_token }             -> { access_token, refresh_token }
  *
  * Adjust the paths/payload shapes here if your FastAPI routes differ —
  * this file is the single integration point for authentication.
@@ -22,17 +22,9 @@ export async function login({ email, password }) {
     });
     return data.employee || data.user;
   } catch (err) {
-    console.warn("Login request failed, using mock user for demo:", err);
-    const mockUser = {
-      id: 0,
-      name: "Demo User",
-      first_name: "Demo",
-      last_name: "User",
-      email: email || "admin@zoiko.com",
-      role: "admin",
-    };
-    setSession({ accessToken: "mock-token", refreshToken: "mock-refresh", user: mockUser });
-    return mockUser;
+    console.error("Login request failed:", err);
+    // Re-throw the error so LoginPage.jsx handles it in its catch block
+    throw err;
   }
 }
 
@@ -50,18 +42,8 @@ export async function register({ name, email, password, organization }) {
     });
     return data.user;
   } catch (err) {
-    console.warn("Register request failed, using mock user for demo:", err);
-    const mockUser = {
-      id: 0,
-      name: name || "Demo User",
-      first_name: name ? name.split(" ")[0] : "Demo",
-      last_name: name ? name.split(" ").slice(1).join(" ") : "User",
-      email: email || "admin@zoiko.com",
-      role: "admin",
-      organization,
-    };
-    setSession({ accessToken: "mock-token", refreshToken: "mock-refresh", user: mockUser });
-    return mockUser;
+    console.error("Register request failed:", err);
+    throw err;
   }
 }
 

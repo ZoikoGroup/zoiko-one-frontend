@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
-import { StatsCard, DataTable } from "./StatsCard.jsx";
-import { StatusBadge } from "./DataTable.jsx";
-import { FilterBar } from "./FilterBar.jsx";
-import { formatCurrency } from "./helpers.js";
+import { DataTable } from "./DataTable.jsx";
+import { fetchList, createRecord } from "../../../service/hrService.js";
+
+// Inlined helper to replace deleted helpers.js file
+const formatCurrency = (amount) => 
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount || 0);
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/workforce-planning" },
@@ -23,7 +25,7 @@ function SubNav() {
         <NavLink
           key={item.href}
           to={item.href}
-          end={item.href === "/zoiko-hr/workforce-planning"}
+          end={item.href === "/zoiko-hr/workforce-planning/scenarios"}
           className={({ isActive }) =>
             `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               isActive
@@ -39,69 +41,109 @@ function SubNav() {
   );
 }
 
-const mockScenarioData = [
-  { id: 1, scenario: "Base Case", probability: 60, impact: "Medium", budget: 5000000, headcount: 100 },
-  { id: 2, scenario: "Optimistic", probability: 25, impact: "High", budget: 7500000, headcount: 150 },
-  { id: 3, scenario: "Pessimistic", probability: 15, impact: "Low", budget: 3000000, headcount: 80 },
-];
-
 export default function ScenarioPlanning() {
-  const [scenarios] = useState(mockScenarioData);
+  const [scenarios, setScenarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: "", impact: "Medium", costImpact: "", description: "" });
 
-  const impactColors = {
-    High: "bg-red-100 text-red-800",
-    Medium: "bg-yellow-100 text-yellow-800",
-    Low: "bg-green-100 text-green-800",
+  useEffect(() => {
+    async function loadScenarios() {
+      try {
+        setLoading(true);
+        const data = await fetchList("scenarios");
+        setScenarios(data || []);
+      } catch (err) {
+        console.error("Failed to load predictive modeling scenarios:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadScenarios();
+  }, []);
+
+  const handleCreateScenario = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.costImpact) {
+      alert("Please populate required parameters");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = {
+        ...form,
+        costImpact: parseFloat(form.costImpact),
+        createdAt: new Date().toISOString().split("T")[0]
+      };
+      const newScenario = await createRecord("scenarios", payload);
+      setScenarios(prev => [newScenario, ...prev]);
+      setShowModal(false);
+      setForm({ name: "", impact: "Medium", costImpact: "", description: "" });
+    } catch (err) {
+      alert("Failed to save modeling structure.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const columns = [
-    { key: "scenario", label: "Scenario", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
-    { key: "probability", label: "Probability", render: (v) => <span className="text-gray-700">{v}%</span> },
-    { key: "impact", label: "Impact", render: (v) => <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${impactColors[v]}`}>{v}</span> },
-    { key: "budget", label: "Budget", render: (v) => <span className="text-gray-700">{formatCurrency(v)}</span> },
-    { key: "headcount", label: "Headcount", render: (v) => <span className="font-medium text-teal-600">{v}</span> },
+    { key: "name", label: "Scenario Variant", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
+    { key: "impact", label: "Risk Profile / Impact Level", render: (v) => (
+      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+        v === 'High' ? 'bg-red-100 text-red-800' : v === 'Medium' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
+      }`}>{v}</span>
+    )},
+    { key: "costImpact", label: "Cost Variance Projected", render: (v) => <span className="font-mono">{formatCurrency(v)}</span> },
+    { key: "description", label: "Core Description", render: (v) => <span className="text-gray-500 truncate max-w-xs block">{v || "N/A"}</span> }
   ];
 
   return (
-    <HRPage title="Workforce Planning" subtitle="Analyze and plan for different workforce scenarios">
+    <HRPage title="Workforce Planning" subtitle="Predictive business risk simulations">
       <SubNav />
-
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Scenario Planning</h1>
-          <p className="text-sm text-gray-500 mt-1">Analyze and plan for different workforce scenarios</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Scenario Planning</h1>
+            <p className="text-xs text-gray-400">Model human capital expenditure variances against volatile conditions</p>
+          </div>
+          <button onClick={() => setShowModal(true)} className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">
+            Add Simulation
+          </button>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Scenario Matrix</h2>
+        {loading ? (
+          <div className="text-center py-10 text-gray-500">Parsing simulations...</div>
+        ) : (
           <DataTable columns={columns} data={scenarios} />
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Probability Distribution</h3>
-            <div className="space-y-3">
-              {scenarios.map((s) => (
-                <div key={s.id} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">{s.scenario}</span>
-                  <span className="text-xs text-gray-500">{s.probability}%</span>
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
+              <h3 className="text-lg font-bold text-gray-900">New Simulation Condition</h3>
+              <form onSubmit={handleCreateScenario} className="space-y-3">
+                <input type="text" placeholder="Scenario Target Label" className="w-full border p-2 rounded text-sm focus:outline-teal-500" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                
+                <select className="w-full border p-2 rounded text-sm bg-white focus:outline-teal-500" value={form.impact} onChange={e => setForm({...form, impact: e.target.value})}>
+                  <option value="Low">Low Attrition Impact</option>
+                  <option value="Medium">Medium Market Shift</option>
+                  <option value="High">High Financial Volatility</option>
+                </select>
+
+                <input type="number" placeholder="Estimated Expense Deviation" className="w-full border p-2 rounded text-sm focus:outline-teal-500" value={form.costImpact} onChange={e => setForm({...form, costImpact: e.target.value})} />
+                <textarea placeholder="Strategy description..." className="w-full border p-2 rounded text-sm focus:outline-teal-500 h-20" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+                
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setShowModal(false)} className="border px-4 py-2 rounded text-sm text-gray-500 hover:bg-gray-50">Discard</button>
+                  <button type="submit" disabled={submitting} className="bg-teal-600 text-white px-4 py-2 rounded text-sm hover:bg-teal-700 transition-colors disabled:opacity-50">
+                    {submitting ? "Saving Modeling..." : "Save Model"}
+                  </button>
                 </div>
-              ))}
+              </form>
             </div>
           </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Impact Summary</h3>
-            <div className="space-y-3">
-              {scenarios.map((s) => (
-                <div key={s.id} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">{s.scenario}</span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${impactColors[s.impact]}`}>{s.impact}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </HRPage>
   );

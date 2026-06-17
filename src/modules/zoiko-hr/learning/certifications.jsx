@@ -3,6 +3,7 @@ import HRPage from "../../../components/HRPage";
 import {
   getCertifications,
   createCertification,
+  updateCertification,
   deleteCertification,
   getCourses,
 } from "../../../service/hrService";
@@ -11,8 +12,8 @@ const ITEMS_PER_PAGE = 10;
 
 const initialForm = {
   employee_id: "",
-  course_id: "",
   name: "",
+  issuing_organization: "",
   issued_date: "",
   expiry_date: "",
   credential_url: "",
@@ -36,10 +37,11 @@ export default function ZoikoHRCertifications() {
     try {
       const [certsData, coursesData] = await Promise.all([
         getCertifications(),
-        getCourses(),
+        getCourses({}),
       ]);
       setItems(Array.isArray(certsData) ? certsData : []);
-      setCourses(Array.isArray(coursesData) ? coursesData : []);
+      const courseItems = coursesData?.items || (Array.isArray(coursesData) ? coursesData : []);
+      setCourses(Array.isArray(courseItems) ? courseItems : []);
     } catch (err) {
       setError(err.message || "Failed to load certifications");
       setItems([]);
@@ -69,7 +71,7 @@ export default function ZoikoHRCertifications() {
     let result = items;
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter((c) => c.name?.toLowerCase().includes(q));
+      result = result.filter((c) => c.certification_name?.toLowerCase().includes(q));
     }
     return result;
   }, [items, search]);
@@ -104,9 +106,9 @@ export default function ZoikoHRCertifications() {
     try {
       await createCertification({
         employee_id: Number(formData.employee_id),
-        course_id: formData.course_id ? Number(formData.course_id) : null,
-        name: formData.name.trim(),
-        issued_date: formData.issued_date,
+        certification_name: formData.name.trim(),
+        issuing_organization: formData.issuing_organization?.trim() || null,
+        issue_date: formData.issued_date,
         expiry_date: formData.expiry_date || null,
         credential_url: formData.credential_url.trim() || null,
       });
@@ -229,8 +231,8 @@ export default function ZoikoHRCertifications() {
                       return (
                         <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-800">{c.employee_id}</td>
-                          <td className="px-4 py-3 font-medium text-gray-800">{c.name}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700">{c.issued_date ? new Date(c.issued_date).toLocaleDateString() : <span className="text-gray-300">-</span>}</td>
+                          <td className="px-4 py-3 font-medium text-gray-800">{c.certification_name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-700">{c.issue_date ? new Date(c.issue_date).toLocaleDateString() : <span className="text-gray-300">-</span>}</td>
                           <td className="px-4 py-3 text-sm text-gray-700">{c.expiry_date ? new Date(c.expiry_date).toLocaleDateString() : <span className="text-gray-300">-</span>}</td>
                           <td className="px-4 py-3">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -318,17 +320,13 @@ export default function ZoikoHRCertifications() {
                   {formErrors.employee_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_id}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
-                  <select
-                    value={formData.course_id}
-                    onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Organization</label>
+                  <input
+                    type="text"
+                    value={formData.issuing_organization}
+                    onChange={(e) => setFormData({ ...formData, issuing_organization: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select course...</option>
-                    {courses.map((c) => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
               </div>
               <div>

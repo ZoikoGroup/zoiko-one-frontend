@@ -4,15 +4,15 @@ import { getLearningDashboard } from "../../../service/hrService";
 
 const KPI_CONFIG = [
   { key: "total_courses", label: "Total Courses", color: "text-blue-600" },
-  { key: "total_enrollments", label: "Total Enrollments", color: "text-indigo-600" },
-  { key: "active_enrollments", label: "Active Enrollments", color: "text-yellow-600" },
+  { key: "active_courses", label: "Active Courses", color: "text-indigo-600" },
+  { key: "total_enrollments", label: "Total Enrollments", color: "text-yellow-600" },
   { key: "completed_enrollments", label: "Completed", color: "text-green-600" },
+  { key: "completion_rate", label: "Completion Rate", color: "text-teal-600", suffix: "%" },
   { key: "total_certifications", label: "Certifications", color: "text-purple-600" },
-  { key: "total_skills", label: "Skills Tracked", color: "text-teal-600" },
-  { key: "total_paths", label: "Learning Paths", color: "text-cyan-600" },
-  { key: "total_training_programs", label: "Training Programs", color: "text-pink-600" },
-  { key: "total_assessments", label: "Assessments", color: "text-orange-600" },
-  { key: "avg_progress", label: "Avg Progress", color: "text-rose-600" },
+  { key: "total_skills", label: "Skills Tracked", color: "text-cyan-600" },
+  { key: "avg_skill_level", label: "Avg Skill Level", color: "text-rose-600" },
+  { key: "pending_assessments", label: "Pending Assessments", color: "text-orange-600" },
+  { key: "upcoming_events", label: "Upcoming Events", color: "text-pink-600" },
 ];
 
 export default function LearningDashboard() {
@@ -69,7 +69,7 @@ export default function LearningDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {KPI_CONFIG.map((kpi) => {
                 const val = data[kpi.key];
-                const display = kpi.key === "avg_progress" && val != null ? `${val}%` : (val ?? "-");
+                const display = kpi.suffix ? `${val ?? 0}${kpi.suffix}` : (val ?? 0);
                 return (
                   <div key={kpi.key} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
                     <p className="text-xs text-gray-400">{kpi.label}</p>
@@ -78,17 +78,7 @@ export default function LearningDashboard() {
                 );
               })}
             </div>
-            {data.avg_progress != null && (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                <p className="text-sm font-semibold text-gray-700 mb-2">Average Course Progress</p>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-3">
-                    <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${Math.min(data.avg_progress, 100)}%` }} />
-                  </div>
-                  <span className="text-lg font-bold text-gray-800">{data.avg_progress}%</span>
-                </div>
-              </div>
-            )}
+            
           </>
         )}
       </div>

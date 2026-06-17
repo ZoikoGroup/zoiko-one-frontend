@@ -8,6 +8,7 @@ import {
   addPathItem, removePathItem,
   getCertifications, createCertification, deleteCertification,
   getSkills, createSkill, updateSkill, deleteSkill,
+  getEmployees,
 } from "../../../service/hrService";
 
 const TABS = [
@@ -21,10 +22,10 @@ const TABS = [
 
 const ITEMS_PER_PAGE = 8;
 
-const emptyCourse = { title: "", description: "", category: "", provider: "", duration: "", level: "", format: "", trainer_id: "", skills_tags: "" };
+const emptyCourse = { course_name: "", description: "", course_type: "", category: "", provider: "", duration_hours: "", cost: "" };
 const emptyEnrollment = { employee_id: "", course_id: "", notes: "" };
 const emptyPath = { name: "", description: "" };
-const emptyCert = { employee_id: "", course_id: "", name: "", issued_date: "", expiry_date: "", credential_url: "" };
+const emptyCert = { employee_id: "", certification_name: "", issuing_organization: "", issue_date: "", expiry_date: "", credential_url: "" };
 const emptySkill = { employee_id: "", skill_name: "", category: "", proficiency_level: "3" };
 
 const ENROLL_STATUS_COLORS = {
@@ -87,12 +88,12 @@ function DashboardTab() {
 
   const cards = [
     { label: "Total Courses", value: stats.total_courses, color: "text-blue-600" },
-    { label: "Total Enrollments", value: stats.total_enrollments, color: "text-indigo-600" },
-    { label: "Active Enrollments", value: stats.active_enrollments, color: "text-yellow-600" },
+    { label: "Active Courses", value: stats.active_courses, color: "text-indigo-600" },
+    { label: "Total Enrollments", value: stats.total_enrollments, color: "text-yellow-600" },
     { label: "Completed", value: stats.completed_enrollments, color: "text-green-600" },
+    { label: "Completion Rate", value: stats.completion_rate != null ? `${stats.completion_rate}%` : "N/A", color: "text-teal-600" },
     { label: "Certifications", value: stats.total_certifications, color: "text-purple-600" },
-    { label: "Skills Tracked", value: stats.total_skills, color: "text-teal-600" },
-    { label: "Learning Paths", value: stats.total_paths, color: "text-cyan-600" },
+    { label: "Skills Tracked", value: stats.total_skills, color: "text-cyan-600" },
   ];
 
   return (
@@ -105,17 +106,6 @@ function DashboardTab() {
           </div>
         ))}
       </div>
-      {stats.avg_progress != null && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Average Course Progress</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-200 rounded-full h-3">
-              <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${Math.min(stats.avg_progress, 100)}%` }} />
-            </div>
-            <span className="text-lg font-bold text-gray-800">{stats.avg_progress}%</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -134,7 +124,7 @@ function CoursesTab() {
 
   const fetch = () => {
     setLoading(true); setError(null);
-    getCourses().then((d) => setItems(Array.isArray(d) ? d : [])).catch((e) => setError(e.message)).finally(() => setLoading(false));
+    getCourses().then((d) => setItems(d?.items || (Array.isArray(d) ? d : []))).catch((e) => setError(e.message)).finally(() => setLoading(false));
   };
 
   useEffect(() => { fetch(); }, []);
@@ -143,7 +133,7 @@ function CoursesTab() {
 
   const filtered = useMemo(() => {
     let r = items;
-    if (search.trim()) { const q = search.toLowerCase(); r = r.filter((x) => x.title?.toLowerCase().includes(q) || x.provider?.toLowerCase().includes(q)); }
+    if (search.trim()) { const q = search.toLowerCase(); r = r.filter((x) => x.course_name?.toLowerCase().includes(q) || x.provider?.toLowerCase().includes(q)); }
     if (catFilter) r = r.filter((x) => x.category === catFilter);
     return r;
   }, [items, search, catFilter]);
@@ -158,23 +148,22 @@ function CoursesTab() {
   const openEdit = (item) => {
     setEditId(item.id);
     setForm({
-      title: item.title, description: item.description || "", category: item.category || "",
-      provider: item.provider || "", duration: item.duration || "", level: item.level || "",
-      format: item.format || "", trainer_id: item.trainer_id ? String(item.trainer_id) : "", skills_tags: item.skills_tags || "",
+      course_name: item.course_name, description: item.description || "", course_type: item.course_type || "",
+      category: item.category || "", provider: item.provider || "", duration_hours: item.duration_hours || "",
+      cost: item.cost || "",
     });
     setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title) return;
+    if (!form.course_name) return;
     setSubmitting(true);
     try {
       const payload = {
-        title: form.title, description: form.description || null, category: form.category || null,
-        provider: form.provider || null, duration: form.duration || null, level: form.level || null,
-        format: form.format || null, trainer_id: form.trainer_id ? Number(form.trainer_id) : null,
-        skills_tags: form.skills_tags || null,
+        course_name: form.course_name, description: form.description || null, course_type: form.course_type || null,
+        category: form.category || null, provider: form.provider || null, duration_hours: form.duration_hours ? Number(form.duration_hours) : null,
+        cost: form.cost ? Number(form.cost) : null,
       };
       if (editId) await updateCourse(editId, payload);
       else await createCourse(payload);
@@ -209,24 +198,22 @@ function CoursesTab() {
       <table className="w-full text-sm">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="text-left px-3 py-3 font-semibold text-gray-600">Title</th>
+            <th className="text-left px-3 py-3 font-semibold text-gray-600">Course Name</th>
             <th className="text-left px-3 py-3 font-semibold text-gray-600">Category</th>
-            <th className="text-left px-3 py-3 font-semibold text-gray-600">Level</th>
-            <th className="text-left px-3 py-3 font-semibold text-gray-600">Format</th>
             <th className="text-left px-3 py-3 font-semibold text-gray-600">Duration</th>
-            <th className="text-left px-3 py-3 font-semibold text-gray-600">Trainer</th>
+            <th className="text-left px-3 py-3 font-semibold text-gray-600">Cost</th>
+            <th className="text-left px-3 py-3 font-semibold text-gray-600">Type</th>
             <th className="text-right px-3 py-3 font-semibold text-gray-600">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {paginated.map((c) => (
             <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-3 py-3 font-medium text-gray-800">{c.title}</td>
+              <td className="px-3 py-3 font-medium text-gray-800">{c.course_name}</td>
               <td className="px-3 py-3"><span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{c.category || "-"}</span></td>
-              <td className="px-3 py-3 text-xs text-gray-500">{c.level || "-"}</td>
-              <td className="px-3 py-3 text-xs text-gray-500">{c.format || "-"}</td>
-              <td className="px-3 py-3 text-xs text-gray-500">{c.duration || "-"}</td>
-              <td className="px-3 py-3 text-xs text-gray-500">{c.trainer_id || "-"}</td>
+              <td className="px-3 py-3 text-xs text-gray-500">{c.duration_hours ? `${c.duration_hours}h` : "-"}</td>
+              <td className="px-3 py-3 text-xs text-gray-500">{c.cost != null ? `$${c.cost}` : "-"}</td>
+              <td className="px-3 py-3 text-xs text-gray-500">{c.course_type || "-"}</td>
               <td className="px-3 py-3 text-right">
                 <button onClick={() => openEdit(c)} className="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2">Edit</button>
                 <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-600 text-xs">Del</button>
@@ -238,8 +225,8 @@ function CoursesTab() {
       <Modal show={showModal} title={editId ? "Edit Course" : "New Course"} onClose={() => { setShowModal(false); resetForm(); }}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-            <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Course Name *</label>
+            <input type="text" value={form.course_name} onChange={(e) => setForm({ ...form, course_name: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -253,36 +240,22 @@ function CoursesTab() {
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-              <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Any</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
-              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
+              <select value={form.course_type} onChange={(e) => setForm({ ...form, course_type: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Any</option>
                 <option value="online">Online</option>
-                <option value="classroom">Classroom</option>
+                <option value="in_person">In Person</option>
                 <option value="hybrid">Hybrid</option>
+                <option value="self_paced">Self Paced</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-              <input type="text" value={form.duration} placeholder="e.g. 4 hours" onChange={(e) => setForm({ ...form, duration: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Trainer ID</label>
-              <input type="number" min="1" value={form.trainer_id} onChange={(e) => setForm({ ...form, trainer_id: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
+              <input type="number" min="0" value={form.duration_hours} onChange={(e) => setForm({ ...form, duration_hours: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Skills Tags</label>
-              <input type="text" value={form.skills_tags} placeholder="comma-separated" onChange={(e) => setForm({ ...form, skills_tags: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cost</label>
+              <input type="number" min="0" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <div>
@@ -302,6 +275,7 @@ function CoursesTab() {
 function EnrollmentsTab() {
   const [items, setItems] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
@@ -317,9 +291,11 @@ function EnrollmentsTab() {
     Promise.all([
       getEnrollments(),
       getCourses(),
-    ]).then(([enrolls, crs]) => {
-      setItems(Array.isArray(enrolls) ? enrolls : []);
-      setCourses(Array.isArray(crs) ? crs : []);
+      getEmployees(),
+    ]).then(([enrolls, crs, emps]) => {
+      setItems(enrolls?.items || (Array.isArray(enrolls) ? enrolls : []));
+      setCourses(crs?.items || (Array.isArray(crs) ? crs : []));
+      setEmployees(emps?.items || (Array.isArray(emps) ? emps : []));
     }).catch((e) => setError(e.message)).finally(() => setLoading(false));
   };
 
@@ -329,9 +305,13 @@ function EnrollmentsTab() {
     const m = {}; courses.forEach((c) => { m[c.id] = c; }); return m;
   }, [courses]);
 
+  const employeeMap = useMemo(() => {
+    const m = {}; employees.forEach((e) => { m[e.id] = e; }); return m;
+  }, [employees]);
+
   const filtered = useMemo(() => {
     let r = items;
-    if (search.trim()) { const q = search.toLowerCase(); r = r.filter((x) => String(x.employee_id).includes(q) || courseMap[x.course_id]?.title?.toLowerCase().includes(q)); }
+    if (search.trim()) { const q = search.toLowerCase(); r = r.filter((x) => String(x.employee_id).includes(q) || courseMap[x.course_id]?.course_name?.toLowerCase().includes(q)); }
     if (statusFilter) r = r.filter((x) => x.status === statusFilter);
     return r;
   }, [items, search, statusFilter, courseMap]);
@@ -403,17 +383,17 @@ function EnrollmentsTab() {
         <tbody className="divide-y divide-gray-50">
           {paginated.map((e) => (
             <tr key={e.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-3 py-3 font-medium text-gray-800">{e.employee_id}</td>
-              <td className="px-3 py-3 text-gray-600">{courseMap[e.course_id]?.title || `#${e.course_id}`}</td>
+              <td className="px-3 py-3 font-medium text-gray-800">{employeeMap[e.employee_id] ? `${employeeMap[e.employee_id].first_name || ""} ${employeeMap[e.employee_id].last_name || ""}`.trim() || `#${e.employee_id}` : `#${e.employee_id}`}</td>
+              <td className="px-3 py-3 text-gray-600">{courseMap[e.course_id]?.course_name || courseMap[e.course_id]?.title || `#${e.course_id}`}</td>
               <td className="px-3 py-3">
                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${ENROLL_STATUS_COLORS[e.status] || ""}`}>{e.status?.replace("_", " ")}</span>
               </td>
               <td className="px-3 py-3 text-center">
                 <div className="flex items-center gap-2 justify-center">
                   <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(e.progress_percent || 0, 100)}%` }} />
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(e.progress_pct || 0, 100)}%` }} />
                   </div>
-                  <span className="text-xs font-medium">{e.progress_percent || 0}%</span>
+                  <span className="text-xs font-medium">{e.progress_pct || 0}%</span>
                 </div>
               </td>
               <td className="px-3 py-3 text-center text-sm font-medium">{e.score ?? "-"}</td>
@@ -477,7 +457,7 @@ function PathsTab() {
     Promise.all([getLearningPaths(), getCourses()])
       .then(([paths, crs]) => {
         setItems(Array.isArray(paths) ? paths : []);
-        setCourses(Array.isArray(crs) ? crs : []);
+        setCourses(crs?.items || (Array.isArray(crs) ? crs : []));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -512,8 +492,8 @@ function PathsTab() {
     catch (e) { setError(e.message); }
   };
 
-  const handleRemoveItem = async (itemId) => {
-    try { await removePathItem(itemId); fetch(); }
+  const handleRemoveItem = async (pathId, itemId) => {
+    try { await removePathItem(pathId, itemId); fetch(); }
     catch (e) { setError(e.message); }
   };
 
@@ -550,14 +530,17 @@ function PathsTab() {
                   <div className="text-xs text-gray-400 mb-2">No courses added yet.</div>
                 ) : (
                   <ul className="space-y-1 mb-3">
-                    {p.items.map((item) => (
-                      <li key={item.id} className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-400">{item.sort_order}.</span>
-                        <span className="text-gray-700">{courses.find((c) => c.id === item.course_id)?.title || `Course #${item.course_id}`}</span>
-                        {item.required && <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">required</span>}
-                        <button onClick={() => handleRemoveItem(item.id)} className="text-red-400 hover:text-red-600 text-xs ml-auto">&times;</button>
-                      </li>
-                    ))}
+                    {p.items.map((item) => {
+                      const found = courses.find((c) => c.id === item.course_id);
+                      return (
+                        <li key={item.id} className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-400">{item.sort_order}.</span>
+                          <span className="text-gray-700">{found?.course_name || found?.title || `Course #${item.course_id}`}</span>
+                          {item.required && <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">required</span>}
+                          <button onClick={() => handleRemoveItem(p.id, item.id)} className="text-red-400 hover:text-red-600 text-xs ml-auto">&times;</button>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
                 <div className="flex gap-2 items-center">
@@ -607,7 +590,7 @@ function CertificationsTab() {
     Promise.all([getCertifications(), getCourses()])
       .then(([certs, crs]) => {
         setItems(Array.isArray(certs) ? certs : []);
-        setCourses(Array.isArray(crs) ? crs : []);
+        setCourses(crs?.items || (Array.isArray(crs) ? crs : []));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -619,7 +602,7 @@ function CertificationsTab() {
 
   const filtered = useMemo(() => {
     let r = items;
-    if (search.trim()) { const q = search.toLowerCase(); r = r.filter((x) => x.name?.toLowerCase().includes(q) || String(x.employee_id).includes(q)); }
+    if (search.trim()) { const q = search.toLowerCase(); r = r.filter((x) => x.certification_name?.toLowerCase().includes(q) || String(x.employee_id).includes(q)); }
     return r;
   }, [items, search]);
 
@@ -630,14 +613,14 @@ function CertificationsTab() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.employee_id || !form.name || !form.issued_date) return;
+    if (!form.employee_id || !form.certification_name || !form.issue_date) return;
     setSubmitting(true);
     try {
       await createCertification({
         employee_id: Number(form.employee_id),
-        course_id: form.course_id ? Number(form.course_id) : null,
-        name: form.name,
-        issued_date: form.issued_date,
+        certification_name: form.certification_name,
+        issuing_organization: form.issuing_organization,
+        issue_date: form.issue_date,
         expiry_date: form.expiry_date || null,
         credential_url: form.credential_url || null,
       });
@@ -680,9 +663,9 @@ function CertificationsTab() {
           {paginated.map((c) => (
             <tr key={c.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-3 py-3 font-medium text-gray-800">{c.employee_id}</td>
-              <td className="px-3 py-3 text-gray-700">{c.name}</td>
-              <td className="px-3 py-3 text-xs text-gray-500">{courseMap[c.course_id]?.title || (c.course_id ? `#${c.course_id}` : "-")}</td>
-              <td className="px-3 py-3 text-xs text-gray-500">{c.issued_date}</td>
+              <td className="px-3 py-3 text-gray-700">{c.certification_name}</td>
+              <td className="px-3 py-3 text-xs text-gray-500">{courseMap[c.course_id]?.course_name || courseMap[c.course_id]?.title || (c.course_id ? `#${c.course_id}` : "-")}</td>
+              <td className="px-3 py-3 text-xs text-gray-500">{c.issue_date}</td>
               <td className="px-3 py-3 text-xs text-gray-500">{c.expiry_date || "-"}</td>
               <td className="px-3 py-3 text-right">
                 <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-600 text-xs">Del</button>
@@ -699,18 +682,18 @@ function CertificationsTab() {
               <input type="number" min="1" value={form.employee_id} onChange={(e) => setForm({ ...form, employee_id: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
-              <input type="number" min="1" value={form.course_id} onChange={(e) => setForm({ ...form, course_id: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Organization</label>
+              <input type="text" value={form.issuing_organization} onChange={(e) => setForm({ ...form, issuing_organization: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Certification Name *</label>
-            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <input type="text" value={form.certification_name} onChange={(e) => setForm({ ...form, certification_name: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Issued Date *</label>
-              <input type="date" value={form.issued_date} onChange={(e) => setForm({ ...form, issued_date: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date *</label>
+              <input type="date" value={form.issue_date} onChange={(e) => setForm({ ...form, issue_date: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>

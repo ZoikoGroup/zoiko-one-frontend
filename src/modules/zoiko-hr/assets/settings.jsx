@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Sliders, CheckCircle, Wrench, Bell, Plus, Trash2 } from "lucide-react";
-
-const categoryOptions = ["Hardware", "Software", "Furniture", "Electronics", "Vehicle", "Other"];
+import { getAssetSettings, updateAssetSetting, getAssetCategories } from "../../../service/hrService";
 
 const approvalSteps = [
   { id: 1, role: "Team Lead", order: 1, required: true },
@@ -29,9 +28,52 @@ const notifications = [
 export default function AssetSettings() {
   const [activeTab, setActiveTab] = useState("general");
   const [saved, setSaved] = useState(false);
-  const [categories, setCategories] = useState(categoryOptions);
+  const [categories, setCategories] = useState([]);
+  const [settings, setSettings] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  useEffect(() => {
+    let mounted = true;
+    const fetchData = async () => {
+      try {
+        const [settingsRes, catRes] = await Promise.all([
+          getAssetSettings(),
+          getAssetCategories(),
+        ]);
+        if (!mounted) return;
+        const settingsArr = Array.isArray(settingsRes) ? settingsRes : settingsRes?.data || [];
+        const opts = {};
+        settingsArr.forEach((s) => { opts[s.setting_key] = s.setting_value; });
+        setSettings(opts);
+        const cats = Array.isArray(catRes) ? catRes : catRes?.data || [];
+        setCategories(cats.length > 0 ? cats : ["Hardware", "Software", "Furniture", "Electronics", "Vehicle", "Other"]);
+      } catch {
+        if (!mounted) return;
+        setCategories(["Hardware", "Software", "Furniture", "Electronics", "Vehicle", "Other"]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => { mounted = false; };
+  }, []);
+
+  const handleSave = async () => {
+    setSaved(true);
+    try {
+      const promises = Object.entries(settings).map(([key, value]) =>
+        updateAssetSetting(key, { setting_key: key, setting_value: value })
+      );
+      await Promise.all(promises);
+    } catch {
+      // silently fail
+    }
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const updateSetting = (key, value) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
 
   const tabs = [
     { id: "general", label: "General", icon: Sliders },
@@ -39,6 +81,17 @@ export default function AssetSettings() {
     { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "notifications", label: "Notifications", icon: Bell },
   ];
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+          <span className="ml-3 text-gray-500">Loading settings...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -87,11 +140,13 @@ export default function AssetSettings() {
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Default Asset Prefix</label>
-              <input type="text" defaultValue="AST" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+              <input type="text" value={settings.default_asset_prefix || "AST"} onChange={(e) => updateSetting("default_asset_prefix", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Auto Asset Tag Format</label>
-              <input type="text" defaultValue="AST-{NNNN}" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+              <input type="text" value={settings.auto_asset_tag_format || "AST-{NNNN}"} onChange={(e) => updateSetting("auto_asset_tag_format", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
             </div>
           </div>
         </div>
@@ -120,7 +175,8 @@ export default function AssetSettings() {
           </div>
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">Auto-approve requests under ($)</label>
-            <input type="number" defaultValue={500} className="w-full max-w-xs px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+            <input type="number" value={settings.auto_approve_threshold || 500} onChange={(e) => updateSetting("auto_approve_threshold", e.target.value)}
+              className="w-full max-w-xs px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
           </div>
         </div>
       )}
@@ -132,7 +188,8 @@ export default function AssetSettings() {
             {maintenanceDefaults.map((item) => (
               <div key={item.key}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{item.label}</label>
-                <input type="text" defaultValue={item.value} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+                <input type="text" value={settings[item.key] || item.value} onChange={(e) => updateSetting(item.key, e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
               </div>
             ))}
           </div>
@@ -141,7 +198,8 @@ export default function AssetSettings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Depreciation Method</label>
-                <select defaultValue="straight_line" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500">
+                <select value={settings.depreciation_method || "straight_line"} onChange={(e) => updateSetting("depreciation_method", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500">
                   <option value="straight_line">Straight Line</option>
                   <option value="declining">Declining Balance</option>
                   <option value="sum_of_years">Sum of Years Digits</option>
@@ -149,11 +207,13 @@ export default function AssetSettings() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Default Useful Life (years)</label>
-                <input type="number" defaultValue={5} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+                <input type="number" value={settings.default_useful_life || 5} onChange={(e) => updateSetting("default_useful_life", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Salvage Value (%)</label>
-                <input type="number" defaultValue={10} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+                <input type="number" value={settings.salvage_value || 10} onChange={(e) => updateSetting("salvage_value", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
               </div>
             </div>
           </div>
@@ -171,7 +231,7 @@ export default function AssetSettings() {
                   <p className="text-xs text-gray-500">{item.desc}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <input type="checkbox" checked={settings[item.id] === "true" || settings[item.id] === true} onChange={(e) => updateSetting(item.id, e.target.checked ? "true" : "false")} className="sr-only peer" />
                   <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500" />
                 </label>
               </div>

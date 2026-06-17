@@ -30,7 +30,7 @@ export default function MyAssets() {
       setLoading(true);
       try {
         const data = await getAssets();
-        if (mounted) setAssets(Array.isArray(data) ? data : []);
+        if (mounted) setAssets(data?.items || (Array.isArray(data) ? data : []));
       } catch {
         if (mounted) setAssets([]);
       } finally {

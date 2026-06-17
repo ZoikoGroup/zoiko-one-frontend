@@ -13,13 +13,10 @@ const ITEMS_PER_PAGE = 8;
 const initialForm = {
   title: "",
   description: "",
+  course_type: "",
   category: "",
   provider: "",
   duration: "",
-  level: "",
-  format: "",
-  trainer_id: "",
-  skills_tags: "",
 };
 
 export default function LearningCourses() {
@@ -44,8 +41,9 @@ export default function LearningCourses() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getCourses();
-      setCourses(Array.isArray(data) ? data : []);
+      const data = await getCourses({});
+      const items = data?.items || (Array.isArray(data) ? data : []);
+      setCourses(Array.isArray(items) ? items : []);
     } catch (err) {
       setError(err.message || "Failed to load courses");
       setCourses([]);
@@ -74,7 +72,7 @@ export default function LearningCourses() {
       const q = search.toLowerCase();
       result = result.filter(
         (c) =>
-          c.title?.toLowerCase().includes(q) ||
+          c.course_name?.toLowerCase().includes(q) ||
           c.category?.toLowerCase().includes(q) ||
           c.provider?.toLowerCase().includes(q)
       );
@@ -112,15 +110,12 @@ export default function LearningCourses() {
     setSubmitting(true);
     try {
       await createCourse({
-        title: formData.title.trim(),
+        course_name: formData.title.trim(),
         description: formData.description.trim() || null,
+        course_type: formData.course_type || null,
         category: formData.category.trim() || null,
         provider: formData.provider.trim() || null,
-        duration: formData.duration.trim() || null,
-        level: formData.level || null,
-        format: formData.format || null,
-        trainer_id: formData.trainer_id ? Number(formData.trainer_id) : null,
-        skills_tags: formData.skills_tags.trim() || null,
+        duration_hours: formData.duration ? parseInt(formData.duration, 10) : null,
       });
       setShowCreateModal(false);
       resetForm();
@@ -135,15 +130,12 @@ export default function LearningCourses() {
   const openEditModal = (course) => {
     setEditItem(course);
     setEditForm({
-      title: course.title || "",
+      title: course.course_name || "",
       description: course.description || "",
+      course_type: course.course_type || "",
       category: course.category || "",
       provider: course.provider || "",
-      duration: course.duration || "",
-      level: course.level || "",
-      format: course.format || "",
-      trainer_id: course.trainer_id ? String(course.trainer_id) : "",
-      skills_tags: course.skills_tags || "",
+      duration: course.duration_hours ? String(course.duration_hours) : "",
     });
     setFormErrors({});
     setShowEditModal(true);
@@ -157,22 +149,14 @@ export default function LearningCourses() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      const payload = {};
-      for (const key of Object.keys(initialForm)) {
-        let val = editForm[key];
-        if (key === "trainer_id") {
-          val = val ? Number(val) : null;
-        } else {
-          val = val || null;
-        }
-        const orig = editItem[key] || null;
-        if (String(val) !== String(orig)) {
-          payload[key] = val;
-        }
-      }
-      if (Object.keys(payload).length > 0) {
-        await updateCourse(editItem.id, payload);
-      }
+      await updateCourse(editItem.id, {
+        course_name: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        course_type: editForm.course_type || null,
+        category: editForm.category.trim() || null,
+        provider: editForm.provider.trim() || null,
+        duration_hours: editForm.duration ? parseInt(editForm.duration, 10) : null,
+      });
       setShowEditModal(false);
       setEditItem(null);
       await fetchCourses();
@@ -291,9 +275,8 @@ export default function LearningCourses() {
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Title</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Category</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Provider</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Duration</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Level</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Format</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Duration (hrs)</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
                       <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                     </tr>
                   </thead>
@@ -305,7 +288,7 @@ export default function LearningCourses() {
                             onClick={() => openDetailModal(c.id)}
                             className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
                           >
-                            {c.title}
+                            {c.course_name}
                           </button>
                         </td>
                         <td className="px-4 py-3">
@@ -318,17 +301,14 @@ export default function LearningCourses() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-700">{c.provider || <span className="text-gray-300">-</span>}</td>
-                        <td className="px-4 py-3 text-gray-700">{c.duration || <span className="text-gray-300">-</span>}</td>
+                        <td className="px-4 py-3 text-gray-700">{c.duration_hours || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3">
-                          {c.level ? (
-                            <span className="text-xs text-gray-500">{c.level}</span>
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {c.format ? (
-                            <span className="text-xs text-gray-500">{c.format}</span>
+                          {c.status ? (
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                              c.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
+                            }`}>
+                              {c.status}
+                            </span>
                           ) : (
                             <span className="text-gray-300">-</span>
                           )}
@@ -425,6 +405,31 @@ export default function LearningCourses() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
+                  <select
+                    value={formData.course_type}
+                    onChange={(e) => setFormData({ ...formData, course_type: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select type</option>
+                    <option value="online">Online</option>
+                    <option value="classroom">Classroom</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.duration}
+                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <input
                     type="text"
@@ -439,66 +444,6 @@ export default function LearningCourses() {
                     type="text"
                     value={formData.provider}
                     onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-                  <input
-                    type="text"
-                    value={formData.duration}
-                    placeholder="e.g. 4 hours"
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trainer ID</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.trainer_id}
-                    onChange={(e) => setFormData({ ...formData, trainer_id: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-                  <select
-                    value={formData.level}
-                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Any</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
-                  <select
-                    value={formData.format}
-                    onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Any</option>
-                    <option value="online">Online</option>
-                    <option value="classroom">Classroom</option>
-                    <option value="hybrid">Hybrid</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Skills Tags</label>
-                  <input
-                    type="text"
-                    value={formData.skills_tags}
-                    placeholder="comma-separated"
-                    onChange={(e) => setFormData({ ...formData, skills_tags: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -523,7 +468,7 @@ export default function LearningCourses() {
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               <div className="text-sm text-gray-500 mb-1">
-                Editing: <span className="font-medium text-gray-800">{editItem.title}</span>
+                Editing: <span className="font-medium text-gray-800">{editItem.course_name}</span>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -546,6 +491,31 @@ export default function LearningCourses() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
+                  <select
+                    value={editForm.course_type}
+                    onChange={(e) => setEditForm({ ...editForm, course_type: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select type</option>
+                    <option value="online">Online</option>
+                    <option value="classroom">Classroom</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editForm.duration}
+                    onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <input
                     type="text"
@@ -560,66 +530,6 @@ export default function LearningCourses() {
                     type="text"
                     value={editForm.provider}
                     onChange={(e) => setEditForm({ ...editForm, provider: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-                  <input
-                    type="text"
-                    value={editForm.duration}
-                    placeholder="e.g. 4 hours"
-                    onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trainer ID</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={editForm.trainer_id}
-                    onChange={(e) => setEditForm({ ...editForm, trainer_id: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-                  <select
-                    value={editForm.level}
-                    onChange={(e) => setEditForm({ ...editForm, level: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Any</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
-                  <select
-                    value={editForm.format}
-                    onChange={(e) => setEditForm({ ...editForm, format: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Any</option>
-                    <option value="online">Online</option>
-                    <option value="classroom">Classroom</option>
-                    <option value="hybrid">Hybrid</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Skills Tags</label>
-                  <input
-                    type="text"
-                    value={editForm.skills_tags}
-                    placeholder="comma-separated"
-                    onChange={(e) => setEditForm({ ...editForm, skills_tags: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -656,36 +566,42 @@ export default function LearningCourses() {
                   <p className="text-sm text-gray-900">{detailItem.category || <span className="text-gray-400">-</span>}</p>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Title</label>
-                  <p className="text-sm text-gray-900 font-medium">{detailItem.title}</p>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Course Name</label>
+                  <p className="text-sm text-gray-900 font-medium">{detailItem.course_name}</p>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
                   <p className="text-sm text-gray-700">{detailItem.description || <span className="text-gray-400">-</span>}</p>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Course Type</label>
+                  <p className="text-sm text-gray-900">{detailItem.course_type || <span className="text-gray-400">-</span>}</p>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Provider</label>
                   <p className="text-sm text-gray-900">{detailItem.provider || <span className="text-gray-400">-</span>}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Duration</label>
-                  <p className="text-sm text-gray-900">{detailItem.duration || <span className="text-gray-400">-</span>}</p>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Duration (hours)</label>
+                  <p className="text-sm text-gray-900">{detailItem.duration_hours || <span className="text-gray-400">-</span>}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Level</label>
-                  <p className="text-sm text-gray-900">{detailItem.level || <span className="text-gray-400">-</span>}</p>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Cost</label>
+                  <p className="text-sm text-gray-900">{detailItem.cost != null ? `$${detailItem.cost}` : <span className="text-gray-400">-</span>}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Format</label>
-                  <p className="text-sm text-gray-900">{detailItem.format || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Trainer ID</label>
-                  <p className="text-sm text-gray-900">{detailItem.trainer_id || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Skills Tags</label>
-                  <p className="text-sm text-gray-900">{detailItem.skills_tags || <span className="text-gray-400">-</span>}</p>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
+                  <p className="text-sm text-gray-900">
+                    {detailItem.status ? (
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                        detailItem.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
+                      }`}>
+                        {detailItem.status}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </p>
                 </div>
               </div>
               <div className="pt-4 border-t border-gray-100">

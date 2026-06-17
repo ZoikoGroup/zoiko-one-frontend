@@ -45,7 +45,7 @@ export default function ZoikoHRLearningPaths() {
         getCourses(),
       ]);
       setPaths(Array.isArray(pathsData) ? pathsData : []);
-      setCourses(Array.isArray(coursesData) ? coursesData : []);
+      setCourses(Array.isArray(coursesData.items) ? coursesData.items : []);
     } catch (err) {
       setError(err.message || "Failed to load learning paths");
       setPaths([]);
@@ -186,10 +186,10 @@ export default function ZoikoHRLearningPaths() {
     }
   };
 
-  const handleRemoveItem = async (itemId) => {
+  const handleRemoveItem = async (pathId, itemId) => {
     try {
-      await removePathItem(itemId);
-      const data = await getLearningPathById(detailItem.id);
+      await removePathItem(pathId, itemId);
+      const data = await getLearningPathById(pathId);
       setDetailItem(data);
     } catch (err) {
       setError(err.message || "Failed to remove course");
@@ -469,13 +469,13 @@ export default function ZoikoHRLearningPaths() {
                         <div key={item.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-400">{item.sort_order}.</span>
-                            <span className="text-sm text-gray-800">{course?.title || `Course #${item.course_id}`}</span>
+                            <span className="text-sm text-gray-800">{course?.course_name || course?.title || `Course #${item.course_id}`}</span>
                             {item.required && (
                               <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">required</span>
                             )}
                           </div>
                           <button
-                            onClick={() => handleRemoveItem(item.id)}
+                            onClick={() => handleRemoveItem(detailItem.id, item.id)}
                             className="text-red-400 hover:text-red-600 text-xs font-medium"
                           >
                             Remove
@@ -493,7 +493,7 @@ export default function ZoikoHRLearningPaths() {
                   >
                     <option value="">Select a course...</option>
                     {courses.map((c) => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
+                      <option key={c.id} value={c.id}>{c.course_name}</option>
                     ))}
                   </select>
                   <button

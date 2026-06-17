@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { fetchList, createRecord, updateRecord } from "../../../service/hrService";
-
-const RESOURCE = "asset-requests";
+import { getAssetRequests, createAssetRequest, approveAssetRequest, rejectAssetRequest, fulfillAssetRequest, cancelAssetRequest } from "../../../service/hrService";
 
 const PRIORITY_OPTIONS = [
   { value: "low", label: "Low" }, { value: "medium", label: "Medium" },
@@ -25,7 +23,7 @@ const PRIORITY_COLORS = {
   high: "bg-orange-100 text-orange-800", urgent: "bg-red-100 text-red-800",
 };
 
-const initialForm = { employee: "", assetType: "", quantity: 1, priority: "medium", reason: "", notes: "" };
+const initialForm = { employee_name: "", asset_type: "", quantity: 1, priority: "medium", reason: "", notes: "" };
 
 export default function Returns() {
   const [requests, setRequests] = useState([]);
@@ -42,8 +40,8 @@ export default function Returns() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchList(RESOURCE);
-      setRequests(Array.isArray(data) ? data : []);
+      const data = await getAssetRequests();
+      setRequests(data?.items || []);
     } catch (err) {
       setError(err.message || "Failed to load requests");
       setRequests([]);
@@ -59,8 +57,8 @@ export default function Returns() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter((r) =>
-        (r.employee || "").toLowerCase().includes(q) ||
-        (r.assetType || r.asset_type || "").toLowerCase().includes(q) ||
+        (r.employee_name || "").toLowerCase().includes(q) ||
+        (r.asset_type || "").toLowerCase().includes(q) ||
         (r.reason || "").toLowerCase().includes(q)
       );
     }
@@ -70,8 +68,8 @@ export default function Returns() {
 
   const validate = (d) => {
     const e = {};
-    if (!(d.employee || "").trim()) e.employee = "Employee name is required";
-    if (!(d.assetType || "").trim()) e.assetType = "Asset type is required";
+    if (!(d.employee_name || "").trim()) e.employee_name = "Employee name is required";
+    if (!(d.asset_type || "").trim()) e.asset_type = "Asset type is required";
     if (!d.quantity || d.quantity < 1) e.quantity = "Quantity must be at least 1";
     return e;
   };
@@ -83,14 +81,13 @@ export default function Returns() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      await createRecord(RESOURCE, {
-        employee: form.employee.trim(),
-        asset_type: form.assetType.trim(),
+      await createAssetRequest({
+        employee_name: form.employee_name.trim(),
+        asset_type: form.asset_type.trim(),
         quantity: form.quantity,
         priority: form.priority,
         reason: form.reason.trim(),
         notes: form.notes.trim(),
-        status: "pending",
         requested_on: new Date().toISOString().split("T")[0],
       });
       setShowModal(false);
@@ -166,13 +163,13 @@ export default function Returns() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {filtered.map((r) => {
-                  const emp = r.employee || "";
-                  const type = r.assetType || r.asset_type || "";
+                  const emp = r.employee_name || "";
+                  const type = r.asset_type || "";
                   const qty = r.quantity || 1;
                   const priority = r.priority || "medium";
                   const status = r.status || "pending";
-                  const reqOn = r.requestedOn || r.requested_on || r.created_at || "";
-                  const appOn = r.approvedOn || r.approved_on || "";
+                  const reqOn = r.requested_on || r.created_at || "";
+                  const appOn = r.approved_on || "";
                   return (
                     <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{emp}</td>
@@ -202,17 +199,17 @@ export default function Returns() {
               {formErrors.submit && <div className="text-red-500 text-sm bg-red-50 p-2 rounded">{formErrors.submit}</div>}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Employee Name *</label>
-                <input type="text" value={form.employee} onChange={(e) => setForm({ ...form, employee: e.target.value })}
-                  className={`w-full border ${formErrors.employee ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`} />
-                {formErrors.employee && <p className="text-red-500 text-xs mt-1">{formErrors.employee}</p>}
+                <input type="text" value={form.employee_name} onChange={(e) => setForm({ ...form, employee_name: e.target.value })}
+                  className={`w-full border ${formErrors.employee_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`} />
+                {formErrors.employee_name && <p className="text-red-500 text-xs mt-1">{formErrors.employee_name}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Asset Type *</label>
-                  <input type="text" value={form.assetType} onChange={(e) => setForm({ ...form, assetType: e.target.value })}
+                  <input type="text" value={form.asset_type} onChange={(e) => setForm({ ...form, asset_type: e.target.value })}
                     placeholder="e.g. MacBook Pro"
-                    className={`w-full border ${formErrors.assetType ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`} />
-                  {formErrors.assetType && <p className="text-red-500 text-xs mt-1">{formErrors.assetType}</p>}
+                    className={`w-full border ${formErrors.asset_type ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`} />
+                  {formErrors.asset_type && <p className="text-red-500 text-xs mt-1">{formErrors.asset_type}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>

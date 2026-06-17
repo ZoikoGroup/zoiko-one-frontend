@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
-import { StatsCard, DataTable } from "./StatsCard.jsx";
-import { StatusBadge } from "./DataTable.jsx";
-import { FilterBar } from "./FilterBar.jsx";
-import { formatCurrency } from "./helpers.js";
+import { DataTable } from "./DataTable.jsx";
+import { fetchList, createRecord, updateRecord } from "../../../service/hrService.js";
+
+// Inlined helper to replace deleted helpers.js file
+const formatCurrency = (amount) => 
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount || 0);
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/workforce-planning" },
@@ -39,94 +41,98 @@ function SubNav() {
   );
 }
 
-const mockPlansData = [
-  { id: 1, title: "Q3 Engineering Hiring", department: "Engineering", year: "2025", headcount: 50, targetHeadcount: 60, status: "active", budget: 2500000 },
-  { id: 2, title: "Sales Expansion", department: "Sales", year: "2025", headcount: 30, targetHeadcount: 40, status: "active", budget: 1200000 },
-  { id: 3, title: "Marketing Campaign", department: "Marketing", year: "2025", headcount: 20, targetHeadcount: 25, status: "pending", budget: 800000 },
-  { id: 4, title: "HR Staffing", department: "HR", year: "2025", headcount: 15, targetHeadcount: 20, status: "active", budget: 600000 },
-  { id: 5, title: "Ops Automation", department: "Operations", year: "2025", headcount: 25, targetHeadcount: 30, status: "planning", budget: 1500000 },
-  { id: 6, title: "Q4 Finance", department: "Finance", year: "2025", headcount: 10, targetHeadcount: 15, status: "pending", budget: 500000 },
-  { id: 7, title: "Legal Team", department: "Legal", year: "2025", headcount: 8, targetHeadcount: 12, status: "active", budget: 400000 },
-  { id: 8, title: "IT Infrastructure", department: "IT", year: "2025", headcount: 40, targetHeadcount: 50, status: "active", budget: 3000000 },
-];
-
 export default function WorkforcePlans() {
-  const [plans] = useState(mockPlansData);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: "", department: "", budget: "", targetHeadcount: "" });
 
-  const filtered = plans.filter((p) => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase()) && !p.department.toLowerCase().includes(search.toLowerCase())) return false;
-    if (statusFilter && p.status !== statusFilter) return false;
-    if (departmentFilter && p.department !== departmentFilter) return false;
-    return true;
-  });
+  useEffect(() => {
+    async function loadPlans() {
+      try {
+        setLoading(true);
+        const data = await fetchList("workforce-planning");
+        setPlans(data || []);
+      } catch (error) {
+        console.error("Failed to load workforce plans:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPlans();
+  }, []);
 
-  const departments = ["All", "Engineering", "Sales", "Marketing", "HR", "Operations", "Finance", "Legal", "IT"];
+  const handleCreatePlan = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.department || !form.budget) {
+      alert("Please fill out all required fields");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = {
+        ...form,
+        budget: parseFloat(form.budget),
+        targetHeadcount: parseInt(form.targetHeadcount, 10) || 0,
+        status: "Active"
+      };
+      const newPlan = await createRecord("workforce-planning", payload);
+      setPlans(prev => [newPlan, ...prev]);
+      setShowModal(false);
+      setForm({ name: "", department: "", budget: "", targetHeadcount: "" });
+    } catch (error) {
+      alert("Failed to create workforce plan.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const columns = [
-    { key: "title", label: "Plan", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
-    { key: "department", label: "Department", render: (v) => <span className="text-teal-600 font-medium">{v}</span> },
-    { key: "year", label: "Year", render: (v) => <span className="text-gray-500">{v}</span> },
-    { key: "headcount", label: "Headcount", render: (v, r) => <span className="font-medium">{v}/{r.targetHeadcount}</span> },
-    { key: "budget", label: "Budget", render: (v) => <span className="text-gray-700">{formatCurrency(v)}</span> },
-    { key: "status", label: "Status", render: (v) => <StatusBadge status={v} /> },
+    { key: "name", label: "Plan Name", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
+    { key: "department", label: "Department" },
+    { key: "budget", label: "Budget Allocation", render: (v) => formatCurrency(v) },
+    { key: "targetHeadcount", label: "Target Headcount" },
+    { key: "status", label: "Status", render: (v) => <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 font-medium">{v}</span> }
   ];
 
   return (
-    <HRPage title="Workforce Planning" subtitle="Create and manage workforce plans and headcount allocations">
+    <HRPage title="Workforce Planning" subtitle="Manage organizational workforce initiatives">
       <SubNav />
-
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Workforce Plans</h1>
-            <p className="text-sm text-gray-500 mt-1">Create and manage workforce plans and headcount allocations</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            New Plan
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold text-gray-900">Workforce Plans</h1>
+          <button onClick={() => setShowModal(true)} className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">
+            Create Plan
           </button>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <div className="relative flex-1 max-w-xs">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400">🔍</span>
-              <input
-                type="text"
-                placeholder="Search plans..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-            >
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="planning">Planning</option>
-            </select>
-            <select
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-            >
-              {departments.map((d) => (
-                <option key={d} value={d === "All" ? "" : d}>{d}</option>
-              ))}
-            </select>
-          </div>
+        {loading ? (
+          <div className="text-center py-10 text-gray-500">Loading plans...</div>
+        ) : (
+          <DataTable columns={columns} data={plans} />
+        )}
 
-          <DataTable columns={columns} data={filtered} />
-        </div>
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900">New Workforce Plan</h3>
+              <form onSubmit={handleCreatePlan} className="space-y-3">
+                <input type="text" placeholder="Plan Title (e.g., Q3 Expansion)" className="w-full border p-2 rounded text-sm focus:outline-teal-500" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                <input type="text" placeholder="Department" className="w-full border p-2 rounded text-sm focus:outline-teal-500" value={form.department} onChange={e => setForm({...form, department: e.target.value})} />
+                <input type="number" placeholder="Budget Allocation" className="w-full border p-2 rounded text-sm focus:outline-teal-500" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+                <input type="number" placeholder="Target Headcount Growth" className="w-full border p-2 rounded text-sm focus:outline-teal-500" value={form.targetHeadcount} onChange={e => setForm({...form, targetHeadcount: e.target.value})} />
+                
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setShowModal(false)} className="border px-4 py-2 rounded text-sm text-gray-500 hover:bg-gray-50">Cancel</button>
+                  <button type="submit" disabled={submitting} className="bg-teal-600 text-white px-4 py-2 rounded text-sm hover:bg-teal-700 transition-colors disabled:opacity-50">
+                    {submitting ? "Creating..." : "Create Plan"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </HRPage>
   );

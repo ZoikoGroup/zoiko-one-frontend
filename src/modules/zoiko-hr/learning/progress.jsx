@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import HRPage from "../../../components/HRPage";
 import {
-  getEmployeeLearningProgress,
   getEnrollments,
 } from "../../../service/hrService";
 
@@ -28,8 +27,9 @@ export default function ZoikoHRProgress() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getEmployeeLearningProgress(empId);
-      setProgress(data);
+      const data = await getEnrollments({ employee_id: empId });
+      const items = data?.items || (Array.isArray(data) ? data : []);
+      setProgress({ enrollments: Array.isArray(items) ? items : [] });
       setEnrollments([]);
     } catch (err) {
       setError(err.message || "Failed to load employee progress");
@@ -43,8 +43,9 @@ export default function ZoikoHRProgress() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getEnrollments();
-      setEnrollments(Array.isArray(data) ? data : []);
+      const data = await getEnrollments({});
+      const items = data?.items || (Array.isArray(data) ? data : []);
+      setEnrollments(Array.isArray(items) ? items : []);
       setProgress(null);
     } catch (err) {
       setError(err.message || "Failed to load enrollments");
@@ -80,7 +81,7 @@ export default function ZoikoHRProgress() {
     const completed = enrolls.filter((e) => e.status === "completed").length;
     const inProgress = enrolls.filter((e) => e.status === "in_progress").length;
     const avgProgress = total > 0
-      ? Math.round(enrolls.reduce((sum, e) => sum + (e.progress_percent || 0), 0) / total)
+      ? Math.round(enrolls.reduce((sum, e) => sum + (e.progress_pct || 0), 0) / total)
       : 0;
     return { total, completed, inProgress, avgProgress };
   }, [progress]);
@@ -91,8 +92,8 @@ export default function ZoikoHRProgress() {
       const q = search.toLowerCase();
       result = result.filter(
         (e) =>
-          String(e.employee_id).includes(q) ||
-          String(e.course_id).includes(q)
+          String(e.employee_name || "").toLowerCase().includes(q) ||
+          String(e.course_name || "").toLowerCase().includes(q)
       );
     }
     if (statusFilter) {
@@ -213,6 +214,7 @@ export default function ZoikoHRProgress() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
+                          <th className="text-left px-4 py-3 font-semibold text-gray-600">Employee</th>
                           <th className="text-left px-4 py-3 font-semibold text-gray-600">Course</th>
                           <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
                           <th className="text-left px-4 py-3 font-semibold text-gray-600">Progress %</th>
@@ -223,7 +225,8 @@ export default function ZoikoHRProgress() {
                       <tbody className="divide-y divide-gray-50">
                         {ePaginated.map((e) => (
                           <tr key={e.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 font-medium text-gray-800">{e.course_id}</td>
+                            <td className="px-4 py-3 font-medium text-gray-800">{e.employee_name}</td>
+                            <td className="px-4 py-3 font-medium text-gray-800">{e.course_name}</td>
                             <td className="px-4 py-3">
                               <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${PROGRESS_STATUS_COLORS[e.status] || ""}`}>
                                 {e.status?.replace("_", " ")}
@@ -232,9 +235,9 @@ export default function ZoikoHRProgress() {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 <div className="w-20 bg-gray-200 rounded-full h-2">
-                                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(e.progress_percent || 0, 100)}%` }} />
+                                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(e.progress_pct || 0, 100)}%` }} />
                                 </div>
-                                <span className="text-xs font-medium">{e.progress_percent || 0}%</span>
+                                <span className="text-xs font-medium">{e.progress_pct || 0}%</span>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-xs text-gray-500">{e.enrolled_at ? new Date(e.enrolled_at).toLocaleDateString() : <span className="text-gray-300">-</span>}</td>
@@ -324,8 +327,8 @@ export default function ZoikoHRProgress() {
                   <tbody className="divide-y divide-gray-50">
                     {paginated.map((e) => (
                       <tr key={e.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">{e.employee_id}</td>
-                        <td className="px-4 py-3 text-gray-600">{e.course_id}</td>
+                        <td className="px-4 py-3 font-medium text-gray-800">{e.employee_name}</td>
+                        <td className="px-4 py-3 text-gray-600">{e.course_name}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${PROGRESS_STATUS_COLORS[e.status] || ""}`}>
                             {e.status?.replace("_", " ")}
@@ -334,9 +337,9 @@ export default function ZoikoHRProgress() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2 justify-center">
                             <div className="w-16 bg-gray-200 rounded-full h-2">
-                              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(e.progress_percent || 0, 100)}%` }} />
+                              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(e.progress_pct || 0, 100)}%` }} />
                             </div>
-                            <span className="text-xs font-medium">{e.progress_percent || 0}%</span>
+                            <span className="text-xs font-medium">{e.progress_pct || 0}%</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right text-sm font-medium">{e.score ?? "-"}</td>

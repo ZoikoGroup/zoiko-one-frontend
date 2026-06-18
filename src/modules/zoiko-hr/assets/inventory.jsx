@@ -39,7 +39,7 @@ export default function Inventory() {
     setError(null);
     try {
       const data = await getAssets();
-      setAssets(Array.isArray(data) ? data : []);
+      setAssets(data?.items || (Array.isArray(data) ? data : []));
     } catch (err) {
       setError(err.message || "Failed to load inventory");
       setAssets([]);
@@ -104,9 +104,9 @@ export default function Inventory() {
       const payload = {
         name: form.name.trim(), asset_tag: form.assetTag.trim(),
         category: form.category || null, serial_number: form.serialNumber || null,
-        employee_name: form.employeeName || null, department: form.department || null,
+        employee_id: null, department: form.department || null,
         assigned_date: form.assignedDate || null, status: form.status, condition: form.condition,
-        purchase_date: form.purchaseDate || null, purchase_price: form.purchasePrice ? Number(form.purchasePrice) : null,
+        purchase_date: form.purchaseDate || null, purchase_cost: form.purchasePrice ? Number(form.purchasePrice) : null,
         notes: form.notes || null,
       };
       if (editAsset) {

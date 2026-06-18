@@ -52,15 +52,18 @@ export default function ZoikoHRCalendar() {
   const fetchEvents = async (year, month, eventType) => {
     setLoading(true);
     setError(null);
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
     try {
       const [data, prg, crs] = await Promise.all([
-        getTrainingCalendarEvents(year, month, eventType),
+        getTrainingCalendarEvents(startDate, endDate, eventType || undefined),
         getTrainingPrograms(),
         getCourses(),
       ]);
       setEvents(Array.isArray(data) ? data : []);
-      setPrograms(Array.isArray(prg) ? prg : []);
-      setCourses(Array.isArray(crs) ? crs : []);
+      setPrograms(Array.isArray(prg?.items) ? prg.items : []);
+      setCourses(Array.isArray(crs?.items) ? crs.items : []);
     } catch (err) {
       setError(err.message || "Failed to load calendar events");
       setEvents([]);
@@ -353,7 +356,7 @@ export default function ZoikoHRCalendar() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-500">
-                          {courseMap[e.course_id]?.title || programMap[e.program_id]?.name || <span className="text-gray-300">-</span>}
+                          {courseMap[e.course_id]?.course_name || programMap[e.program_id]?.name || <span className="text-gray-300">-</span>}
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-500">{e.location || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3 text-right">
@@ -500,7 +503,7 @@ export default function ZoikoHRCalendar() {
                   >
                     <option value="">None</option>
                     {courses.map((c) => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
+                      <option key={c.id} value={c.id}>{c.course_name}</option>
                     ))}
                   </select>
                 </div>
@@ -622,7 +625,7 @@ export default function ZoikoHRCalendar() {
                   >
                     <option value="">None</option>
                     {courses.map((c) => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
+                      <option key={c.id} value={c.id}>{c.course_name}</option>
                     ))}
                   </select>
                 </div>

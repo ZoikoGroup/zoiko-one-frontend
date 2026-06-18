@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { FileText, Download, BarChart3, ClipboardList, FileSearch, Archive } from "lucide-react";
-import { fetchList } from "../../../service/hrService";
-
-const RESOURCE = "asset-reports";
+import { getAssetReports, createAssetReport } from "../../../service/hrService";
 
 const typeIcons = {
   inventory: Archive, depreciation: BarChart3,
@@ -36,8 +34,8 @@ export default function AssetReports() {
     const fetch = async () => {
       setLoading(true);
       try {
-        const data = await fetchList(RESOURCE);
-        if (mounted) setReports(Array.isArray(data) ? data : []);
+        const data = await getAssetReports();
+        if (mounted) setReports(data?.items || (Array.isArray(data) ? data : []));
       } catch {
         if (mounted) setReports([]);
       } finally {
@@ -49,11 +47,11 @@ export default function AssetReports() {
   }, []);
 
   const categories = useMemo(() => {
-    const types = new Set(reports.map((r) => r.type || "").filter(Boolean));
+    const types = new Set(reports.map((r) => r.report_type || "").filter(Boolean));
     return [...types];
   }, [reports]);
 
-  const filtered = categoryFilter ? reports.filter((r) => r.type === categoryFilter) : reports;
+  const filtered = categoryFilter ? reports.filter((r) => r.report_type === categoryFilter) : reports;
 
   if (loading) {
     return (
@@ -94,15 +92,14 @@ export default function AssetReports() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((report) => {
-            const Icon = typeIcons[report.type] || FileText;
+            const Icon = typeIcons[report.report_type] || FileText;
             const title = report.title || "";
             const desc = report.description || "";
-            const date = report.date || report.created_at || "";
-            const size = report.size || "";
+            const date = report.created_at || "";
             return (
               <div key={report.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className={`p-2.5 rounded-lg border ${typeColors[report.type] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
+                  <div className={`p-2.5 rounded-lg border ${typeColors[report.report_type] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -111,7 +108,6 @@ export default function AssetReports() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <span>{formatDate(date)}</span>
-                        {size && <><span>|</span><span>{size}</span></>}
                       </div>
                       <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
                         <Download className="w-3.5 h-3.5" /> Download

@@ -56,8 +56,9 @@ export default function TrainingPrograms() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getTrainingPrograms();
-      setPrograms(Array.isArray(data) ? data : []);
+      const data = await getTrainingPrograms({});
+      const items = data?.items || (Array.isArray(data) ? data : []);
+      setPrograms(Array.isArray(items) ? items : []);
     } catch (err) {
       setError(err.message || "Failed to load training programs");
       setPrograms([]);

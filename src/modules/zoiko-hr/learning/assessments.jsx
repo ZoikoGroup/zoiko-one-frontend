@@ -26,6 +26,12 @@ const ASSESS_STATUS_OPTIONS = [
   { value: "archived", label: "Archived" },
 ];
 
+const ATTEMPT_STATUS_COLORS = {
+  passed: "bg-green-100 text-green-800",
+  failed: "bg-red-100 text-red-800",
+  in_progress: "bg-blue-100 text-blue-800",
+};
+
 const QUESTION_TYPES = [
   { value: "multiple_choice", label: "Multiple Choice" },
   { value: "true_false", label: "True/False" },
@@ -39,10 +45,9 @@ const initialForm = {
   title: "",
   description: "",
   course_id: "",
-  time_limit_minutes: "",
+  duration_minutes: "",
   passing_score: "",
   max_attempts: "",
-  status: "draft",
 };
 
 const questionForm = {
@@ -75,6 +80,7 @@ export default function ZoikoHRAssessments() {
   const [formErrors, setFormErrors] = useState({});
   const [editForm, setEditForm] = useState({ ...initialForm });
   const [questionFormData, setQuestionFormData] = useState({ ...questionForm });
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState(null);
 
   const fetchAssessments = async () => {
     setLoading(true);
@@ -82,10 +88,10 @@ export default function ZoikoHRAssessments() {
     try {
       const [data, crs] = await Promise.all([
         getAssessments(),
-        getCourses(),
+        getCourses({}),
       ]);
       setAssessments(Array.isArray(data) ? data : []);
-      setCourses(Array.isArray(crs) ? crs : []);
+      setCourses(Array.isArray(crs?.items) ? crs.items : []);
     } catch (err) {
       setError(err.message || "Failed to load assessments");
       setAssessments([]);
@@ -94,11 +100,11 @@ export default function ZoikoHRAssessments() {
     }
   };
 
-  const fetchQuizAttempts = async () => {
+  const fetchQuizAttemptsForAssessment = async (assessmentId) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getQuizAttempts();
+      const data = await getQuizAttempts(assessmentId);
       setQuizAttempts(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.message || "Failed to load quiz attempts");
@@ -110,8 +116,17 @@ export default function ZoikoHRAssessments() {
 
   useEffect(() => {
     if (activeTab === "assessments") fetchAssessments();
-    else fetchQuizAttempts();
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "attempts") {
+      if (selectedAssessmentId) {
+        fetchQuizAttemptsForAssessment(selectedAssessmentId);
+      } else {
+        setQuizAttempts([]);
+      }
+    }
+  }, [activeTab, selectedAssessmentId]);
 
   const courseMap = useMemo(() => {
     const m = {}; courses.forEach((c) => { m[c.id] = c; }); return m;
@@ -131,7 +146,7 @@ export default function ZoikoHRAssessments() {
       result = result.filter(
         (a) =>
           a.title?.toLowerCase().includes(q) ||
-          (courseMap[a.course_id]?.title || "").toLowerCase().includes(q)
+          (courseMap[a.course_id]?.course_name || courseMap[a.course_id]?.title || "").toLowerCase().includes(q)
       );
     }
     return result;
@@ -175,10 +190,9 @@ export default function ZoikoHRAssessments() {
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         course_id: parseInt(formData.course_id, 10),
-        time_limit_minutes: formData.time_limit_minutes ? parseInt(formData.time_limit_minutes, 10) : null,
-        passing_score: formData.passing_score ? parseInt(formData.passing_score, 10) : null,
+        duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes, 10) : null,
+        passing_score: formData.passing_score ? parseInt(formData.passing_score, 10) : 70,
         max_attempts: formData.max_attempts ? parseInt(formData.max_attempts, 10) : null,
-        status: formData.status,
       });
       setShowCreateModal(false);
       resetForm();
@@ -196,10 +210,9 @@ export default function ZoikoHRAssessments() {
       title: assessment.title || "",
       description: assessment.description || "",
       course_id: assessment.course_id ? String(assessment.course_id) : "",
-      time_limit_minutes: assessment.time_limit_minutes ? String(assessment.time_limit_minutes) : "",
+      duration_minutes: assessment.duration_minutes ? String(assessment.duration_minutes) : "",
       passing_score: assessment.passing_score ? String(assessment.passing_score) : "",
       max_attempts: assessment.max_attempts ? String(assessment.max_attempts) : "",
-      status: assessment.status || "draft",
     });
     setFormErrors({});
     setShowEditModal(true);
@@ -213,20 +226,14 @@ export default function ZoikoHRAssessments() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      const payload = {};
-      for (const key of Object.keys(initialForm)) {
-        let val = editForm[key] || null;
-        if (key === "course_id" || key === "time_limit_minutes" || key === "passing_score" || key === "max_attempts") {
-          val = editForm[key] ? parseInt(editForm[key], 10) : null;
-        }
-        const orig = editItem[key] || null;
-        if (String(val) !== String(orig)) {
-          payload[key] = val;
-        }
-      }
-      if (Object.keys(payload).length > 0) {
-        await updateAssessment(editItem.id, payload);
-      }
+      await updateAssessment(editItem.id, {
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        course_id: parseInt(editForm.course_id, 10),
+        duration_minutes: editForm.duration_minutes ? parseInt(editForm.duration_minutes, 10) : null,
+        passing_score: editForm.passing_score ? parseInt(editForm.passing_score, 10) : 70,
+        max_attempts: editForm.max_attempts ? parseInt(editForm.max_attempts, 10) : null,
+      });
       setShowEditModal(false);
       setEditItem(null);
       await fetchAssessments();
@@ -296,7 +303,7 @@ export default function ZoikoHRAssessments() {
         points: questionFormData.points ? parseInt(questionFormData.points, 10) : null,
       };
       if (editQuestionId) {
-        await updateQuestion(editQuestionId, payload);
+        await updateQuestion(detailItem.id, editQuestionId, payload);
       } else {
         await createQuestion(detailItem.id, payload);
       }
@@ -334,7 +341,7 @@ export default function ZoikoHRAssessments() {
           {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => { setActiveTab(t.key); setCurrentPage(1); setSearch(""); setError(null); }}
+              onClick={() => { setActiveTab(t.key); setCurrentPage(1); setSearch(""); setError(null); setSelectedAssessmentId(null); }}
               className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === t.key
                   ? "border-blue-600 text-blue-600"
@@ -437,7 +444,7 @@ export default function ZoikoHRAssessments() {
                                   {a.title}
                                 </button>
                               </td>
-                              <td className="px-4 py-3 text-gray-600">{courseMap[a.course_id]?.title || <span className="text-gray-300">-</span>}</td>
+                              <td className="px-4 py-3 text-gray-600">{courseMap[a.course_id]?.course_name || courseMap[a.course_id]?.title || <span className="text-gray-300">-</span>}</td>
                               <td className="px-4 py-3 text-gray-700">{a.passing_score ?? <span className="text-gray-300">-</span>}</td>
                               <td className="px-4 py-3 text-gray-700">{a.max_attempts ?? <span className="text-gray-300">-</span>}</td>
                               <td className="px-4 py-3">
@@ -514,6 +521,20 @@ export default function ZoikoHRAssessments() {
 
       {activeTab === "attempts" && (
         <>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Assessment</label>
+            <select
+              value={selectedAssessmentId ?? ""}
+              onChange={(e) => setSelectedAssessmentId(e.target.value ? parseInt(e.target.value, 10) : null)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
+            >
+              <option value="">Choose an assessment...</option>
+              {assessments.map((a) => (
+                <option key={a.id} value={a.id}>{a.title}</option>
+              ))}
+            </select>
+          </div>
+
           {loading && quizAttempts.length === 0 ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -523,7 +544,9 @@ export default function ZoikoHRAssessments() {
             <div className="space-y-6">
               {quizAttempts.length === 0 && !loading ? (
                 <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm">
-                  <p className="text-gray-500 font-medium">No quiz attempts found.</p>
+                  <p className="text-gray-500 font-medium">
+                    {selectedAssessmentId ? "No quiz attempts found for this assessment." : "Select an assessment to view quiz attempts."}
+                  </p>
                 </div>
               ) : (
                 <>
@@ -532,11 +555,10 @@ export default function ZoikoHRAssessments() {
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50 border-b border-gray-100">
                           <tr>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Assessment</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Employee</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Assessment ID</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Employee ID</th>
                             <th className="text-left px-4 py-3 font-semibold text-gray-600">Score</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Total</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Passed</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
                             <th className="text-left px-4 py-3 font-semibold text-gray-600">Started At</th>
                             <th className="text-left px-4 py-3 font-semibold text-gray-600">Completed At</th>
                           </tr>
@@ -547,12 +569,9 @@ export default function ZoikoHRAssessments() {
                               <td className="px-4 py-3 font-medium text-gray-800">{a.assessment_id}</td>
                               <td className="px-4 py-3 text-gray-700">{a.employee_id}</td>
                               <td className="px-4 py-3 text-gray-700">{a.score ?? "-"}</td>
-                              <td className="px-4 py-3 text-gray-700">{a.total ?? "-"}</td>
                               <td className="px-4 py-3">
-                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                                  a.passed ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                }`}>
-                                  {a.passed ? "Passed" : "Failed"}
+                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${ATTEMPT_STATUS_COLORS[a.status] || "bg-gray-100 text-gray-800"}`}>
+                                  {a.status ? a.status.replace(/_/g, " ") : "-"}
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-xs text-gray-500">{a.started_at ? new Date(a.started_at).toLocaleString() : "-"}</td>
@@ -643,19 +662,19 @@ export default function ZoikoHRAssessments() {
                 >
                   <option value="">Select course...</option>
                   {courses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.title}</option>
+                    <option key={c.id} value={c.id}>{c.course_name || c.title}</option>
                   ))}
                 </select>
                 {formErrors.course_id && <p className="text-red-500 text-xs mt-1">{formErrors.course_id}</p>}
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Time Limit (min)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
                   <input
                     type="number"
                     min="1"
-                    value={formData.time_limit_minutes}
-                    onChange={(e) => setFormData({ ...formData, time_limit_minutes: e.target.value })}
+                    value={formData.duration_minutes}
+                    onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -679,18 +698,6 @@ export default function ZoikoHRAssessments() {
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {ASSESS_STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
@@ -742,19 +749,19 @@ export default function ZoikoHRAssessments() {
                 >
                   <option value="">Select course...</option>
                   {courses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.title}</option>
+                    <option key={c.id} value={c.id}>{c.course_name || c.title}</option>
                   ))}
                 </select>
                 {formErrors.course_id && <p className="text-red-500 text-xs mt-1">{formErrors.course_id}</p>}
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Time Limit (min)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
                   <input
                     type="number"
                     min="1"
-                    value={editForm.time_limit_minutes}
-                    onChange={(e) => setEditForm({ ...editForm, time_limit_minutes: e.target.value })}
+                    value={editForm.duration_minutes}
+                    onChange={(e) => setEditForm({ ...editForm, duration_minutes: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -778,18 +785,6 @@ export default function ZoikoHRAssessments() {
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {ASSESS_STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
               </div>
               {editItem.created_at && (
                 <div className="text-xs text-gray-400">Created: {new Date(editItem.created_at).toLocaleString()}</div>
@@ -820,7 +815,7 @@ export default function ZoikoHRAssessments() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Course</label>
-                  <p className="text-sm text-gray-900">{courseMap[detailItem.course_id]?.title || `#${detailItem.course_id}`}</p>
+                  <p className="text-sm text-gray-900">{courseMap[detailItem.course_id]?.course_name || courseMap[detailItem.course_id]?.title || `#${detailItem.course_id}`}</p>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
@@ -835,8 +830,8 @@ export default function ZoikoHRAssessments() {
                   <p className="text-sm text-gray-900">{detailItem.max_attempts ?? "-"}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Time Limit</label>
-                  <p className="text-sm text-gray-900">{detailItem.time_limit_minutes ? `${detailItem.time_limit_minutes} min` : "-"}</p>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Duration</label>
+                  <p className="text-sm text-gray-900">{detailItem.duration_minutes ? `${detailItem.duration_minutes} min` : "-"}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>

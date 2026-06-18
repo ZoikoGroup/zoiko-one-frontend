@@ -1,8 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, RefreshCw } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getDesignations } from "../../../service/hrService";
+import { 
+  getDesignations, 
+  createDesignation, 
+  updateDesignation, 
+  deleteDesignation 
+} from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/designations" },
@@ -28,7 +33,7 @@ const DEPT_OPTIONS = [
 ];
 const ITEMS_PER_PAGE = 10;
 
-const emptyForm = { title: "", department: "", level: "L3", description: "", status: "active" };
+const emptyForm = { title: "", department_name: "", level: "L3", description: "", status: "active" };
 
 function SubNav() {
   return (
@@ -48,56 +53,100 @@ function SubNav() {
 }
 
 export default function DesignationList() {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ status: "", level: "", department: "" });
-  const { data, loading } = useDesignations({ search, ...filters });
   const [page, setPage] = useState(1);
+  
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
+  
   const [form, setForm] = useState({ ...emptyForm });
   const [editForm, setEditForm] = useState({ ...emptyForm });
   const [formErrors, setFormErrors] = useState({});
+
+  // ── GET OPERATION (FETCH ALL) ───────────────────────────────────
+  const fetchDesignations = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getDesignations();
+      setRecords(Array.isArray(response) ? response : []);
+    } catch (err) {
+      setError(err.message || "Failed to load designations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDesignations();
+  }, []);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPage(1);
   };
 
-  const totalPages = Math.max(1, Math.ceil(data.length / ITEMS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = data.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  // Local filtering & Searching mechanics
+  const filteredRecords = useMemo(() => {
+    return records.filter((item) => {
+      const matchesSearch = !search ? true : item.title?.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = !filters.status ? true : item.status === filters.status;
+      const matchesLevel = !filters.level ? true : item.level === filters.level;
+      const matchesDept = !filters.department ? true : item.department_name === filters.department;
+      return matchesSearch && matchesStatus && matchesLevel && matchesDept;
+    });
+  }, [records, search, filters]);
 
-  const total = data.length;
-  const active = data.filter((d) => d.status === "active").length;
-  const inactive = data.filter((d) => d.status === "inactive").length;
-  const archived = data.filter((d) => d.status === "archived").length;
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filteredRecords.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+
+  const total = filteredRecords.length;
+  const active = filteredRecords.filter((d) => d.status === "active").length;
+  const inactive = filteredRecords.filter((d) => d.status === "inactive").length;
+  const archived = filteredRecords.filter((d) => d.status === "archived").length;
 
   const validate = (d) => {
     const e = {};
     if (!d.title?.trim()) e.title = "Title is required";
-    if (!d.department) e.department = "Department is required";
+    if (!d.department_name) e.department_name = "Department is required";
     if (!d.level) e.level = "Level is required";
     return e;
   };
 
-  const handleCreate = (e) => {
+  // ── POST OPERATION (CREATE) ─────────────────────────────────────
+  const handleCreate = async (e) => {
     e.preventDefault();
     const errors = validate(form);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    setShowCreate(false);
-    setForm({ ...emptyForm });
-    setFormErrors({});
+
+    try {
+      setLoading(true);
+      await createDesignation(form);
+      setShowCreate(false);
+      setForm({ ...emptyForm });
+      setFormErrors({});
+      await fetchDesignations(); // Refresh list cleanly
+    } catch (err) {
+      alert("Error creating designation: " + err.message);
+      setLoading(false);
+    }
   };
 
   const openEdit = (item) => {
     setEditItem(item);
     setEditForm({
       title: item.title,
-      department: item.department_name,
+      department_name: item.department_name,
       level: item.level,
       description: item.description || "",
       status: item.status,
@@ -106,45 +155,55 @@ export default function DesignationList() {
     setShowEdit(true);
   };
 
-  const handleUpdate = (e) => {
+  // ── PUT OPERATION (UPDATE) ──────────────────────────────────────
+  const handleUpdate = async (e) => {
     e.preventDefault();
     const errors = validate(editForm);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    setShowEdit(false);
-    setEditItem(null);
-    setFormErrors({});
+
+    try {
+      setLoading(true);
+      await updateDesignation(editItem.id, editForm);
+      setShowEdit(false);
+      setEditItem(null);
+      setFormErrors({});
+      await fetchDesignations(); // Refresh list cleanly
+    } catch (err) {
+      alert("Error updating designation: " + err.message);
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (id) => {
+  // ── DELETE OPERATION (DELETE) ───────────────────────────────────
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this designation?")) return;
+    try {
+      setLoading(true);
+      await deleteDesignation(id);
+      await fetchDesignations(); // Refresh list cleanly
+    } catch (err) {
+      alert("Error deleting designation: " + err.message);
+      setLoading(false);
+    }
   };
 
-  const columns = [
-    { key: "title", label: "Title", render: (v, row) => (
-      <button onClick={() => { setDetailItem(row); setShowDetail(true); }} className="text-orange-600 hover:text-orange-800 hover:underline font-medium text-left">
-        {v}
-      </button>
-    )},
-    { key: "department_name", label: "Department" },
-    { key: "level", label: "Level", render: (v) => <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "L1" ? "bg-blue-100 text-blue-800" : v === "L2" ? "bg-indigo-100 text-indigo-800" : v === "L3" ? "bg-purple-100 text-purple-800" : v === "L4" ? "bg-pink-100 text-pink-800" : v === "L5" ? "bg-red-100 text-red-800" : v === "L6" ? "bg-orange-100 text-orange-800" : v === "L7" ? "bg-yellow-100 text-yellow-800" : v === "L8" ? "bg-green-100 text-green-800" : v === "L9" ? "bg-teal-100 text-teal-800" : v === "L10" ? "bg-cyan-100 text-cyan-800" : "bg-gray-100 text-gray-800"}`}>{v}</span> },
-    { key: "salary", label: "Salary Range", render: (v, row) => <span className="text-xs font-mono">{row.min_salary} - {row.max_salary}</span> },
-    { key: "employees_count", label: "Employees", render: (v) => <span className="font-medium">{v}</span> },
-    { key: "status", label: "Status", render: (v) => <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${v === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{v}</span> },
-    { key: "actions", label: "Actions", render: (v, row) => (
-      <div className="flex items-center gap-2">
-        <button onClick={() => openEdit(row)} className="text-xs text-gray-500 hover:text-gray-800 font-medium">Edit</button>
-        <button onClick={() => handleDelete(row.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
-      </div>
-    )},
-  ];
-
-  if (loading) return <div className="p-6 text-gray-400">Loading designations...</div>;
+  if (loading && records.length === 0) {
+    return <div className="p-6 text-gray-500 animate-pulse">Loading designations...</div>;
+  }
 
   return (
     <HRPage title="Designations" subtitle="Manage job titles, roles, and position levels">
       <SubNav />
       <div className="space-y-6">
+        
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
+            <span><strong>Error:</strong> {error}</span>
+            <button onClick={fetchDesignations} className="p-1 bg-white border border-red-300 rounded shadow-sm hover:bg-red-100 transition-colors"><RefreshCw className="w-4 h-4 text-red-700" /></button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Designations</h1>
@@ -175,39 +234,99 @@ export default function DesignationList() {
           </div>
         </div>
 
-        <FilterBar
-          search={search}
-          onSearchChange={(v) => { setSearch(v); setPage(1); }}
-          filters={[
-            { key: "status", placeholder: "All Statuses", value: filters.status, options: STATUS_OPTIONS },
-            { key: "level", placeholder: "All Levels", value: filters.level, options: LEVEL_OPTIONS },
-            { key: "department", placeholder: "All Departments", value: filters.department, options: DEPT_OPTIONS },
-          ]}
-          onFilterChange={handleFilterChange}
-        />
+        {/* Real Dynamic Filter Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-4 border border-gray-200 rounded-xl shadow-sm">
+          <input type="text" placeholder="Search title..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:outline-none" />
+          <select value={filters.status} onChange={(e) => handleFilterChange("status", e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
+            <option value="">All Statuses</option>
+            {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <select value={filters.level} onChange={(e) => handleFilterChange("level", e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
+            <option value="">All Levels</option>
+            {LEVEL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <select value={filters.department} onChange={(e) => handleFilterChange("department", e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
+            <option value="">All Departments</option>
+            {DEPT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
 
-        <DataTable columns={columns} data={paginated} />
+        {/* Interactive Data Table Component */}
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Title</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Department</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Level</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Salary Range</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Employees</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Status</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {paginated.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50/70 transition-colors">
+                  <td className="px-6 py-4">
+                    <button onClick={() => { setDetailItem(row); setShowDetail(true); }} className="text-orange-600 hover:text-orange-800 hover:underline font-medium text-left">
+                      {row.title}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">{row.department_name || "N/A"}</td>
+                  <td className="px-6 py-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">{row.level}</span>
+                  </td>
+                  <td className="px-6 py-4 font-mono text-xs text-gray-500">
+                    {row.min_salary != null && row.max_salary != null ? `${row.min_salary} - ${row.max_salary}` : "Not Configured"}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900">{row.employees_count ?? 0}</td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${row.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{row.status}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => openEdit(row)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                      <button onClick={() => handleDelete(row.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {paginated.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="px-6 py-10 text-center text-gray-400">No matching designations discovered.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
+        {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <span className="text-xs text-gray-400">
-              Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safePage * ITEMS_PER_PAGE, data.length)} of {data.length}
+              Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safePage * ITEMS_PER_PAGE, filteredRecords.length)} of {filteredRecords.length}
             </span>
             <div className="flex gap-1">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Prev</button>
+                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-all">Prev</button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button key={p} onClick={() => setPage(p)}
                   className={`px-3 py-1 text-sm border rounded-lg ${p === safePage ? "bg-orange-600 text-white border-orange-600" : "border-gray-200 hover:bg-gray-50"}`}>{p}</button>
               ))}
               <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Next</button>
+                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-all">Next</button>
             </div>
           </div>
         )}
 
+        {/* ── CREATE MODAL ── */}
         {showCreate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800">Add Designation</h2>
@@ -222,12 +341,12 @@ export default function DesignationList() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}
-                    className={`w-full border ${formErrors.department ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
+                  <select value={form.department_name} onChange={(e) => setForm({ ...form, department_name: e.target.value })}
+                    className={`w-full border ${formErrors.department_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
                     <option value="">Select department</option>
                     {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
-                  {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
+                  {formErrors.department_name && <p className="text-red-500 text-xs mt-1">{formErrors.department_name}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
@@ -258,8 +377,9 @@ export default function DesignationList() {
           </div>
         )}
 
+        {/* ── EDIT MODAL ── */}
         {showEdit && editItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800">Edit Designation</h2>
@@ -274,12 +394,12 @@ export default function DesignationList() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <select value={editForm.department} onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                    className={`w-full border ${formErrors.department ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
+                  <select value={editForm.department_name} onChange={(e) => setEditForm({ ...editForm, department_name: e.target.value })}
+                    className={`w-full border ${formErrors.department_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
                     <option value="">Select department</option>
                     {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
-                  {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
+                  {formErrors.department_name && <p className="text-red-500 text-xs mt-1">{formErrors.department_name}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
@@ -301,7 +421,6 @@ export default function DesignationList() {
                     {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
-                {editItem.created_at && <div className="text-xs text-gray-400">Created: {formatDate(editItem.created_at)}</div>}
                 <div className="flex justify-end gap-3 pt-2">
                   <button type="button" onClick={() => { setShowEdit(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
                   <button type="submit" className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors">Update Designation</button>
@@ -311,8 +430,9 @@ export default function DesignationList() {
           </div>
         )}
 
+        {/* ── DETAIL MODAL ── */}
         {showDetail && detailItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800">Designation Details</h2>
@@ -334,34 +454,24 @@ export default function DesignationList() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">Level</label>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${detailItem.level === "L1" ? "bg-blue-100 text-blue-800" : detailItem.level === "L2" ? "bg-indigo-100 text-indigo-800" : detailItem.level === "L3" ? "bg-purple-100 text-purple-800" : detailItem.level === "L4" ? "bg-pink-100 text-pink-800" : detailItem.level === "L5" ? "bg-red-100 text-red-800" : detailItem.level === "L6" ? "bg-orange-100 text-orange-800" : detailItem.level === "L7" ? "bg-yellow-100 text-yellow-800" : detailItem.level === "L8" ? "bg-green-100 text-green-800" : detailItem.level === "L9" ? "bg-teal-100 text-teal-800" : detailItem.level === "L10" ? "bg-cyan-100 text-cyan-800" : "bg-gray-100 text-gray-800"}`}>{detailItem.level}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">{detailItem.level}</span>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">Salary Range</label>
-                    <p className="text-sm text-gray-900">{detailItem.min_salary} - {detailItem.max_salary}</p>
+                    <p className="text-sm text-gray-900 font-mono">{detailItem.min_salary ?? "N/A"} - {detailItem.max_salary ?? "N/A"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">Employees</label>
-                    <p className="text-sm text-gray-900">{detailItem.employees_count}</p>
+                    <p className="text-sm text-gray-900 font-semibold">{detailItem.employees_count ?? 0}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                    <StatusBadge status={detailItem.status} />
+                    <p className="capitalize text-sm font-medium text-gray-900">{detailItem.status}</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Created</label>
-                    <p className="text-sm text-gray-600">{formatDate(detailItem.created_at)}</p>
-                  </div>
-                  {detailItem.updated_at && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">Updated</label>
-                      <p className="text-sm text-gray-600">{formatDate(detailItem.updated_at)}</p>
-                    </div>
-                  )}
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
-                  <p className="text-sm text-gray-700">{detailItem.description || "-"}</p>
+                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">{detailItem.description || "No description provided."}</p>
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <button onClick={() => { setShowDetail(false); setDetailItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Close</button>

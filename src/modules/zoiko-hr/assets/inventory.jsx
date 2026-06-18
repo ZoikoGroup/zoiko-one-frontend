@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { getAssets, createAsset, updateAsset, deleteAsset } from "../../../service/hrService";
 
+const ITEMS_PER_PAGE = 15;
+
 const initialForm = {
   name: "", assetTag: "", category: "", serialNumber: "", employeeName: "", department: "",
   assignedDate: "", status: "available", condition: "new", purchaseDate: "", purchasePrice: "", notes: "",
@@ -28,6 +30,7 @@ export default function Inventory() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editAsset, setEditAsset] = useState(null);
   const [form, setForm] = useState({ ...initialForm });
@@ -70,6 +73,11 @@ export default function Inventory() {
     if (deptFilter) result = result.filter((a) => (a.department || a.department_name || "") === deptFilter);
     return result;
   }, [assets, search, categoryFilter, statusFilter, deptFilter]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   const openCreate = () => { setEditAsset(null); setForm({ ...initialForm }); setFormErrors({}); setShowModal(true); };
 
@@ -209,7 +217,7 @@ export default function Inventory() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
-                {filtered.map((a) => {
+                {paginated.map((a) => {
                   const tag = a.assetTag || a.asset_tag || "";
                   const name = a.name || a.itemName || "";
                   const cat = a.category || "";
@@ -237,6 +245,25 @@ export default function Inventory() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {filtered.length > ITEMS_PER_PAGE && (
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-400">
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
+          </span>
+          <div className="flex gap-1">
+            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1}
+              className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Prev</button>
+            {Array.from({ length: Math.ceil(filtered.length / ITEMS_PER_PAGE) }, (_, i) => i + 1).map(p => (
+              <button key={p} onClick={() => setCurrentPage(p)}
+                className={`px-3 py-1 text-sm border rounded-lg ${p === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 hover:bg-gray-50'}`}>{p}</button>
+            ))}
+            <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filtered.length / ITEMS_PER_PAGE), p + 1))}
+              disabled={currentPage >= Math.ceil(filtered.length / ITEMS_PER_PAGE)}
+              className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Next</button>
           </div>
         </div>
       )}

@@ -40,8 +40,8 @@ export default function Maintenance() {
 
   const fetchAssets = async () => {
     try {
-      const data = await getAssets();
-      setAssets(Array.isArray(data) ? data : []);
+      const data = await getAssets({});
+      setAssets(data?.items || (Array.isArray(data) ? data : []));
     } catch (err) {
       setError(err.message || "Failed to load assets");
       setAssets([]);

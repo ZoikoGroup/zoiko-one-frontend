@@ -6,17 +6,12 @@ const categoryIcons = {
   Hardware: Monitor, Software: Layers, Furniture: Sofa, Electronics: MonitorDown, Vehicle: Car, Other: Package,
 };
 
-function StatCard({ title, value, icon: Icon, change, trend }) {
+function StatCard({ title, value, icon: Icon }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between shadow-sm">
       <div>
         <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">{title}</p>
         <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-        {change !== undefined && (
-          <p className={`text-xs mt-1 flex items-center gap-1 ${trend === "up" ? "text-green-500" : "text-red-500"}`}>
-            {trend === "up" ? "\u2191" : "\u2193"} {Math.abs(change)} from last month
-          </p>
-        )}
       </div>
       <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
         <Icon size={20} className="text-amber-600" />
@@ -101,11 +96,11 @@ export default function AssetsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <StatCard title="Total Assets" value={total_assets} icon={Package} change={4} trend="up" />
-        <StatCard title="Assigned" value={assigned_count} icon={UserCheck} change={6} trend="up" />
-        <StatCard title="Available" value={available_count} icon={Archive} change={-2} trend="down" />
-        <StatCard title="Under Maintenance" value={maintenance_count} icon={Wrench} change={1} trend="up" />
-        <StatCard title="Recently Added" value={recently_added} icon={PlusCircle} change={3} trend="up" />
+        <StatCard title="Total Assets" value={total_assets} icon={Package} />
+        <StatCard title="Assigned" value={assigned_count} icon={UserCheck} />
+        <StatCard title="Available" value={available_count} icon={Archive} />
+        <StatCard title="Under Maintenance" value={maintenance_count} icon={Wrench} />
+        <StatCard title="Recently Added" value={recently_added} icon={PlusCircle} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

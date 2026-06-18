@@ -62,7 +62,7 @@ export default function AssetSettings() {
     setSaved(true);
     try {
       const promises = Object.entries(settings).map(([key, value]) =>
-        updateAssetSetting(key, { setting_key: key, setting_value: value })
+        updateAssetSetting(key, { setting_value: value })
       );
       await Promise.all(promises);
     } catch {

@@ -96,11 +96,14 @@ import TravelReports from "./modules/zoiko-hr/travel/reports.jsx";
 import TravelSettings from "./modules/zoiko-hr/travel/settings.jsx";
 
 import {
-  AssetsDashboard, MyAssets, AssetCatalog, AssetRequests,
-  AssetMaintenance, AssetReports, AssetSettings,
-} from "./modules/zoiko-hr/assets/Index";
-
-
+  AssetsDashboard,
+  MyAssets,
+  AssetCatalog,
+  AssetRequests,
+  AssetMaintenance,
+  AssetReports,
+  AssetSettings,
+} from "./modules/zoiko-hr/assets/index.jsx";
 
 import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
 import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
@@ -175,14 +178,26 @@ import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
 import {
-  ZoikoSpendModule, PurchaseRequestsPage, PosPage,
-  VendorsPage, SupplierInvoicesPage, ApWorkflowPage,
-  SpendPolicyPage, SpendApprovalsPage, PaymentPreparationPage,
+  ZoikoSpendModule,
+  PurchaseRequestsPage,
+  PosPage,
+  VendorsPage,
+  SupplierInvoicesPage,
+  ApWorkflowPage,
+  SpendPolicyPage,
+  SpendApprovalsPage,
+  PaymentPreparationPage,
 } from "./modules/spend";
 import {
-  ZoikoBillingModule, InvoicingPage, InvoiceSchedulesPage,
-  UsageBillingPage, TaxPage, CollectionsReceivablesPage,
-  CreditNotesPage, DunningPage, ReportsPage,
+  ZoikoBillingModule,
+  InvoicingPage,
+  InvoiceSchedulesPage,
+  UsageBillingPage,
+  TaxPage,
+  CollectionsReceivablesPage,
+  CreditNotesPage,
+  DunningPage,
+  ReportsPage,
 } from "./modules/billing";
 import ComplyDashboard from "./modules/comply/dashboard";
 import ComplyPolicies from "./modules/comply/policies";
@@ -287,8 +302,12 @@ const routeOverrides = {
   "/zoiko-hr/onboarding/pre-onboarding": <ZoikoHROnboardingPreOnboarding />,
   "/zoiko-hr/onboarding/documents": <ZoikoHROnboardingDocuments />,
   "/zoiko-hr/onboarding/checklists": <ZoikoHROnboardingChecklists />,
-  "/zoiko-hr/onboarding/department-assignment": <ZoikoHROnboardingDeptAssignment />,
-  "/zoiko-hr/onboarding/manager-assignment": <ZoikoHROnboardingManagerAssignment />,
+  "/zoiko-hr/onboarding/department-assignment": (
+    <ZoikoHROnboardingDeptAssignment />
+  ),
+  "/zoiko-hr/onboarding/manager-assignment": (
+    <ZoikoHROnboardingManagerAssignment />
+  ),
   "/zoiko-hr/onboarding/assets-access": <ZoikoHROnboardingAssetsAccess />,
   "/zoiko-hr/onboarding/orientation": <ZoikoHROnboardingOrientation />,
   "/zoiko-hr/onboarding/training": <ZoikoHROnboardingTraining />,
@@ -447,15 +466,65 @@ const routeOverrides = {
   "/billing/reports": <ReportsPage />,
   // Zoiko Inventory routes
   "/inventory/items": <ItemsPage />,
-  "/inventory/locations": <PagePlaceholder title="Locations" path="/inventory/locations" badge="Inventory" />,
-  "/inventory/stock": <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />,
-  "/inventory/receiving": <PagePlaceholder title="Receiving" path="/inventory/receiving" badge="Inventory" />,
-  "/inventory/goods-issue": <PagePlaceholder title="Goods Issue" path="/inventory/goods-issue" badge="Inventory" />,
-  "/inventory/transfers": <PagePlaceholder title="Transfers" path="/inventory/transfers" badge="Inventory" />,
-  "/inventory/stock-counts": <PagePlaceholder title="Stock Counts" path="/inventory/stock-counts" badge="Inventory" />,
-  "/inventory/reorder": <PagePlaceholder title="Reorder" path="/inventory/reorder" badge="Inventory" />,
-  "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
-  "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
+  "/inventory/locations": (
+    <PagePlaceholder
+      title="Locations"
+      path="/inventory/locations"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/stock": (
+    <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />
+  ),
+  "/inventory/receiving": (
+    <PagePlaceholder
+      title="Receiving"
+      path="/inventory/receiving"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/goods-issue": (
+    <PagePlaceholder
+      title="Goods Issue"
+      path="/inventory/goods-issue"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/transfers": (
+    <PagePlaceholder
+      title="Transfers"
+      path="/inventory/transfers"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/stock-counts": (
+    <PagePlaceholder
+      title="Stock Counts"
+      path="/inventory/stock-counts"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/reorder": (
+    <PagePlaceholder
+      title="Reorder"
+      path="/inventory/reorder"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/assets": (
+    <PagePlaceholder
+      title="Assets"
+      path="/inventory/assets"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/reports": (
+    <PagePlaceholder
+      title="Reports"
+      path="/inventory/reports"
+      badge="Inventory"
+    />
+  ),
   "/comply": <ComplyDashboard />,
   "/comply/policies": <ComplyPolicies />,
   "/comply/audits": <ComplyAudits />,
@@ -516,12 +585,24 @@ export default function App() {
                     path={route.href}
                     element={
                       routeOverrides[route.href] ?? (
-                        <PagePlaceholder title={route.label} path={route.href} badge={route.badge} />
+                        <PagePlaceholder
+                          title={route.label}
+                          path={route.href}
+                          badge={route.badge}
+                        />
                       )
                     }
                   />
                 ))}
-                <Route path="*" element={<PagePlaceholder title="Not Found" description="This page is not available yet." />} />
+                <Route
+                  path="*"
+                  element={
+                    <PagePlaceholder
+                      title="Not Found"
+                      description="This page is not available yet."
+                    />
+                  }
+                />
               </Routes>
             </SuperAdminShell>
           </ProtectedRoute>

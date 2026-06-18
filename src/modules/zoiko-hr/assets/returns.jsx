@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { getAssetRequests, createAssetRequest, approveAssetRequest, rejectAssetRequest, fulfillAssetRequest, cancelAssetRequest } from "../../../service/hrService";
 
 const PRIORITY_OPTIONS = [
@@ -35,6 +35,22 @@ export default function Returns() {
   const [form, setForm] = useState({ ...initialForm });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
+
+  const handleAction = useCallback(async (id, action) => {
+    setActionLoading(`${action}-${id}`);
+    try {
+      if (action === "approve") await approveAssetRequest(id);
+      if (action === "reject") await rejectAssetRequest(id);
+      if (action === "fulfill") await fulfillAssetRequest(id);
+      if (action === "cancel") await cancelAssetRequest(id);
+      await fetchData();
+    } catch (err) {
+      setError(err.message || `Failed to ${action} request`);
+    } finally {
+      setActionLoading(null);
+    }
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -159,6 +175,7 @@ export default function Returns() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Requested</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Approved</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
@@ -179,6 +196,41 @@ export default function Returns() {
                       <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[status] || "bg-gray-100 text-gray-800"}`}>{status}</span></td>
                       <td className="px-4 py-3 text-sm text-gray-500">{reqOn ? new Date(reqOn).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "-"}</td>
                       <td className="px-4 py-3 text-sm text-gray-500">{appOn ? new Date(appOn).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : <span className="text-gray-300">-</span>}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {status === "pending" && (
+                            <>
+                              <button onClick={() => handleAction(r.id, "approve")} disabled={actionLoading === `approve-${r.id}`}
+                                className="px-2 py-1 text-xs font-medium text-green-600 hover:bg-green-50 rounded transition-colors disabled:opacity-40">
+                                {actionLoading === `approve-${r.id}` ? "..." : "Approve"}
+                              </button>
+                              <button onClick={() => handleAction(r.id, "reject")} disabled={actionLoading === `reject-${r.id}`}
+                                className="px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-40">
+                                {actionLoading === `reject-${r.id}` ? "..." : "Reject"}
+                              </button>
+                              <button onClick={() => handleAction(r.id, "cancel")} disabled={actionLoading === `cancel-${r.id}`}
+                                className="px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 rounded transition-colors disabled:opacity-40">
+                                {actionLoading === `cancel-${r.id}` ? "..." : "Cancel"}
+                              </button>
+                            </>
+                          )}
+                          {status === "approved" && (
+                            <>
+                              <button onClick={() => handleAction(r.id, "fulfill")} disabled={actionLoading === `fulfill-${r.id}`}
+                                className="px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded transition-colors disabled:opacity-40">
+                                {actionLoading === `fulfill-${r.id}` ? "..." : "Fulfill"}
+                              </button>
+                              <button onClick={() => handleAction(r.id, "cancel")} disabled={actionLoading === `cancel-${r.id}`}
+                                className="px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 rounded transition-colors disabled:opacity-40">
+                                {actionLoading === `cancel-${r.id}` ? "..." : "Cancel"}
+                              </button>
+                            </>
+                          )}
+                          {status !== "pending" && status !== "approved" && (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}

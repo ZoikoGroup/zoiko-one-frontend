@@ -176,12 +176,48 @@ export const cancelAssetRequest = (reqId) => api.put(`/hr/assets/requests/${reqI
 export const getAssetCategories = () => api.get("/hr/assets/categories");
 export const createAssetCategory = (payload) => api.post("/hr/assets/categories", payload);
 export const updateAssetCategory = (catId, payload) => api.put(`/hr/assets/categories/${catId}`, payload);
+export const deleteAssetCategory = (catId) => api.delete(`/hr/assets/categories/${catId}`);
+export const transferAsset = (assetId, payload) => api.put(`/hr/assets/${assetId}/transfer`, payload);
+export const assignAsset = (assetId, payload) => api.put(`/hr/assets/${assetId}/assign`, payload);
+export const returnAsset = (assetId, payload) => api.put(`/hr/assets/${assetId}/return`, payload);
 
 export const getAssetReports = () => api.get("/hr/assets/reports");
 export const createAssetReport = (payload) => api.post("/hr/assets/reports", payload);
 
 export const getAssetSettings = () => api.get("/hr/assets/settings");
 export const updateAssetSetting = (key, payload) => api.put(`/hr/assets/settings/${key}`, payload);
+
+export async function exportAssetsCsv() {
+  const { getAccessToken, API_BASE_URL } = await import("./api");
+  const token = getAccessToken();
+  const res = await fetch(`${API_BASE_URL}/hr/assets/export/csv`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to export CSV");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `assets_${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function exportAssetsExcel() {
+  const { getAccessToken, API_BASE_URL } = await import("./api");
+  const token = getAccessToken();
+  const res = await fetch(`${API_BASE_URL}/hr/assets/export/excel`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to export Excel");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `assets_${new Date().toISOString().split("T")[0]}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // LEARNING

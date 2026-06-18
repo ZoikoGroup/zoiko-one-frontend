@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Save, Sliders, CheckCircle, Wrench, Bell, Plus, Trash2 } from "lucide-react";
-import { getAssetSettings, updateAssetSetting, getAssetCategories } from "../../../service/hrService";
+import { getAssetSettings, updateAssetSetting, getAssetCategories, createAssetCategory, updateAssetCategory, deleteAssetCategory } from "../../../service/hrService";
 
 const approvalSteps = [
   { id: 1, role: "Team Lead", order: 1, required: true },
@@ -31,25 +31,36 @@ export default function AssetSettings() {
   const [categories, setCategories] = useState([]);
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
+  const [newCategory, setNewCategory] = useState("");
+  const [categoryError, setCategoryError] = useState("");
+  const [editingCat, setEditingCat] = useState(null);
+  const [editCatName, setEditCatName] = useState("");
+
+  const fetchCategories = async () => {
+    try {
+      const catRes = await getAssetCategories();
+      const cats = Array.isArray(catRes) ? catRes : catRes?.data || [];
+      setCategories(cats.length > 0 ? cats : []);
+    } catch {
+      setCategories([]);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
     const fetchData = async () => {
       try {
-        const [settingsRes, catRes] = await Promise.all([
+        const [settingsRes] = await Promise.all([
           getAssetSettings(),
-          getAssetCategories(),
+          fetchCategories(),
         ]);
         if (!mounted) return;
         const settingsArr = Array.isArray(settingsRes) ? settingsRes : settingsRes?.data || [];
         const opts = {};
         settingsArr.forEach((s) => { opts[s.setting_key] = s.setting_value; });
         setSettings(opts);
-        const cats = Array.isArray(catRes) ? catRes : catRes?.data || [];
-        setCategories(cats.length > 0 ? cats : ["Hardware", "Software", "Furniture", "Electronics", "Vehicle", "Other"]);
       } catch {
         if (!mounted) return;
-        setCategories(["Hardware", "Software", "Furniture", "Electronics", "Vehicle", "Other"]);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -120,22 +131,95 @@ export default function AssetSettings() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Asset Categories</h2>
-            <button onClick={() => setCategories([...categories, `Category ${categories.length + 1}`])}
-              className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium">
-              <Plus className="w-4 h-4" /> Add Category
+          </div>
+
+          <div className="flex items-center gap-2 mb-4">
+            <input type="text" value={newCategory} onChange={(e) => { setNewCategory(e.target.value); setCategoryError(""); }}
+              placeholder="New category name..."
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+            <button onClick={async () => {
+              const name = newCategory.trim();
+              if (!name) return;
+              try {
+                await createAssetCategory({ name, description: null });
+                setNewCategory("");
+                await fetchCategories();
+              } catch (err) {
+                setCategoryError(err.message || "Failed to create category");
+              }
+            }} disabled={!newCategory.trim()}
+              className="flex items-center gap-1 px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:bg-amber-400 font-medium transition-colors">
+              <Plus className="w-4 h-4" /> Add
             </button>
           </div>
+          {categoryError && <p className="text-red-500 text-xs mb-2">{categoryError}</p>}
+
           <div className="space-y-2">
-            {categories.map((cat) => (
-              <div key={cat} className="flex items-center justify-between py-2.5 px-3 border border-gray-100 rounded-lg hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span className="text-sm font-medium text-gray-800">{cat}</span>
+            {categories.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No categories yet. Add one above.</p>}
+            {categories.map((cat) => {
+              const name = typeof cat === "string" ? cat : cat.name;
+              const catId = typeof cat === "string" ? null : cat.id;
+              const isEditing = editingCat === catId;
+              return (
+                <div key={catId || name} className="flex items-center justify-between py-2.5 px-3 border border-gray-100 rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                    {isEditing ? (
+                      <input type="text" value={editCatName} autoFocus
+                        onChange={(e) => setEditCatName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (async () => {
+                              try {
+                                await updateAssetCategory(catId, { name: editCatName.trim() });
+                                setEditingCat(null);
+                                await fetchCategories();
+                              } catch (err) {
+                                setCategoryError(err.message || "Failed to update category");
+                              }
+                            })();
+                          }
+                          if (e.key === "Escape") setEditingCat(null);
+                        }}
+                        className="flex-1 px-2 py-1 border border-amber-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                    ) : (
+                      <span className="text-sm font-medium text-gray-800 truncate">{name}</span>
+                    )}
+                  </div>
+                  {catId && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      {isEditing ? (
+                        <>
+                          <button onClick={async () => {
+                            try {
+                              await updateAssetCategory(catId, { name: editCatName.trim() });
+                              setEditingCat(null);
+                              await fetchCategories();
+                            } catch (err) {
+                              setCategoryError(err.message || "Failed to update category");
+                            }
+                          }} className="p-1 text-green-500 hover:text-green-700 transition-colors" title="Save">&#10003;</button>
+                          <button onClick={() => setEditingCat(null)} className="p-1 text-gray-300 hover:text-gray-500 transition-colors" title="Cancel">&#10005;</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditingCat(catId); setEditCatName(name); }}
+                            className="p-1 text-gray-300 hover:text-amber-500 transition-colors" title="Edit">&#9998;</button>
+                          <button onClick={async () => {
+                            try {
+                              await deleteAssetCategory(catId);
+                              await fetchCategories();
+                            } catch (err) {
+                              setCategoryError(err.message || "Failed to delete category");
+                            }
+                          }} className="p-1 text-gray-300 hover:text-red-500 transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <button onClick={() => setCategories(categories.filter((c) => c !== cat))}
-                  className="p-1 text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>

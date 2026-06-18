@@ -553,26 +553,26 @@ function GapAnalysisTab() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {data.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-800">{row.department || "N/A"}</td>
-                    <td className="px-4 py-3 text-gray-700">{row.skill || row.skill_name || "N/A"}</td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full"
-                            style={{ width: `${Math.min(((row.avg_level || row.average_level || 0) / 5) * 100, 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-gray-700">{(row.avg_level || row.average_level || 0).toFixed(1)}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                        {row.count || row.employee_count || 0}
-                      </span>
-                    </td>
-                  </tr>
+                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                   <td className="px-4 py-3 font-medium text-gray-800">{row.category || "N/A"}</td>
+                   <td className="px-4 py-3 text-gray-700">{row.skill_name || "N/A"}</td>
+                   <td className="px-4 py-3 text-center">
+                     <div className="flex items-center justify-center gap-2">
+                       <div className="w-20 bg-gray-200 rounded-full h-2">
+                         <div
+                           className="bg-blue-600 h-2 rounded-full"
+                           style={{ width: `${Math.min(((row.avg_level || 0) / 5) * 100, 100)}%` }}
+                         />
+                       </div>
+                       <span className="text-xs font-medium text-gray-700">{(row.avg_level || 0).toFixed(1)}</span>
+                     </div>
+                   </td>
+                   <td className="px-4 py-3 text-center">
+                     <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                       {row.employee_count || 0}
+                     </span>
+                   </td>
+                 </tr>
                 ))}
               </tbody>
             </table>

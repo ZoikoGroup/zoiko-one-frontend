@@ -306,15 +306,9 @@ export const updateTrainingCalendarEvent = (id, payload) => api.put(`/hr/learnin
 export const deleteTrainingCalendarEvent = (id) => api.delete(`/hr/learning/calendar/${id}`);
 
 // ── LEARNING REPORTS ───────────────────────────────────────────────────────
-export const getCourseCompletionReport = async () => {
-  try { return await api.get("/hr/learning/reports/course-completion"); } catch { return []; }
-};
-export const getCertificationReport = async () => {
-  try { return await api.get("/hr/learning/reports/certifications"); } catch { return []; }
-};
-export const getSkillGapAnalysis = async () => {
-  try { return await api.get("/hr/learning/reports/skill-gap"); } catch { return []; }
-};
+export const getCourseCompletionReport = () => api.get("/hr/learning/reports/course-completion");
+export const getCertificationReport = () => api.get("/hr/learning/reports/certifications");
+export const getSkillGapAnalysis = () => api.get("/hr/learning/reports/skill-gap");
 export const getEmployeeLearningProgress = (employeeId) => api.get(`/hr/learning/reports/employee-progress/${employeeId}`);
 export const getDepartmentLearningReport = (departmentId) => api.get(`/hr/learning/reports/department-learning/${departmentId}`);
 

@@ -321,7 +321,7 @@ export default function ZoikoHRAssessments() {
   const handleDeleteQuestion = async (id) => {
     if (!window.confirm("Delete this question?")) return;
     try {
-      await deleteQuestion(id);
+      await deleteQuestion(detailItem.id, id);
       const qs = await getQuestions(detailItem.id);
       setQuestions(Array.isArray(qs) ? qs : []);
     } catch (err) {

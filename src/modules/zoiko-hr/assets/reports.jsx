@@ -24,10 +24,20 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
+const REPORT_TYPES = [
+  { value: "inventory", label: "Inventory Report" },
+  { value: "assignment", label: "Asset Allocation Report" },
+  { value: "audit_trail", label: "Asset Maintenance Report" },
+];
+
 export default function AssetReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [showGenerate, setShowGenerate] = useState(false);
+  const [genForm, setGenForm] = useState({ report_type: "inventory", title: "", description: "" });
+  const [genLoading, setGenLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -36,8 +46,8 @@ export default function AssetReports() {
       try {
         const data = await getAssetReports();
         if (mounted) setReports(data?.items || (Array.isArray(data) ? data : []));
-      } catch {
-        if (mounted) setReports([]);
+      } catch (err) {
+        if (mounted) setError(err.message || "Failed to load reports");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -45,6 +55,42 @@ export default function AssetReports() {
     fetch();
     return () => { mounted = false; };
   }, []);
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    if (!genForm.title.trim()) return;
+    setGenLoading(true);
+    try {
+      await createAssetReport({
+        report_type: genForm.report_type,
+        title: genForm.title.trim(),
+        description: genForm.description.trim() || null,
+      });
+      setShowGenerate(false);
+      setGenForm({ report_type: "inventory", title: "", description: "" });
+      const data = await getAssetReports();
+      setReports(data?.items || (Array.isArray(data) ? data : []));
+    } catch (err) {
+      setError(err.message || "Failed to generate report");
+    } finally {
+      setGenLoading(false);
+    }
+  };
+
+  const handleDownload = (report) => {
+    if (report.file_url) {
+      window.open(report.file_url, "_blank");
+    } else {
+      const dataStr = JSON.stringify(report, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${report.title || "report"}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
 
   const categories = useMemo(() => {
     const types = new Set(reports.map((r) => r.report_type || "").filter(Boolean));
@@ -66,9 +112,20 @@ export default function AssetReports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Asset Reports</h1>
-        <p className="text-sm text-gray-500 mt-1">Generate and download asset management reports</p>
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Asset Reports</h1>
+          <p className="text-sm text-gray-500 mt-1">Generate and download asset management reports</p>
+        </div>
+        <button onClick={() => setShowGenerate(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium transition-colors">+ Generate Report</button>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -109,7 +166,7 @@ export default function AssetReports() {
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <span>{formatDate(date)}</span>
                       </div>
-                      <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                      <button onClick={() => handleDownload(report)} className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
                         <Download className="w-3.5 h-3.5" /> Download
                       </button>
                     </div>
@@ -118,6 +175,41 @@ export default function AssetReports() {
               </div>
             );
           })}
+        </div>
+      )}
+      {showGenerate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-800">Generate Report</h2>
+              <button onClick={() => setShowGenerate(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+            <form onSubmit={handleGenerate} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Report Type *</label>
+                <select value={genForm.report_type} onChange={(e) => setGenForm({ ...genForm, report_type: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  {REPORT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <input type="text" value={genForm.title} onChange={(e) => setGenForm({ ...genForm, title: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea rows={3} value={genForm.description} onChange={(e) => setGenForm({ ...genForm, description: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowGenerate(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={!genForm.title.trim() || genLoading} className="px-4 py-2 text-sm bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-lg font-medium transition-colors">
+                  {genLoading ? "Generating..." : "Generate"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -19,7 +19,7 @@ const initialForm = {
   duration: "",
 };
 
-export default function LearningCourses() {
+export default function LearningCourses({ isTab }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -191,18 +191,22 @@ export default function LearningCourses() {
   };
 
   if (loading && courses.length === 0) {
+    const loadingEl = (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-500">Loading courses...</span>
+      </div>
+    );
+    if (isTab) return loadingEl;
     return (
       <HRPage title="Courses" subtitle="Manage course catalog, categories, and providers.">
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-500">Loading courses...</span>
-        </div>
+        {loadingEl}
       </HRPage>
     );
   }
 
-  return (
-    <HRPage title="Courses" subtitle="Manage course catalog, categories, and providers.">
+  const content = (
+    <>
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
           <span>{error}</span>
@@ -300,30 +304,26 @@ export default function LearningCourses() {
                             <span className="text-gray-300">-</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">{c.provider || <span className="text-gray-300">-</span>}</td>
-                        <td className="px-4 py-3 text-gray-700">{c.duration_hours || <span className="text-gray-300">-</span>}</td>
+                        <td className="px-4 py-3 text-gray-500">{c.provider || <span className="text-gray-300">-</span>}</td>
+                        <td className="px-4 py-3 text-gray-500">{c.duration_hours || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3">
-                          {c.status ? (
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                              c.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
-                            }`}>
-                              {c.status}
-                            </span>
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                            c.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
+                          }`}>
+                            {c.status || "inactive"}
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex justify-end gap-2">
                             <button
                               onClick={() => openEditModal(c)}
-                              className="text-blue-600 hover:text-blue-800 text-xs font-medium px-1"
+                              className="text-blue-600 hover:text-blue-800 text-xs font-medium"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(c.id)}
-                              className="text-red-500 hover:text-red-700 text-xs font-medium px-1"
+                              className="text-red-600 hover:text-red-800 text-xs font-medium"
                             >
                               Delete
                             </button>
@@ -334,44 +334,44 @@ export default function LearningCourses() {
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            {totalPages > 1 && (
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-400">
-                  Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
-                </span>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={safePage <= 1}
-                    className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
-                  >
-                    Prev
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center px-6 py-3 border-t border-gray-100">
+                  <span className="text-xs text-gray-400">
+                    Page {safePage} of {totalPages}
+                  </span>
+                  <div className="flex gap-1">
                     <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`px-3 py-1 text-sm border rounded-lg ${
-                        p === safePage
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={safePage <= 1}
+                      className="px-3 py-1 text-xs border border-gray-200 rounded disabled:opacity-40 hover:bg-gray-50"
                     >
-                      {p}
+                      Prev
                     </button>
-                  ))}
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={safePage >= totalPages}
-                    className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`px-3 py-1 text-xs border rounded ${
+                          p === safePage
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={safePage >= totalPages}
+                      className="px-3 py-1 text-xs border border-gray-200 rounded disabled:opacity-40 hover:bg-gray-50"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </>
         )}
       </div>
@@ -380,29 +380,56 @@ export default function LearningCourses() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">Add Course</h2>
+              <h2 className="text-lg font-bold text-gray-800">Add New Course</h2>
               <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Course Name *</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className={`w-full border ${formErrors.title ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    formErrors.title ? "border-red-300" : "border-gray-200"
+                  }`}
                 />
                 {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Compliance, Technical"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
+                  <input
+                    type="text"
+                    value={formData.provider}
+                    onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Coursera, Internal"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
@@ -413,45 +440,40 @@ export default function LearningCourses() {
                   >
                     <option value="">Select type</option>
                     <option value="online">Online</option>
-                    <option value="classroom">Classroom</option>
+                    <option value="in_person">In Person</option>
                     <option value="hybrid">Hybrid</option>
+                    <option value="self_paced">Self Paced</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
                   <input
                     type="number"
-                    min="1"
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      formErrors.duration ? "border-red-300" : "border-gray-200"
+                    }`}
+                    placeholder="e.g. 10"
                   />
+                  {formErrors.duration && <p className="text-red-500 text-xs mt-1">{formErrors.duration}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
-                  <input
-                    type="text"
-                    value={formData.provider}
-                    onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors">
-                  {submitting ? "Creating..." : "Create Course"}
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateModal(false); resetForm(); }}
+                  className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:bg-blue-400"
+                >
+                  {submitting ? "Adding..." : "Add Course"}
                 </button>
               </div>
             </form>
@@ -463,57 +485,34 @@ export default function LearningCourses() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">Update Course</h2>
+              <h2 className="text-lg font-bold text-gray-800">Edit Course</h2>
               <button onClick={() => { setShowEditModal(false); setEditItem(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
-              <div className="text-sm text-gray-500 mb-1">
-                Editing: <span className="font-medium text-gray-800">{editItem.course_name}</span>
-              </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Course Name *</label>
                 <input
                   type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  className={`w-full border ${formErrors.title ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    formErrors.title ? "border-red-300" : "border-gray-200"
+                  }`}
+                  required
                 />
                 {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
-                  <select
-                    value={editForm.course_type}
-                    onChange={(e) => setEditForm({ ...editForm, course_type: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select type</option>
-                    <option value="online">Online</option>
-                    <option value="classroom">Classroom</option>
-                    <option value="hybrid">Hybrid</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={editForm.duration}
-                    onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
@@ -534,12 +533,49 @@ export default function LearningCourses() {
                   />
                 </div>
               </div>
-              {editItem.created_at && (
-                <div className="text-xs text-gray-400">Created: {new Date(editItem.created_at).toLocaleString()}</div>
-              )}
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowEditModal(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors">
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
+                  <select
+                    value={editForm.course_type}
+                    onChange={(e) => setEditForm({ ...editForm, course_type: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select type</option>
+                    <option value="online">Online</option>
+                    <option value="in_person">In Person</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="self_paced">Self Paced</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
+                  <input
+                    type="number"
+                    value={editForm.duration}
+                    onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      formErrors.duration ? "border-red-300" : "border-gray-200"
+                    }`}
+                  />
+                  {formErrors.duration && <p className="text-red-500 text-xs mt-1">{formErrors.duration}</p>}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => { setShowEditModal(false); setEditItem(null); }}
+                  className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:bg-blue-400"
+                >
                   {submitting ? "Updating..." : "Update Course"}
                 </button>
               </div>
@@ -547,78 +583,14 @@ export default function LearningCourses() {
           </div>
         </div>
       )}
+    </>
+  );
 
-      {showDetailModal && detailItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">Course Details</h2>
-              <button onClick={() => { setShowDetailModal(false); setDetailItem(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Course ID</label>
-                  <p className="text-sm text-gray-900 font-mono">#{detailItem.id}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Category</label>
-                  <p className="text-sm text-gray-900">{detailItem.category || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Course Name</label>
-                  <p className="text-sm text-gray-900 font-medium">{detailItem.course_name}</p>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
-                  <p className="text-sm text-gray-700">{detailItem.description || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Course Type</label>
-                  <p className="text-sm text-gray-900">{detailItem.course_type || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Provider</label>
-                  <p className="text-sm text-gray-900">{detailItem.provider || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Duration (hours)</label>
-                  <p className="text-sm text-gray-900">{detailItem.duration_hours || <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Cost</label>
-                  <p className="text-sm text-gray-900">{detailItem.cost != null ? `$${detailItem.cost}` : <span className="text-gray-400">-</span>}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                  <p className="text-sm text-gray-900">
-                    {detailItem.status ? (
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                        detailItem.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
-                      }`}>
-                        {detailItem.status}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="pt-4 border-t border-gray-100">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Timeline</h3>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <div>Created: {detailItem.created_at ? new Date(detailItem.created_at).toLocaleString() : <span className="text-gray-400">-</span>}</div>
-                  <div>Updated: {detailItem.updated_at ? new Date(detailItem.updated_at).toLocaleString() : <span className="text-gray-400">-</span>}</div>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button onClick={() => { setShowDetailModal(false); setDetailItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Close</button>
-                <button onClick={() => { setShowDetailModal(false); setDetailItem(null); openEditModal(detailItem); }} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Edit Course</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+  if (isTab) return content;
+
+  return (
+    <HRPage title="Courses" subtitle="Manage course catalog, categories, and providers.">
+      {content}
     </HRPage>
   );
 }

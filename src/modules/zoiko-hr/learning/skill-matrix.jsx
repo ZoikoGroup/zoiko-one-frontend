@@ -22,11 +22,11 @@ const TABS = [
   { key: "gap", label: "Gap Analysis" },
 ];
 
-export default function ZoikoHRSkillMatrix() {
+export default function ZoikoHRSkillMatrix({ isTab }) {
   const [activeTab, setActiveTab] = useState("skills");
 
-  return (
-    <HRPage title="Skill Matrix" subtitle="Track employee skills, proficiency levels, and identify skill gaps.">
+  const content = (
+    <>
       <div className="mb-6 border-b border-gray-200">
         <div className="flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
@@ -47,6 +47,16 @@ export default function ZoikoHRSkillMatrix() {
 
       {activeTab === "skills" && <EmployeeSkillsTab />}
       {activeTab === "gap" && <GapAnalysisTab />}
+    </>
+  );
+
+  if (isTab) {
+    return content;
+  }
+
+  return (
+    <HRPage title="Skill Matrix" subtitle="Track employee skills, proficiency levels, and identify skill gaps.">
+      {content}
     </HRPage>
   );
 }

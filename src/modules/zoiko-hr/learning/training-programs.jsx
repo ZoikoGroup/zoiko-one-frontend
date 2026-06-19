@@ -34,7 +34,7 @@ const initialForm = {
   max_participants: "",
 };
 
-export default function TrainingPrograms() {
+export default function TrainingPrograms({ isTab }) {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -213,18 +213,22 @@ export default function TrainingPrograms() {
   };
 
   if (loading && programs.length === 0) {
+    const loadingContent = (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-500">Loading training programs...</span>
+      </div>
+    );
+    if (isTab) return loadingContent;
     return (
       <HRPage title="Training Programs" subtitle="Manage instructor-led training sessions and workshops.">
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-500">Loading training programs...</span>
-        </div>
+        {loadingContent}
       </HRPage>
     );
   }
 
-  return (
-    <HRPage title="Training Programs" subtitle="Manage instructor-led training sessions and workshops.">
+  const content = (
+    <>
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
           <span>{error}</span>
@@ -649,6 +653,16 @@ export default function TrainingPrograms() {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (isTab) {
+    return content;
+  }
+
+  return (
+    <HRPage title="Training Programs" subtitle="Manage instructor-led training sessions and workshops.">
+      {content}
     </HRPage>
   );
 }

@@ -38,7 +38,7 @@ export const getMyProfile = () => api.get("/hr/employees/me");
 export const updateMyProfile = (payload) => api.put("/hr/employees/me", payload);
 
 export const getMyLeave = (employeeId) => api.get(`/hr/leaves${employeeId ? `?employee_id=${employeeId}` : ''}`);
-export const getMyAttendance = (employeeId) => api.get(`/hr/attendance${employeeId ? `?employee_id=${employeeId}` : ''}`);
+export const getMyAttendanceLegacy = (employeeId) => api.get(`/hr/attendance${employeeId ? `?employee_id=${employeeId}` : ''}`);
 
 export const getEss = (employeeId) => api.get(`/hr/ess${employeeId ? `?employee_id=${employeeId}` : ''}`);
 export const createEss = (payload) => api.post("/hr/ess", payload);
@@ -252,6 +252,7 @@ export const updateCertification = (id, payload) => api.put(`/hr/learning/certif
 export const deleteCertification = (id) => api.delete(`/hr/learning/certifications/${id}`);
 
 export const getSkills = (employeeId) => api.get(`/hr/learning/skills${employeeId ? `?employee_id=${employeeId}` : ''}`);
+export const getSkillById = (id) => api.get(`/hr/learning/skills/${id}`);
 export const createSkill = (payload) => api.post("/hr/learning/skills", payload);
 export const updateSkill = (id, payload) => api.put(`/hr/learning/skills/${id}`, payload);
 export const deleteSkill = (id) => api.delete(`/hr/learning/skills/${id}`);
@@ -301,6 +302,7 @@ export const getTrainingCalendarEvents = (startDate, endDate, eventType) => {
   if (params.length) url += `?${params.join("&")}`;
   return api.get(url);
 };
+export const getTrainingCalendarEventById = (id) => api.get(`/hr/learning/calendar/${id}`);
 export const createTrainingCalendarEvent = (payload) => api.post("/hr/learning/calendar", payload);
 export const updateTrainingCalendarEvent = (id, payload) => api.put(`/hr/learning/calendar/${id}`, payload);
 export const deleteTrainingCalendarEvent = (id) => api.delete(`/hr/learning/calendar/${id}`);
@@ -311,6 +313,40 @@ export const getCertificationReport = () => api.get("/hr/learning/reports/certif
 export const getSkillGapAnalysis = () => api.get("/hr/learning/reports/skill-gap");
 export const getEmployeeLearningProgress = (employeeId) => api.get(`/hr/learning/reports/employee-progress/${employeeId}`);
 export const getDepartmentLearningReport = (departmentId) => api.get(`/hr/learning/reports/department-learning/${departmentId}`);
+
+async function downloadLearningReport(endpoint, filename) {
+  const { getAccessToken, API_BASE_URL } = await import("./api");
+  const token = getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to export learning report");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export const exportCourseCompletionReportCsv = () =>
+  downloadLearningReport("/hr/learning/reports/course-completion/csv", `course_completion_${new Date().toISOString().split("T")[0]}.csv`);
+
+export const exportCourseCompletionReportExcel = () =>
+  downloadLearningReport("/hr/learning/reports/course-completion/excel", `course_completion_${new Date().toISOString().split("T")[0]}.xlsx`);
+
+export const exportCertificationReportCsv = () =>
+  downloadLearningReport("/hr/learning/reports/certifications/csv", `certifications_${new Date().toISOString().split("T")[0]}.csv`);
+
+export const exportCertificationReportExcel = () =>
+  downloadLearningReport("/hr/learning/reports/certifications/excel", `certifications_${new Date().toISOString().split("T")[0]}.xlsx`);
+
+export const exportSkillGapReportCsv = () =>
+  downloadLearningReport("/hr/learning/reports/skill-gap/csv", `skill_gap_${new Date().toISOString().split("T")[0]}.csv`);
+
+export const exportSkillGapReportExcel = () =>
+  downloadLearningReport("/hr/learning/reports/skill-gap/excel", `skill_gap_${new Date().toISOString().split("T")[0]}.xlsx`);
 
 export const getPerformanceDashboard = () => api.get("/hr/performance/dashboard");
 
@@ -450,10 +486,159 @@ export const createEmployee = (payload) => api.post("/hr/employees", payload);
 export const updateEmployee = (id, payload) => api.put(`/hr/employees/${id}`, payload);
 export const deleteEmployee = (id) => api.delete(`/hr/employees/${id}`);
 
-// ── ATTENDANCE CRUD SPECIFIC ────────────────────────────────────────────────
-export const createAttendance = (payload) => api.post("/hr/attendance", payload);
-export const getAttendanceRecords = (employeeId) =>
-  api.get(`/hr/attendance${employeeId ? `?employee_id=${employeeId}` : ""}`);
+// ════════════════════════════════════════════════════════════════════════════
+// ATTENDANCE
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+export const getAttendanceDashboard = () => api.get("/hr/attendance/dashboard");
+
+// ── Daily Records ──────────────────────────────────────────────────────────
+export const getAttendanceRecords = (params = {}) => api.get("/hr/attendance/records", { params });
+export const getAttendanceRecordById = (id) => api.get(`/hr/attendance/records/${id}`);
+export const createAttendanceRecord = (payload) => api.post("/hr/attendance/records", payload);
+export const updateAttendanceRecord = (id, payload) => api.put(`/hr/attendance/records/${id}`, payload);
+export const deleteAttendanceRecord = (id) => api.delete(`/hr/attendance/records/${id}`);
+
+// ── Clock In/Out ───────────────────────────────────────────────────────────
+export const clockIn = (payload) => api.post("/hr/attendance/clock-in", payload);
+export const clockOut = (id, payload) => api.post(`/hr/attendance/clock-out/${id}`, payload);
+export const breakStart = (id, payload) => api.post(`/hr/attendance/break-start/${id}`, payload);
+export const breakEnd = (id, payload) => api.post(`/hr/attendance/break-end/${id}`, payload);
+
+// ── Regularization ─────────────────────────────────────────────────────────
+export const getRegularizations = (params = {}) => api.get("/hr/attendance/regularizations", { params });
+export const getRegularizationById = (id) => api.get(`/hr/attendance/regularizations/${id}`);
+export const createRegularization = (payload) => api.post("/hr/attendance/regularizations", payload);
+export const approveRegularizationManager = (id, payload) => api.put(`/hr/attendance/regularizations/${id}/approve-manager`, payload);
+export const approveRegularizationHR = (id, payload) => api.put(`/hr/attendance/regularizations/${id}/approve-hr`, payload);
+export const rejectRegularization = (id, payload) => api.put(`/hr/attendance/regularizations/${id}/reject`, payload);
+export const cancelRegularization = (id) => api.put(`/hr/attendance/regularizations/${id}/cancel`);
+
+// ── Policies ───────────────────────────────────────────────────────────────
+export const getAttendancePolicies = (params = {}) => api.get("/hr/attendance/policies", { params });
+export const getAttendancePolicyById = (id) => api.get(`/hr/attendance/policies/${id}`);
+export const createAttendancePolicy = (payload) => api.post("/hr/attendance/policies", payload);
+export const updateAttendancePolicy = (id, payload) => api.put(`/hr/attendance/policies/${id}`, payload);
+export const deleteAttendancePolicy = (id) => api.delete(`/hr/attendance/policies/${id}`);
+
+// ── Shifts ─────────────────────────────────────────────────────────────────
+export const getShifts = (params = {}) => api.get("/hr/attendance/shifts", { params });
+export const getShiftById = (id) => api.get(`/hr/attendance/shifts/${id}`);
+export const createShift = (payload) => api.post("/hr/attendance/shifts", payload);
+export const updateShift = (id, payload) => api.put(`/hr/attendance/shifts/${id}`, payload);
+export const deleteShift = (id) => api.delete(`/hr/attendance/shifts/${id}`);
+
+// ── Shift Rosters ──────────────────────────────────────────────────────────
+export const getRosters = (params = {}) => api.get("/hr/attendance/rosters", { params });
+export const createRoster = (payload) => api.post("/hr/attendance/rosters", payload);
+export const bulkCreateRosters = (payload) => api.post("/hr/attendance/rosters/bulk", payload);
+export const deleteRoster = (id) => api.delete(`/hr/attendance/rosters/${id}`);
+
+// ── My Attendance ──────────────────────────────────────────────────────────
+export const getMyAttendance = (params = {}) => api.get("/hr/attendance/my-attendance", { params });
+export const getEmployeeAttendanceSummary = (employeeId, params = {}) => api.get(`/hr/attendance/employee/${employeeId}/summary`, { params });
+export const getEmployeeAttendanceHistory = (employeeId, params = {}) => api.get(`/hr/attendance/employee/${employeeId}/history`, { params });
+export const getEmployeeAttendanceScore = (employeeId) => api.get(`/hr/attendance/employee/${employeeId}/score`);
+
+// ── Biometric ──────────────────────────────────────────────────────────────
+export const getBiometricDevices = () => api.get("/hr/attendance/biometric/devices");
+export const createBiometricDevice = (payload) => api.post("/hr/attendance/biometric/devices", payload);
+export const updateBiometricDevice = (id, payload) => api.put(`/hr/attendance/biometric/devices/${id}`, payload);
+export const deleteBiometricDevice = (id) => api.delete(`/hr/attendance/biometric/devices/${id}`);
+export const syncBiometricLogs = (payload) => api.post("/hr/attendance/biometric/sync", payload);
+export const importBiometricLogs = (payload) => api.post("/hr/attendance/biometric/import", payload);
+export const checkBiometricDeviceHealth = (id) => api.get(`/hr/attendance/biometric/device-health/${id}`);
+
+// ── Geofencing ─────────────────────────────────────────────────────────────
+export const getGeofenceLocations = () => api.get("/hr/attendance/geofencing");
+export const getGeofenceLocationById = (id) => api.get(`/hr/attendance/geofencing/${id}`);
+export const createGeofenceLocation = (payload) => api.post("/hr/attendance/geofencing", payload);
+export const updateGeofenceLocation = (id, payload) => api.put(`/hr/attendance/geofencing/${id}`, payload);
+export const deleteGeofenceLocation = (id) => api.delete(`/hr/attendance/geofencing/${id}`);
+
+// ── Overtime ───────────────────────────────────────────────────────────────
+export const getOvertimeRequests = (params = {}) => api.get("/hr/attendance/overtime", { params });
+export const getOvertimeRequestById = (id) => api.get(`/hr/attendance/overtime/${id}`);
+export const createOvertimeRequest = (payload) => api.post("/hr/attendance/overtime", payload);
+export const approveOvertimeRequest = (id, payload) => api.put(`/hr/attendance/overtime/${id}/approve`, payload);
+export const rejectOvertimeRequest = (id, payload) => api.put(`/hr/attendance/overtime/${id}/reject`, payload);
+export const getOvertimeReports = (params = {}) => api.get("/hr/attendance/overtime/reports", { params });
+
+// ── Exceptions ─────────────────────────────────────────────────────────────
+export const getAttendanceExceptions = (params = {}) => api.get("/hr/attendance/exceptions", { params });
+export const getAttendanceExceptionById = (id) => api.get(`/hr/attendance/exceptions/${id}`);
+export const createAttendanceException = (payload) => api.post("/hr/attendance/exceptions", payload);
+export const resolveAttendanceException = (id, payload) => api.put(`/hr/attendance/exceptions/${id}/resolve`, payload);
+export const escalateAttendanceException = (id, payload) => api.put(`/hr/attendance/exceptions/${id}/escalate`, payload);
+
+// ── Holidays ───────────────────────────────────────────────────────────────
+export const getHolidays = (params = {}) => api.get("/hr/attendance/holidays", { params });
+export const getHolidayById = (id) => api.get(`/hr/attendance/holidays/${id}`);
+export const createHoliday = (payload) => api.post("/hr/attendance/holidays", payload);
+export const updateHoliday = (id, payload) => api.put(`/hr/attendance/holidays/${id}`, payload);
+export const deleteHoliday = (id) => api.delete(`/hr/attendance/holidays/${id}`);
+export const importHolidays = (payload) => api.post("/hr/attendance/holidays/import", payload);
+
+// ── Weekend Config ─────────────────────────────────────────────────────────
+export const getWeekendConfigs = () => api.get("/hr/attendance/weekends");
+export const createWeekendConfig = (payload) => api.post("/hr/attendance/weekends", payload);
+export const updateWeekendConfig = (id, payload) => api.put(`/hr/attendance/weekends/${id}`, payload);
+export const deleteWeekendConfig = (id) => api.delete(`/hr/attendance/weekends/${id}`);
+
+// ── Audit Logs ─────────────────────────────────────────────────────────────
+export const getAttendanceAuditLogs = (params = {}) => api.get("/hr/attendance/audit-logs", { params });
+
+// ── Reports ────────────────────────────────────────────────────────────────
+export const getDailyReport = (params = {}) => api.get("/hr/attendance/reports/daily", { params });
+export const getMonthlyReport = (params = {}) => api.get("/hr/attendance/reports/monthly", { params });
+export const getDepartmentReport = (params = {}) => api.get("/hr/attendance/reports/department", { params });
+export const getShiftReport = (params = {}) => api.get("/hr/attendance/reports/shift", { params });
+export const getLateArrivalReport = (params = {}) => api.get("/hr/attendance/reports/late-arrivals", { params });
+export const getOvertimeReport = (params = {}) => api.get("/hr/attendance/reports/overtime", { params });
+export const getAbsenteeReport = (params = {}) => api.get("/hr/attendance/reports/absentee", { params });
+export const getAttendanceComplianceReport = (params = {}) => api.get("/hr/attendance/reports/compliance", { params });
+
+// ── Analytics ──────────────────────────────────────────────────────────────
+export const getAttendanceTrends = (params = {}) => api.get("/hr/attendance/analytics/trends", { params });
+export const getDepartmentAnalysis = (params = {}) => api.get("/hr/attendance/analytics/department", { params });
+export const getOvertimeAnalytics = (params = {}) => api.get("/hr/attendance/analytics/overtime", { params });
+export const getShiftEfficiency = (params = {}) => api.get("/hr/attendance/analytics/shift-efficiency", { params });
+
+// ── Exports ────────────────────────────────────────────────────────────────
+export async function exportAttendanceCsv(params = {}) {
+  const queryString = Object.entries(params)
+    .filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+  const response = await fetch(`/api/hr/attendance/export/csv${queryString ? `?${queryString}` : ""}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "attendance_export.csv";
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function exportAttendanceExcel(params = {}) {
+  const queryString = Object.entries(params)
+    .filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+  const response = await fetch(`/api/hr/attendance/export/excel${queryString ? `?${queryString}` : ""}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "attendance_export.xlsx";
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
 
 // ── LEAVE CRUD SPECIFIC ─────────────────────────────────────────────────────
 export const createLeaveRequest = (payload) => api.post("/hr/leaves", payload);

@@ -15,7 +15,7 @@ const KPI_CONFIG = [
   { key: "upcoming_events", label: "Upcoming Events", color: "text-pink-600" },
 ];
 
-export default function LearningDashboard() {
+export default function LearningDashboard({ isTab }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,18 +39,22 @@ export default function LearningDashboard() {
   }, []);
 
   if (loading && !data) {
+    const loadingEl = (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-500">Loading dashboard...</span>
+      </div>
+    );
+    if (isTab) return loadingEl;
     return (
       <HRPage title="Learning Dashboard" subtitle="Overview of learning and development KPIs.">
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-500">Loading dashboard...</span>
-        </div>
+        {loadingEl}
       </HRPage>
     );
   }
 
-  return (
-    <HRPage title="Learning Dashboard" subtitle="Overview of learning and development KPIs.">
+  const content = (
+    <>
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
           <span>{error}</span>
@@ -82,6 +86,14 @@ export default function LearningDashboard() {
           </>
         )}
       </div>
+    </>
+  );
+
+  if (isTab) return content;
+
+  return (
+    <HRPage title="Learning Dashboard" subtitle="Overview of learning and development KPIs.">
+      {content}
     </HRPage>
   );
 }

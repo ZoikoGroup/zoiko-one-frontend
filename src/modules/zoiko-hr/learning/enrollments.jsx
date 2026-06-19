@@ -1,45 +1,45 @@
 import { useState, useEffect, useMemo } from "react";
 import HRPage from "../../../components/HRPage";
 import {
-  getCertifications,
-  createCertification,
-  updateCertification,
-  deleteCertification,
+  getEnrollments,
+  createEnrollment,
+  updateEnrollment,
+  deleteEnrollment,
   getCourses,
   getEmployees,
 } from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 8;
 
-const emptyCert = {
-  employee_id: "",
-  course_id: "",
-  certification_name: "",
-  issuing_organization: "",
-  issue_date: "",
-  expiry_date: "",
-  credential_url: "",
+const emptyEnrollment = { employee_id: "", course_id: "", notes: "" };
+
+const ENROLL_STATUS_COLORS = {
+  enrolled: "bg-blue-100 text-blue-700",
+  in_progress: "bg-yellow-100 text-yellow-700",
+  completed: "bg-green-100 text-green-700",
+  cancelled: "bg-gray-100 text-gray-500",
 };
 
-export default function ZoikoHRCertifications({ isTab }) {
+export default function ZoikoHREnrollments({ isTab }) {
   const [items, setItems] = useState([]);
   const [courses, setCourses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ ...emptyCert });
+  const [form, setForm] = useState({ ...emptyEnrollment });
   const [submitting, setSubmitting] = useState(false);
 
   const fetch = () => {
     setLoading(true);
     setError(null);
-    Promise.all([getCertifications(), getCourses(), getEmployees()])
-      .then(([certs, crs, emps]) => {
-        setItems(Array.isArray(certs) ? certs : []);
+    Promise.all([getEnrollments(), getCourses(), getEmployees()])
+      .then(([enrolls, crs, emps]) => {
+        setItems(enrolls?.items || (Array.isArray(enrolls) ? enrolls : []));
         setCourses(crs?.items || (Array.isArray(crs) ? crs : []));
         setEmployees(emps?.items || (Array.isArray(emps) ? emps : []));
       })
@@ -73,13 +73,13 @@ export default function ZoikoHRCertifications({ isTab }) {
       const q = search.toLowerCase();
       r = r.filter(
         (x) =>
-          x.certification_name?.toLowerCase().includes(q) ||
           String(x.employee_id).includes(q) ||
-          x.issuing_organization?.toLowerCase().includes(q)
+          courseMap[x.course_id]?.course_name?.toLowerCase().includes(q)
       );
     }
+    if (statusFilter) r = r.filter((x) => x.status === statusFilter);
     return r;
-  }, [items, search]);
+  }, [items, search, statusFilter, courseMap]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -93,43 +93,24 @@ export default function ZoikoHRCertifications({ isTab }) {
   }, [totalPages, currentPage]);
 
   const resetForm = () => {
-    setForm({ ...emptyCert });
+    setForm({ ...emptyEnrollment });
     setEditId(null);
-  };
-
-  const openEdit = (item) => {
-    setEditId(item.id);
-    setForm({
-      employee_id: String(item.employee_id),
-      course_id: item.course_id ? String(item.course_id) : "",
-      certification_name: item.certification_name,
-      issuing_organization: item.issuing_organization || "",
-      issue_date: item.issue_date || "",
-      expiry_date: item.expiry_date || "",
-      credential_url: item.credential_url || "",
-    });
-    setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.employee_id || !form.certification_name || !form.issue_date) return;
+    if (!form.employee_id || !form.course_id) return;
     setSubmitting(true);
     try {
       const payload = {
         employee_id: Number(form.employee_id),
-        course_id: form.course_id ? Number(form.course_id) : null,
-        certification_name: form.certification_name,
-        issuing_organization: form.issuing_organization || null,
-        issue_date: form.issue_date,
-        expiry_date: form.expiry_date || null,
-        credential_url: form.credential_url || null,
+        course_id: Number(form.course_id),
+        notes: form.notes || null,
       };
-
       if (editId) {
-        await updateCertification(editId, payload);
+        await updateEnrollment(editId, payload);
       } else {
-        await createCertification(payload);
+        await createEnrollment(payload);
       }
       setShowModal(false);
       resetForm();
@@ -141,15 +122,26 @@ export default function ZoikoHRCertifications({ isTab }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this certification?")) return;
+  const handleStatusChange = async (id, status) => {
     try {
-      await deleteCertification(id);
+      await updateEnrollment(id, { status });
       fetch();
     } catch (e) {
       setError(e.message);
     }
   };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this enrollment?")) return;
+    try {
+      await deleteEnrollment(id);
+      fetch();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const statusOptions = ["enrolled", "in_progress", "completed", "cancelled"];
 
   const content = (
     <div className="space-y-4">
@@ -163,16 +155,33 @@ export default function ZoikoHRCertifications({ isTab }) {
       )}
 
       <div className="flex flex-wrap justify-between items-center gap-3">
-        <input
-          type="text"
-          placeholder="Search certifications..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="text"
+            placeholder="Search employee/course..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Status</option>
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s.replace("_", " ")}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={() => {
             resetForm();
@@ -180,14 +189,14 @@ export default function ZoikoHRCertifications({ isTab }) {
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg ml-auto"
         >
-          + Issue Certification
+          + Enroll
         </button>
       </div>
 
       {filtered.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm">
           <p className="text-gray-500">
-            {items.length === 0 ? "No certifications yet." : "No matches found."}
+            {items.length === 0 ? "No enrollments yet." : "No matches found."}
           </p>
         </div>
       ) : (
@@ -197,53 +206,93 @@ export default function ZoikoHRCertifications({ isTab }) {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600">Employee</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Certification Name</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Organization</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600">Course</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Issued</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Expires</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                  <th className="text-center px-4 py-3 font-semibold text-gray-600">Progress</th>
+                  <th className="text-center px-4 py-3 font-semibold text-gray-600">Score</th>
                   <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {paginated.map((c) => {
-                  const emp = employeeMap[c.employee_id];
-                  const empName = emp ? `${emp.first_name || ""} ${emp.last_name || ""}`.trim() : `#${c.employee_id}`;
+                {paginated.map((e) => {
+                  const emp = employeeMap[e.employee_id];
+                  const empName = emp
+                    ? `${emp.first_name || ""} ${emp.last_name || ""}`.trim()
+                    : `#${e.employee_id}`;
                   return (
-                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={e.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-800">{empName}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {courseMap[e.course_id]?.course_name || courseMap[e.course_id]?.title || `#${e.course_id}`}
+                      </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-gray-700">{c.certification_name}</div>
-                        {c.credential_url && (
-                          <a
-                            href={c.credential_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-500 hover:underline"
-                          >
-                            View Credential
-                          </a>
-                        )}
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                            ENROLL_STATUS_COLORS[e.status] || ""
+                          }`}
+                        >
+                          {e.status?.replace("_", " ")}
+                        </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{c.issuing_organization || "-"}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
-                        {courseMap[c.course_id]?.course_name || courseMap[c.course_id]?.title || (c.course_id ? `#${c.course_id}` : "-")}
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center gap-2 justify-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
+                              style={{ width: `${Math.min(e.progress_pct || 0, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium">{e.progress_pct || 0}%</span>
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{c.issue_date}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{c.expiry_date || "-"}</td>
+                      <td className="px-4 py-3 text-center text-sm font-medium">{e.score ?? "-"}</td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => openEdit(c)}
-                          className="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(c.id)}
-                          className="text-red-400 hover:text-red-600 text-xs"
-                        >
-                          Del
-                        </button>
+                        <div className="flex items-center justify-end gap-1 flex-wrap">
+                          {e.status === "enrolled" && (
+                            <button
+                              onClick={() => handleStatusChange(e.id, "in_progress")}
+                              className="text-green-600 hover:text-green-800 text-xs font-medium px-1"
+                            >
+                              Start
+                            </button>
+                          )}
+                          {e.status === "in_progress" && (
+                            <button
+                              onClick={() => handleStatusChange(e.id, "completed")}
+                              className="text-green-600 hover:text-green-800 text-xs font-medium px-1"
+                            >
+                              Complete
+                            </button>
+                          )}
+                          {(e.status === "enrolled" || e.status === "in_progress") && (
+                            <button
+                              onClick={() => handleStatusChange(e.id, "cancelled")}
+                              className="text-red-500 hover:text-red-700 text-xs px-1"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setEditId(e.id);
+                              setForm({
+                                employee_id: String(e.employee_id),
+                                course_id: String(e.course_id),
+                                notes: e.notes || "",
+                              });
+                              setShowModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 text-xs font-medium px-1"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(e.id)}
+                            className="text-red-400 hover:text-red-600 text-xs px-1"
+                          >
+                            Del
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -295,7 +344,7 @@ export default function ZoikoHRCertifications({ isTab }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold">{editId ? "Edit Certification" : "Issue Certification"}</h2>
+              <h2 className="text-lg font-bold">{editId ? "Edit Enrollment" : "New Enrollment"}</h2>
               <button
                 onClick={() => {
                   setShowModal(false);
@@ -309,83 +358,34 @@ export default function ZoikoHRCertifications({ isTab }) {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Employee *</label>
-                  <select
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
+                  <input
+                    type="number"
+                    min="1"
                     value={form.employee_id}
                     onChange={(e) => setForm({ ...form, employee_id: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
-                  >
-                    <option value="">Select Employee</option>
-                    {employees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.first_name || ""} {emp.last_name || ""} ({emp.employee_code || `#${emp.id}`})
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
-                  <select
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course ID *</label>
+                  <input
+                    type="number"
+                    min="1"
                     value={form.course_id}
                     onChange={(e) => setForm({ ...form, course_id: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Course</option>
-                    {courses.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.course_name || c.title || `#${c.id}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Certification Name *</label>
-                <input
-                  type="text"
-                  value={form.certification_name}
-                  onChange={(e) => setForm({ ...form, certification_name: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Organization</label>
-                <input
-                  type="text"
-                  value={form.issuing_organization}
-                  onChange={(e) => setForm({ ...form, issuing_organization: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date *</label>
-                  <input
-                    type="date"
-                    value={form.issue_date}
-                    onChange={(e) => setForm({ ...form, issue_date: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                  <input
-                    type="date"
-                    value={form.expiry_date}
-                    onChange={(e) => setForm({ ...form, expiry_date: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Credential URL</label>
-                <input
-                  type="url"
-                  value={form.credential_url}
-                  onChange={(e) => setForm({ ...form, credential_url: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  rows={2}
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -405,7 +405,7 @@ export default function ZoikoHRCertifications({ isTab }) {
                   disabled={submitting}
                   className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium"
                 >
-                  {submitting ? "Saving..." : editId ? "Update" : "Issue"}
+                  {submitting ? "Saving..." : editId ? "Update" : "Enroll"}
                 </button>
               </div>
             </form>
@@ -423,7 +423,7 @@ export default function ZoikoHRCertifications({ isTab }) {
     );
     if (isTab) return spinner;
     return (
-      <HRPage title="Certifications" subtitle="Manage employee certifications and track validity.">
+      <HRPage title="Enrollments" subtitle="Manage course enrollments and track progress.">
         {spinner}
       </HRPage>
     );
@@ -432,7 +432,7 @@ export default function ZoikoHRCertifications({ isTab }) {
   if (isTab) return content;
 
   return (
-    <HRPage title="Certifications" subtitle="Manage employee certifications and track validity.">
+    <HRPage title="Enrollments" subtitle="Manage course enrollments and track progress.">
       {content}
     </HRPage>
   );

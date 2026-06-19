@@ -67,6 +67,15 @@ export async function apiRequest(path, { method = "GET", body, headers = {}, aut
     try {
       const data = await res.json();
       detail = data?.detail || data?.message;
+      if (Array.isArray(detail)) {
+        // Handle FastAPI 422 validation errors nicely
+        detail = detail.map(err => {
+          const field = err.loc ? err.loc[err.loc.length - 1] : "Field";
+          return `${field}: ${err.msg}`;
+        }).join(", ");
+      } else if (typeof detail === "object" && detail !== null) {
+        detail = JSON.stringify(detail);
+      }
       console.error("API Error Detail:", detail);
     } catch {
       detail = res.statusText;

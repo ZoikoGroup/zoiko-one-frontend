@@ -96,11 +96,14 @@ import TravelReports from "./modules/zoiko-hr/travel/reports.jsx";
 import TravelSettings from "./modules/zoiko-hr/travel/settings.jsx";
 
 import {
-  AssetsDashboard, MyAssets, AssetCatalog, AssetRequests,
-  AssetMaintenance, AssetReports, AssetSettings,
-} from "./modules/zoiko-hr/assets/Index";
-
-
+  AssetsDashboard,
+  MyAssets,
+  AssetCatalog,
+  AssetRequests,
+  AssetMaintenance,
+  AssetReports,
+  AssetSettings,
+} from "./modules/zoiko-hr/assets/index.jsx";
 
 import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
 import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
@@ -122,9 +125,19 @@ import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
 import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
 import ZoikoHRAttendanceMyAttendance from "./modules/zoiko-hr/attendance/my-attendance.jsx";
-import ZoikoHRAttendanceCorrections from "./modules/zoiko-hr/attendance/corrections.jsx";
-import ZoikoHRAttendanceSchedule from "./modules/zoiko-hr/attendance/schedule.jsx";
+import ZoikoHRAttendanceRegularization from "./modules/zoiko-hr/attendance/regularization.jsx";
+import ZoikoHRAttendancePolicies from "./modules/zoiko-hr/attendance/policies.jsx";
+import ZoikoHRAttendanceShifts from "./modules/zoiko-hr/attendance/shifts.jsx";
+import ZoikoHRAttendanceRosters from "./modules/zoiko-hr/attendance/rosters.jsx";
+import ZoikoHRAttendanceBiometric from "./modules/zoiko-hr/attendance/biometric.jsx";
+import ZoikoHRAttendanceGeofencing from "./modules/zoiko-hr/attendance/geofencing.jsx";
+import ZoikoHRAttendanceOvertime from "./modules/zoiko-hr/attendance/overtime.jsx";
 import ZoikoHRAttendanceReports from "./modules/zoiko-hr/attendance/reports.jsx";
+import ZoikoHRAttendanceAnalytics from "./modules/zoiko-hr/attendance/analytics.jsx";
+import ZoikoHRAttendanceExceptions from "./modules/zoiko-hr/attendance/exceptions.jsx";
+import ZoikoHRAttendanceHolidays from "./modules/zoiko-hr/attendance/holidays.jsx";
+import ZoikoHRAttendanceWeekends from "./modules/zoiko-hr/attendance/weekends.jsx";
+import ZoikoHRAttendanceAuditLogs from "./modules/zoiko-hr/attendance/audit-logs.jsx";
 import ZoikoHRAttendanceSettings from "./modules/zoiko-hr/attendance/settings.jsx";
 
 import WorkforceDashboard from "./modules/zoiko-hr/workforce-planning/dashboard.jsx";
@@ -135,16 +148,7 @@ import ScenarioPlanning from "./modules/zoiko-hr/workforce-planning/scenario-pla
 import WorkforceReports from "./modules/zoiko-hr/workforce-planning/reports.jsx";
 import WorkforceSettings from "./modules/zoiko-hr/workforce-planning/settings.jsx";
 
-import ZoikoHRLearningDashboard from "./modules/zoiko-hr/learning/dashboard.jsx";
-import ZoikoHRLearningCourses from "./modules/zoiko-hr/learning/courses.jsx";
-import ZoikoHRLearningTrainingPrograms from "./modules/zoiko-hr/learning/training-programs.jsx";
-import ZoikoHRLearningPaths from "./modules/zoiko-hr/learning/learning-paths.jsx";
-import ZoikoHRLearningCertifications from "./modules/zoiko-hr/learning/certifications.jsx";
-import ZoikoHRLearningSkillMatrix from "./modules/zoiko-hr/learning/skill-matrix.jsx";
-import ZoikoHRLearningAssessments from "./modules/zoiko-hr/learning/assessments.jsx";
-import ZoikoHRLearningCalendar from "./modules/zoiko-hr/learning/calendar.jsx";
-import ZoikoHRLearningProgress from "./modules/zoiko-hr/learning/progress.jsx";
-import ZoikoHRLearningReports from "./modules/zoiko-hr/learning/reports.jsx";
+
 
 
 
@@ -173,14 +177,26 @@ import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
 import {
-  ZoikoSpendModule, PurchaseRequestsPage, PosPage,
-  VendorsPage, SupplierInvoicesPage, ApWorkflowPage,
-  SpendPolicyPage, SpendApprovalsPage, PaymentPreparationPage,
+  ZoikoSpendModule,
+  PurchaseRequestsPage,
+  PosPage,
+  VendorsPage,
+  SupplierInvoicesPage,
+  ApWorkflowPage,
+  SpendPolicyPage,
+  SpendApprovalsPage,
+  PaymentPreparationPage,
 } from "./modules/spend";
 import {
-  ZoikoBillingModule, InvoicingPage, InvoiceSchedulesPage,
-  UsageBillingPage, TaxPage, CollectionsReceivablesPage,
-  CreditNotesPage, DunningPage, ReportsPage,
+  ZoikoBillingModule,
+  InvoicingPage,
+  InvoiceSchedulesPage,
+  UsageBillingPage,
+  TaxPage,
+  CollectionsReceivablesPage,
+  CreditNotesPage,
+  DunningPage,
+  ReportsPage,
 } from "./modules/billing";
 import ComplyDashboard from "./modules/comply/dashboard";
 import ComplyPolicies from "./modules/comply/policies";
@@ -274,9 +290,19 @@ const routeOverrides = {
   "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
   "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
   "/zoiko-hr/attendance/my-attendance": <ZoikoHRAttendanceMyAttendance />,
-  "/zoiko-hr/attendance/corrections": <ZoikoHRAttendanceCorrections />,
-  "/zoiko-hr/attendance/schedule": <ZoikoHRAttendanceSchedule />,
+  "/zoiko-hr/attendance/regularization": <ZoikoHRAttendanceRegularization />,
+  "/zoiko-hr/attendance/policies": <ZoikoHRAttendancePolicies />,
+  "/zoiko-hr/attendance/shifts": <ZoikoHRAttendanceShifts />,
+  "/zoiko-hr/attendance/rosters": <ZoikoHRAttendanceRosters />,
+  "/zoiko-hr/attendance/biometric": <ZoikoHRAttendanceBiometric />,
+  "/zoiko-hr/attendance/geofencing": <ZoikoHRAttendanceGeofencing />,
+  "/zoiko-hr/attendance/overtime": <ZoikoHRAttendanceOvertime />,
   "/zoiko-hr/attendance/reports": <ZoikoHRAttendanceReports />,
+  "/zoiko-hr/attendance/analytics": <ZoikoHRAttendanceAnalytics />,
+  "/zoiko-hr/attendance/exceptions": <ZoikoHRAttendanceExceptions />,
+  "/zoiko-hr/attendance/holidays": <ZoikoHRAttendanceHolidays />,
+  "/zoiko-hr/attendance/weekends": <ZoikoHRAttendanceWeekends />,
+  "/zoiko-hr/attendance/audit-logs": <ZoikoHRAttendanceAuditLogs />,
   "/zoiko-hr/attendance/settings": <ZoikoHRAttendanceSettings />,
   "/zoiko-hr/performance": <PerformanceDashboard />,
   "/zoiko-hr/recruitment": <RecruitmentDashboard />,
@@ -285,8 +311,12 @@ const routeOverrides = {
   "/zoiko-hr/onboarding/pre-onboarding": <ZoikoHROnboardingPreOnboarding />,
   "/zoiko-hr/onboarding/documents": <ZoikoHROnboardingDocuments />,
   "/zoiko-hr/onboarding/checklists": <ZoikoHROnboardingChecklists />,
-  "/zoiko-hr/onboarding/department-assignment": <ZoikoHROnboardingDeptAssignment />,
-  "/zoiko-hr/onboarding/manager-assignment": <ZoikoHROnboardingManagerAssignment />,
+  "/zoiko-hr/onboarding/department-assignment": (
+    <ZoikoHROnboardingDeptAssignment />
+  ),
+  "/zoiko-hr/onboarding/manager-assignment": (
+    <ZoikoHROnboardingManagerAssignment />
+  ),
   "/zoiko-hr/onboarding/assets-access": <ZoikoHROnboardingAssetsAccess />,
   "/zoiko-hr/onboarding/orientation": <ZoikoHROnboardingOrientation />,
   "/zoiko-hr/onboarding/training": <ZoikoHROnboardingTraining />,
@@ -301,16 +331,17 @@ const routeOverrides = {
   "/zoiko-hr/assets/maintenance": <AssetMaintenance />,
   "/zoiko-hr/assets/reports": <AssetReports />,
   "/zoiko-hr/assets/settings": <AssetSettings />,
-  "/zoiko-hr/learning": <ZoikoHRLearningDashboard />,
-  "/zoiko-hr/learning/courses": <ZoikoHRLearningCourses />,
-  "/zoiko-hr/learning/training-programs": <ZoikoHRLearningTrainingPrograms />,
-  "/zoiko-hr/learning/paths": <ZoikoHRLearningPaths />,
-  "/zoiko-hr/learning/certifications": <ZoikoHRLearningCertifications />,
-  "/zoiko-hr/learning/skills": <ZoikoHRLearningSkillMatrix />,
-  "/zoiko-hr/learning/assessments": <ZoikoHRLearningAssessments />,
-  "/zoiko-hr/learning/calendar": <ZoikoHRLearningCalendar />,
-  "/zoiko-hr/learning/progress": <ZoikoHRLearningProgress />,
-  "/zoiko-hr/learning/reports": <ZoikoHRLearningReports />,
+  "/zoiko-hr/learning": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/courses": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/training-programs": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/paths": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/certifications": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/skills": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/assessments": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/calendar": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/progress": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/reports": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/enrollments": <ZoikoHRLearning />,
   "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
   "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
   "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
@@ -439,15 +470,65 @@ const routeOverrides = {
   "/billing/reports": <ReportsPage />,
   // Zoiko Inventory routes
   "/inventory/items": <ItemsPage />,
-  "/inventory/locations": <PagePlaceholder title="Locations" path="/inventory/locations" badge="Inventory" />,
-  "/inventory/stock": <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />,
-  "/inventory/receiving": <PagePlaceholder title="Receiving" path="/inventory/receiving" badge="Inventory" />,
-  "/inventory/goods-issue": <PagePlaceholder title="Goods Issue" path="/inventory/goods-issue" badge="Inventory" />,
-  "/inventory/transfers": <PagePlaceholder title="Transfers" path="/inventory/transfers" badge="Inventory" />,
-  "/inventory/stock-counts": <PagePlaceholder title="Stock Counts" path="/inventory/stock-counts" badge="Inventory" />,
-  "/inventory/reorder": <PagePlaceholder title="Reorder" path="/inventory/reorder" badge="Inventory" />,
-  "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
-  "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
+  "/inventory/locations": (
+    <PagePlaceholder
+      title="Locations"
+      path="/inventory/locations"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/stock": (
+    <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />
+  ),
+  "/inventory/receiving": (
+    <PagePlaceholder
+      title="Receiving"
+      path="/inventory/receiving"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/goods-issue": (
+    <PagePlaceholder
+      title="Goods Issue"
+      path="/inventory/goods-issue"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/transfers": (
+    <PagePlaceholder
+      title="Transfers"
+      path="/inventory/transfers"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/stock-counts": (
+    <PagePlaceholder
+      title="Stock Counts"
+      path="/inventory/stock-counts"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/reorder": (
+    <PagePlaceholder
+      title="Reorder"
+      path="/inventory/reorder"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/assets": (
+    <PagePlaceholder
+      title="Assets"
+      path="/inventory/assets"
+      badge="Inventory"
+    />
+  ),
+  "/inventory/reports": (
+    <PagePlaceholder
+      title="Reports"
+      path="/inventory/reports"
+      badge="Inventory"
+    />
+  ),
   "/comply": <ComplyDashboard />,
   "/comply/policies": <ComplyPolicies />,
   "/comply/audits": <ComplyAudits />,
@@ -508,12 +589,24 @@ export default function App() {
                     path={route.href}
                     element={
                       routeOverrides[route.href] ?? (
-                        <PagePlaceholder title={route.label} path={route.href} badge={route.badge} />
+                        <PagePlaceholder
+                          title={route.label}
+                          path={route.href}
+                          badge={route.badge}
+                        />
                       )
                     }
                   />
                 ))}
-                <Route path="*" element={<PagePlaceholder title="Not Found" description="This page is not available yet." />} />
+                <Route
+                  path="*"
+                  element={
+                    <PagePlaceholder
+                      title="Not Found"
+                      description="This page is not available yet."
+                    />
+                  }
+                />
               </Routes>
             </SuperAdminShell>
           </ProtectedRoute>

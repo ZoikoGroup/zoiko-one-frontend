@@ -58,7 +58,7 @@ const questionForm = {
   points: "",
 };
 
-export default function ZoikoHRAssessments() {
+export default function ZoikoHRAssessments({ isTab }) {
   const [activeTab, setActiveTab] = useState("assessments");
   const [assessments, setAssessments] = useState([]);
   const [quizAttempts, setQuizAttempts] = useState([]);
@@ -321,7 +321,7 @@ export default function ZoikoHRAssessments() {
   const handleDeleteQuestion = async (id) => {
     if (!window.confirm("Delete this question?")) return;
     try {
-      await deleteQuestion(id);
+      await deleteQuestion(detailItem.id, id);
       const qs = await getQuestions(detailItem.id);
       setQuestions(Array.isArray(qs) ? qs : []);
     } catch (err) {
@@ -334,8 +334,8 @@ export default function ZoikoHRAssessments() {
     { key: "attempts", label: "Quiz Attempts" },
   ];
 
-  return (
-    <HRPage title="Assessments & Quizzes" subtitle="Create and manage assessments, quizzes, and track attempts.">
+  const content = (
+    <>
       <div className="mb-6 border-b border-gray-200">
         <div className="flex gap-1 overflow-x-auto">
           {tabs.map((t) => (
@@ -964,6 +964,16 @@ export default function ZoikoHRAssessments() {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (isTab) {
+    return content;
+  }
+
+  return (
+    <HRPage title="Assessments & Quizzes" subtitle="Create and manage assessments, quizzes, and track attempts.">
+      {content}
     </HRPage>
   );
 }

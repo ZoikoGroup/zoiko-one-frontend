@@ -13,7 +13,7 @@ const PROGRESS_STATUS_COLORS = {
 
 const ITEMS_PER_PAGE = 10;
 
-export default function ZoikoHRProgress() {
+export default function ZoikoHRProgress({ isTab }) {
   const [progress, setProgress] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -127,8 +127,8 @@ export default function ZoikoHRProgress() {
 
   const statusOptions = ["enrolled", "in_progress", "completed", "cancelled"];
 
-  return (
-    <HRPage title="Progress Tracking" subtitle="Track employee learning progress and enrollment status.">
+  const content = (
+    <>
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
           <span>{error}</span>
@@ -397,6 +397,16 @@ export default function ZoikoHRProgress() {
           </div>
         )}
       </div>
+    </>
+  );
+
+  if (isTab) {
+    return content;
+  }
+
+  return (
+    <HRPage title="Progress Tracking" subtitle="Track employee learning progress and enrollment status.">
+      {content}
     </HRPage>
   );
 }

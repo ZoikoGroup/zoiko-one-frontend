@@ -122,13 +122,7 @@ const products = {
               { label: "Dashboard",            href: "/zoiko-hr/documents",                   icon: LayoutDashboard },
               { label: "Employee Documents",   href: "/zoiko-hr/documents/employee-documents", icon: FileText },
               { label: "Company Documents",    href: "/zoiko-hr/documents/company-documents",  icon: Building2 },
-              { label: "Templates",            href: "/zoiko-hr/documents/templates",          icon: FileCheck2 },
-              { label: "Policies",             href: "/zoiko-hr/documents/policies",           icon: ShieldCheck },
-              { label: "Compliance Documents", href: "/zoiko-hr/documents/compliance",         icon: Shield },
               { label: "Approval Workflow",    href: "/zoiko-hr/documents/approvals",          icon: ClipboardCheck },
-              { label: "Expiring Documents",   href: "/zoiko-hr/documents/expiring-documents", icon: Clock },
-              { label: "Archive",              href: "/zoiko-hr/documents/archive",            icon: History },
-              { label: "Reports",              href: "/zoiko-hr/documents/reports",            icon: FileText },
               { label: "Settings",             href: "/zoiko-hr/documents/settings",           icon: SlidersHorizontal },
             ]},
             { label: "Departments",        icon: Building2, children: [

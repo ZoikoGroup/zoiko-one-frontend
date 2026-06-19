@@ -105,13 +105,7 @@ import {
 import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
 import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
 import CompanyDocuments from "./modules/zoiko-hr/documents/company-documents.jsx";
-import Templates from "./modules/zoiko-hr/documents/templates.jsx";
-import Policies from "./modules/zoiko-hr/documents/policies.jsx";
-import ComplianceDocuments from "./modules/zoiko-hr/documents/compliance-documents.jsx";
 import ApprovalWorkflow from "./modules/zoiko-hr/documents/approvals.jsx";
-import ExpiringDocuments from "./modules/zoiko-hr/documents/expiring-documents.jsx";
-import Archive from "./modules/zoiko-hr/documents/archive.jsx";
-import DocumentsReports from "./modules/zoiko-hr/documents/reports.jsx";
 import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 
 import ComplianceDashboard from "./modules/zoiko-hr/compliance/dashboard.jsx";
@@ -151,6 +145,10 @@ import ZoikoHRLearningAssessments from "./modules/zoiko-hr/learning/assessments.
 import ZoikoHRLearningCalendar from "./modules/zoiko-hr/learning/calendar.jsx";
 import ZoikoHRLearningProgress from "./modules/zoiko-hr/learning/progress.jsx";
 import ZoikoHRLearningReports from "./modules/zoiko-hr/learning/reports.jsx";
+
+
+
+
 import ZoikoHRCompDashboard from "./modules/zoiko-hr/compensation/dashboard.jsx";
 import ZoikoHRCompSalaryStructures from "./modules/zoiko-hr/compensation/salary-structures.jsx";
 import ZoikoHRCompPayGrades from "./modules/zoiko-hr/compensation/pay-grades.jsx";
@@ -398,13 +396,7 @@ const routeOverrides = {
   // Documents submodule routes
   "/zoiko-hr/documents/employee-documents": <EmployeeDocuments />,
   "/zoiko-hr/documents/company-documents": <CompanyDocuments />,
-  "/zoiko-hr/documents/templates": <Templates />,
-  "/zoiko-hr/documents/policies": <Policies />,
-  "/zoiko-hr/documents/compliance": <ComplianceDocuments />,
   "/zoiko-hr/documents/approvals": <ApprovalWorkflow />,
-  "/zoiko-hr/documents/expiring-documents": <ExpiringDocuments />,
-  "/zoiko-hr/documents/archive": <Archive />,
-  "/zoiko-hr/documents/reports": <DocumentsReports />,
   "/zoiko-hr/documents/settings": <DocumentsSettings />,
 
   // Workforce Planning submodule routes

@@ -1,10 +1,89 @@
 import { useState, useEffect } from "react";
 import { getDashboard } from "../../service/complyService";
-import StatsCard from "../../components/comply/StatsCard";
-import DataTable from "../../components/comply/DataTable";
-import StatusBadge from "../../components/comply/StatusBadge";
 import { Shield, AlertTriangle, FileSearch, ClipboardCheck, Target, CalendarDays, BarChart3, Activity } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line } from "recharts";
+
+// ==========================================
+// INTERNAL MOCKED COMPONENTS (NO DEPENDENCIES)
+// ==========================================
+
+const StatsCard = ({ title, value, icon: Icon, trend, change }) => (
+  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+    <div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <h3 className="text-2xl font-bold text-gray-900 mt-1">{value ?? "0"}</h3>
+      {change !== undefined && change !== 0 && (
+        <span className={`text-xs font-medium mt-1 inline-block ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+          {trend === 'up' ? '↑' : '↓'} {Math.abs(change)}%
+        </span>
+      )}
+    </div>
+    {Icon && (
+      <div className="p-2 bg-gray-50 rounded-lg border border-gray-100 text-gray-400">
+        <Icon size={20} />
+      </div>
+    )}
+  </div>
+);
+
+const DataTable = ({ columns = [], data = [] }) => (
+  <div className="overflow-x-auto w-full border border-gray-100 rounded-lg">
+    <table className="w-full text-left border-collapse text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+          {columns.map((col, idx) => (
+            <th key={idx} className="p-3">{col.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, rIdx) => (
+            <tr key={rIdx} className="border-b border-gray-100 hover:bg-gray-50 text-gray-700">
+              {columns.map((col, cIdx) => (
+                <td key={cIdx} className="p-3">
+                  {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={columns.length} className="p-4 text-center text-gray-400">
+              No recent entries found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
+
+const StatusBadge = ({ status }) => {
+  const normalized = String(status).toLowerCase();
+  const badgeStyles = {
+    high: "bg-red-50 text-red-700 border-red-100",
+    medium: "bg-orange-50 text-orange-700 border-orange-100",
+    low: "bg-gray-50 text-gray-600 border-gray-200",
+    open: "bg-amber-50 text-amber-700 border-amber-100",
+    active: "bg-blue-50 text-blue-700 border-blue-100",
+    closed: "bg-green-50 text-green-700 border-green-100",
+    resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    critical: "bg-red-100 text-red-800 border-red-200",
+  };
+
+  const style = badgeStyles[normalized] || "bg-gray-50 text-gray-600 border-gray-200";
+
+  return (
+    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border capitalize ${style}`}>
+      {normalized.replace("_", " ")}
+    </span>
+  );
+};
+
+// ==========================================
+// MAIN EXPORT
+// ==========================================
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -49,7 +128,7 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={riskDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                {riskDistribution.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                {riskDistribution?.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
               <Tooltip />
             </PieChart>
@@ -65,7 +144,7 @@ export default function Dashboard() {
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                {auditStatus.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                {auditStatus?.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>

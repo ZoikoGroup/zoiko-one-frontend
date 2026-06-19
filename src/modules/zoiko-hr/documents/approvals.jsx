@@ -1,123 +1,254 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Check, X, Clock, RefreshCw, AlertCircle } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { getDocuments, updateDocumentStatus } from "../../../service/hrService";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/documents" },
-  { label: "Employee Documents", href: "/zoiko-hr/documents/employee-documents" },
-  { label: "Company Documents", href: "/zoiko-hr/documents/company-documents" },
-  { label: "Templates", href: "/zoiko-hr/documents/templates" },
-  { label: "Policies", href: "/zoiko-hr/documents/policies" },
-  { label: "Compliance Documents", href: "/zoiko-hr/documents/compliance" },
-  { label: "Approval Workflow", href: "/zoiko-hr/documents/approvals" },
-  { label: "Expiring Documents", href: "/zoiko-hr/documents/expiring-documents" },
-  { label: "Archive", href: "/zoiko-hr/documents/archive" },
-  { label: "Reports", href: "/zoiko-hr/documents/reports" },
-  { label: "Settings", href: "/zoiko-hr/documents/settings" },
-];
-
-const MOCK_APPROVALS = [
-  { id: 1, document: "Travel Reimbursement", requester: "Eve M.", type: "Expense", status: "pending", requestedDate: "2025-03-05", approver: "Jane D." },
-  { id: 2, document: "Resignation Letter", requester: "Grace C.", type: "HR", status: "pending", requestedDate: "2025-03-12", approver: "Sarah M." },
-  { id: 3, document: "Remote Work Policy", requester: "Tom K.", type: "Policy", status: "pending", requestedDate: "2025-03-01", approver: "Mike R." },
-  { id: 4, document: "Training Budget", requester: "Alice J.", type: "Finance", status: "approved", requestedDate: "2025-02-28", approver: "Carol D." },
-  { id: 5, document: "Equipment Purchase", requester: "Bob S.", type: "Procurement", status: "rejected", requestedDate: "2025-02-20", approver: "Lisa P." },
-  { id: 6, document: "Time Off Request", requester: "Frank L.", type: "HR", status: "approved", requestedDate: "2025-03-10", approver: "Mike R." },
-];
-
-function SubNav() {
+// ── Shared inline helpers ─────────────────────────────────────────────────────
+const STATUS_META = {
+  pending:  { label: "Pending",  bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200",  dot: "bg-amber-500"  },
+  approved: { label: "Approved", bg: "bg-emerald-50",  text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
+  rejected: { label: "Rejected", bg: "bg-rose-50",    text: "text-rose-700",   border: "border-rose-200",   dot: "bg-rose-500"   },
+  expired:  { label: "Expired",  bg: "bg-slate-100",  text: "text-slate-500",  border: "border-slate-200",  dot: "bg-slate-400"  },
+};
+const StatusBadge = ({ status }) => {
+  const m = STATUS_META[status] || STATUS_META.pending;
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/documents"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${m.bg} ${m.text} ${m.border}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      {m.label}
+    </span>
   );
-}
+};
+const CAT_COLORS = {
+  company:  "bg-indigo-50 text-indigo-700 border-indigo-200",
+  employee: "bg-violet-50 text-violet-700 border-violet-200",
+  contract: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  policy:   "bg-teal-50 text-teal-700 border-teal-200",
+};
+const CategoryPill = ({ category }) => {
+  const cls = CAT_COLORS[category?.toLowerCase()] || "bg-slate-100 text-slate-600 border-slate-200";
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize ${cls}`}>
+      {category || "other"}
+    </span>
+  );
+};
+const fmtDate = (iso) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+};
 
-function StatusBadge({ status }) {
-  const m = { pending: "bg-yellow-100 text-yellow-800", approved: "bg-green-100 text-green-800", rejected: "bg-red-100 text-red-800" };
-  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${m[status] || "bg-gray-100 text-gray-800"}`}>{status?.replace(/_/g, " ")}</span>;
-}
+export default function Approvals() {
+  const [docs, setDocs]             = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [processingId, setProcessingId] = useState(null);
+  const [toast, setToast]           = useState(null);
+  const [confirm, setConfirm]       = useState(null);
 
-function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  try { return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }); }
-  catch { return dateStr; }
-}
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
 
-export default function ApprovalWorkflow() {
-  const approvals = MOCK_APPROVALS;
-  const pending = approvals.filter((a) => a.status === "pending");
-  const completed = approvals.filter((a) => a.status !== "pending");
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getDocuments();
+      setDocs(Array.isArray(res?.data) ? res.data : []);
+    } catch {
+      showToast("error", "Failed to load documents.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleAction = async (id, status) => {
+    setConfirm(null);
+    setProcessingId(id);
+    try {
+      await updateDocumentStatus(id, status);
+      showToast("success", `Document ${status === "approved" ? "approved" : "rejected"} successfully.`);
+      load();
+    } catch {
+      showToast("error", `Failed to ${status} document. Please try again.`);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const pending  = docs.filter(d => d.status === "pending");
+  const resolved = docs.filter(d => d.status !== "pending");
 
   return (
-    <HRPage title="Approval Workflow" subtitle="Manage document approvals and workflows">
-      <SubNav />
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Approval Workflow</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage document approvals and workflows</p>
+    <HRPage title="Approvals">
+      <div className="space-y-8 pb-10">
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Document Approvals</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Review and approve or reject pending document submissions.</p>
+          </div>
+          <button
+            onClick={load}
+            className="flex items-center gap-2 text-sm font-medium text-slate-600 border border-gray-200 bg-white px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors self-start sm:self-center"
+          >
+            <RefreshCw className="w-4 h-4" /> Refresh
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-4">
-            <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-yellow-600" /><p className="text-xs text-yellow-600 font-medium">Pending</p></div>
-            <p className="text-2xl font-bold text-yellow-700 mt-1">{pending.length}</p>
-          </div>
-          <div className="bg-green-50 rounded-xl border border-green-200 p-4">
-            <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /><p className="text-xs text-green-600 font-medium">Approved</p></div>
-            <p className="text-2xl font-bold text-green-700 mt-1">{completed.filter((a) => a.status === "approved").length}</p>
-          </div>
-          <div className="bg-red-50 rounded-xl border border-red-200 p-4">
-            <div className="flex items-center gap-2"><XCircle className="w-4 h-4 text-red-600" /><p className="text-xs text-red-600 font-medium">Rejected</p></div>
-            <p className="text-2xl font-bold text-red-700 mt-1">{completed.filter((a) => a.status === "rejected").length}</p>
-          </div>
+        {/* Summary bar */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: "Awaiting Review", value: pending.length, bg: "bg-amber-50", text: "text-amber-700", Icon: Clock },
+            { label: "Approved", value: docs.filter(d => d.status === "approved").length, bg: "bg-emerald-50", text: "text-emerald-700", Icon: Check },
+            { label: "Rejected", value: docs.filter(d => d.status === "rejected").length, bg: "bg-rose-50", text: "text-rose-700", Icon: X },
+          ].map(s => (
+            <div key={s.label} className={`rounded-xl p-4 ${s.bg} flex items-center gap-3`}>
+              <s.Icon className={`w-5 h-5 ${s.text} shrink-0`} />
+              <div>
+                <p className={`text-2xl font-bold ${s.text}`}>{s.value}</p>
+                <p className={`text-xs font-medium ${s.text} opacity-80`}>{s.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
-              <tr>
-                {["Document", "Requester", "Type", "Status", "Requested", "Approver", ""].map((h) => (
-                  <th key={h} className="px-3 py-3 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {approvals.map((a, i) => (
-                <tr key={a.id || i} className="border-b border-gray-50 hover:bg-gray-50 text-sm">
-                  <td className="px-3 py-3 font-medium text-gray-900">{a.document}</td>
-                  <td className="px-3 py-3">{a.requester}</td>
-                  <td className="px-3 py-3">{a.type}</td>
-                  <td className="px-3 py-3"><StatusBadge status={a.status} /></td>
-                  <td className="px-3 py-3">{formatDate(a.requestedDate)}</td>
-                  <td className="px-3 py-3">{a.approver}</td>
-                  <td className="px-3 py-3">
-                    {a.status === "pending" && (
-                      <div className="flex gap-2">
-                        <button className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 font-medium"><CheckCircle className="w-3 h-3" /> Approve</button>
-                        <button className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-medium"><XCircle className="w-3 h-3" /> Reject</button>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
+            <svg className="animate-spin h-8 w-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+            <span className="text-sm font-medium">Loading pending documents…</span>
+          </div>
+        ) : (
+          <>
+            {/* Pending queue */}
+            <section>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                Pending ({pending.length})
+              </h3>
+              {pending.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <span className="text-5xl mb-4">✅</span>
+                  <p className="text-base font-semibold text-slate-700 mb-1">All caught up!</p>
+                  <p className="text-sm text-slate-400">No documents are waiting for review right now.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pending.map(d => (
+                    <div key={d.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-4 min-w-0">
+                        <div className="p-3 bg-amber-50 rounded-lg shrink-0">
+                          <AlertCircle className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 truncate">{d.name}</p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <CategoryPill category={d.category} />
+                            <StatusBadge status={d.status} />
+                            <span className="text-xs text-slate-400">Uploaded {fmtDate(d.created_at)}</span>
+                          </div>
+                          {d.description && (
+                            <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">{d.description}</p>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {approvals.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-gray-400">No approvals found</td></tr>
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <button
+                          onClick={() => setConfirm({ id: d.id, name: d.name, action: "rejected" })}
+                          disabled={processingId === d.id}
+                          className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-rose-600 border border-rose-200 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" /> Reject
+                        </button>
+                        <button
+                          onClick={() => setConfirm({ id: d.id, name: d.name, action: "approved" })}
+                          disabled={processingId === d.id}
+                          className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                        >
+                          {processingId === d.id
+                            ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving…</>
+                            : <><Check className="w-4 h-4" /> Approve</>
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
+            </section>
+
+            {/* Resolved history */}
+            {resolved.length > 0 && (
+              <section>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                  Recently Resolved ({resolved.length})
+                </h3>
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs uppercase text-gray-400">
+                      <tr>
+                        <th className="text-left px-6 py-3 font-semibold">Document</th>
+                        <th className="text-left px-6 py-3 font-semibold">Category</th>
+                        <th className="text-left px-6 py-3 font-semibold">Decision</th>
+                        <th className="text-left px-6 py-3 font-semibold">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {resolved.map(d => (
+                        <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
+                          <td className="px-6 py-3 font-medium text-slate-800">{d.name}</td>
+                          <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
+                          <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
+                          <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.updated_at || d.created_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
+
+      {/* Confirm dialog */}
+      {confirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+            <h4 className="text-base font-bold text-slate-900 mb-2">
+              {confirm.action === "approved" ? "Approve Document?" : "Reject Document?"}
+            </h4>
+            <p className="text-sm text-slate-500 mb-6">
+              You are about to <strong>{confirm.action === "approved" ? "approve" : "reject"}</strong> &ldquo;{confirm.name}&rdquo;. This updates its status immediately.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirm(null)} className="px-4 py-2 text-sm font-medium text-slate-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+                Cancel
+              </button>
+              <button
+                onClick={() => handleAction(confirm.id, confirm.action)}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg text-white ${confirm.action === "approved" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}`}
+              >
+                {confirm.action === "approved" ? "Yes, Approve" : "Yes, Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 ${toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"} text-white`}>
+          {toast.type === "success" ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+          {toast.message}
+        </div>
+      )}
     </HRPage>
   );
 }

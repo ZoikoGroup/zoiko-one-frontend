@@ -28,459 +28,187 @@ const DEPT_OPTIONS = [
   { value: "Product", label: "Product" },
   { value: "Marketing", label: "Marketing" },
   { value: "Sales", label: "Sales" },
-  { value: "HR", label: "HR" },
+  { value: "HR", label: "Human Resources" },
   { value: "Finance", label: "Finance" },
 ];
-const ITEMS_PER_PAGE = 10;
 
-const emptyForm = { title: "", department_name: "", level: "L3", description: "", status: "active" };
-
-function SubNav() {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/designations"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
-  );
-}
+// Initial form schema adjusted to use department_name
+const initialForm = {
+  title: "",
+  department_name: "", 
+  level: "L1",
+  description: "",
+  status: "active",
+};
 
 export default function DesignationList() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({ status: "", level: "", department: "" });
-  const [page, setPage] = useState(1);
-  
-  const [showCreate, setShowCreate] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [formData, setFormData] = useState(initialForm);
   const [detailItem, setDetailItem] = useState(null);
-  const [editItem, setEditItem] = useState(null);
-  
-  const [form, setForm] = useState({ ...emptyForm });
-  const [editForm, setEditForm] = useState({ ...emptyForm });
-  const [formErrors, setFormErrors] = useState({});
+  const [editingId, setEditingId] = useState(null);
 
-  // ── GET OPERATION (FETCH ALL) ───────────────────────────────────
-  const fetchDesignations = async () => {
+  const fetchRecords = () => {
     setLoading(true);
-    setError(null);
-    try {
-      const response = await getDesignations();
-      setRecords(Array.isArray(response) ? response : []);
-    } catch (err) {
-      setError(err.message || "Failed to load designations");
-    } finally {
-      setLoading(false);
-    }
+    getDesignations()
+      .then((res) => setRecords(res.data || []))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchDesignations();
+    fetchRecords();
   }, []);
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-    setPage(1);
+  const handleOpenCreate = () => {
+    setEditingId(null);
+    setFormData(initialForm);
+    setShowModal(true);
   };
 
-  // Local filtering & Searching mechanics
-  const filteredRecords = useMemo(() => {
-    return records.filter((item) => {
-      const matchesSearch = !search ? true : item.title?.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = !filters.status ? true : item.status === filters.status;
-      const matchesLevel = !filters.level ? true : item.level === filters.level;
-      const matchesDept = !filters.department ? true : item.department_name === filters.department;
-      return matchesSearch && matchesStatus && matchesLevel && matchesDept;
-    });
-  }, [records, search, filters]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filteredRecords.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
-
-  const total = filteredRecords.length;
-  const active = filteredRecords.filter((d) => d.status === "active").length;
-  const inactive = filteredRecords.filter((d) => d.status === "inactive").length;
-  const archived = filteredRecords.filter((d) => d.status === "archived").length;
-
-  const validate = (d) => {
-    const e = {};
-    if (!d.title?.trim()) e.title = "Title is required";
-    if (!d.department_name) e.department_name = "Department is required";
-    if (!d.level) e.level = "Level is required";
-    return e;
-  };
-
-  // ── POST OPERATION (CREATE) ─────────────────────────────────────
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    const errors = validate(form);
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-
-    try {
-      setLoading(true);
-      await createDesignation(form);
-      setShowCreate(false);
-      setForm({ ...emptyForm });
-      setFormErrors({});
-      await fetchDesignations(); // Refresh list cleanly
-    } catch (err) {
-      alert("Error creating designation: " + err.message);
-      setLoading(false);
-    }
-  };
-
-  const openEdit = (item) => {
-    setEditItem(item);
-    setEditForm({
-      title: item.title,
-      department_name: item.department_name,
-      level: item.level,
+  const handleOpenEdit = (item, e) => {
+    e.stopPropagation();
+    setEditingId(item.id);
+    setFormData({
+      title: item.title || "",
+      department_name: item.department_name || "",
+      level: item.level || "L1",
       description: item.description || "",
-      status: item.status,
+      status: item.status || "active",
     });
-    setFormErrors({});
-    setShowEdit(true);
+    setShowModal(true);
   };
 
-  // ── PUT OPERATION (UPDATE) ──────────────────────────────────────
-  const handleUpdate = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const errors = validate(editForm);
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    const action = editingId 
+      ? updateDesignation(editingId, formData)
+      : createDesignation(formData);
 
-    try {
-      setLoading(true);
-      await updateDesignation(editItem.id, editForm);
-      setShowEdit(false);
-      setEditItem(null);
-      setFormErrors({});
-      await fetchDesignations(); // Refresh list cleanly
-    } catch (err) {
-      alert("Error updating designation: " + err.message);
-      setLoading(false);
-    }
+    action
+      .then(() => {
+        setShowModal(false);
+        fetchRecords();
+      })
+      .catch((err) => console.error("Error saving record:", err));
   };
 
-  // ── DELETE OPERATION (DELETE) ───────────────────────────────────
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this designation?")) return;
-    try {
-      setLoading(true);
-      await deleteDesignation(id);
-      await fetchDesignations(); // Refresh list cleanly
-    } catch (err) {
-      alert("Error deleting designation: " + err.message);
-      setLoading(false);
+  const handleDelete = (id, e) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this designation?")) {
+      deleteDesignation(id)
+        .then(() => fetchRecords())
+        .catch((err) => console.error(err));
     }
   };
-
-  if (loading && records.length === 0) {
-    return <div className="p-6 text-gray-500 animate-pulse">Loading designations...</div>;
-  }
 
   return (
-    <HRPage title="Designations" subtitle="Manage job titles, roles, and position levels">
-      <SubNav />
-      <div className="space-y-6">
-        
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
-            <span><strong>Error:</strong> {error}</span>
-            <button onClick={fetchDesignations} className="p-1 bg-white border border-red-300 rounded shadow-sm hover:bg-red-100 transition-colors"><RefreshCw className="w-4 h-4 text-red-700" /></button>
-          </div>
-        )}
+    <HRPage title="Designation List" breadcrumbs={[{ label: "HR" }, { label: "Designations", href: "/zoiko-hr/designations" }, { label: "List" }]}>
+      <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
+        {NAV_ITEMS.map((item) => (
+          <NavLink key={item.href} to={item.href} className={({ isActive }) => `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700"}`}>{item.label}</NavLink>
+        ))}
+      </div>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Designations</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage job titles, roles, and position levels</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-              <Download className="w-4 h-4" /> Export
-            </button>
-            <button onClick={() => { setForm({ ...emptyForm }); setFormErrors({}); setShowCreate(true); }} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium">
-              <Plus className="w-4 h-4" /> Add Designation
-            </button>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <button onClick={handleOpenCreate} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"><Plus className="w-4 h-4" /> Add Designation</button>
+          <button onClick={fetchRecords} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 transition-colors"><RefreshCw className="w-4 h-4" /></button>
         </div>
+      </div>
 
-        <div className="flex flex-wrap gap-3">
-          <div className="bg-white px-4 py-2 border border-gray-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Total: </span><span className="font-bold text-gray-800">{total}</span>
-          </div>
-          <div className="bg-white px-4 py-2 border border-green-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Active: </span><span className="font-bold text-green-600">{active}</span>
-          </div>
-          <div className="bg-white px-4 py-2 border border-gray-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Inactive: </span><span className="font-bold text-gray-600">{inactive}</span>
-          </div>
-          <div className="bg-white px-4 py-2 border border-red-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Archived: </span><span className="font-bold text-red-600">{archived}</span>
-          </div>
-        </div>
-
-        {/* Real Dynamic Filter Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-4 border border-gray-200 rounded-xl shadow-sm">
-          <input type="text" placeholder="Search title..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:outline-none" />
-          <select value={filters.status} onChange={(e) => handleFilterChange("status", e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-            <option value="">All Statuses</option>
-            {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <select value={filters.level} onChange={(e) => handleFilterChange("level", e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-            <option value="">All Levels</option>
-            {LEVEL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <select value={filters.department} onChange={(e) => handleFilterChange("department", e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-            <option value="">All Departments</option>
-            {DEPT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </div>
-
-        {/* Interactive Data Table Component */}
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Title</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Department</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Level</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Salary Range</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Employees</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Status</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-600">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Designation Title</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {paginated.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50/70 transition-colors">
-                  <td className="px-6 py-4">
-                    <button onClick={() => { setDetailItem(row); setShowDetail(true); }} className="text-orange-600 hover:text-orange-800 hover:underline font-medium text-left">
-                      {row.title}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{row.department_name || "N/A"}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">{row.level}</span>
-                  </td>
-                  <td className="px-6 py-4 font-mono text-xs text-gray-500">
-                    {row.min_salary != null && row.max_salary != null ? `${row.min_salary} - ${row.max_salary}` : "Not Configured"}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900">{row.employees_count ?? 0}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${row.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{row.status}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => openEdit(row)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                      <button onClick={() => handleDelete(row.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
-                    </div>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {records.map((item) => (
+                <tr key={item.id} onClick={() => { setDetailItem(item); setShowDetail(true); }} className="hover:bg-gray-50/80 cursor-pointer transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.title}</td>
+                  {/* Updated item table rendering to match backend key */}
+                  <td className="px-4 py-3 text-sm text-gray-600">{item.department_name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{item.level}</td>
+                  <td className="px-4 py-3 text-sm flex gap-2">
+                    <button onClick={(e) => handleOpenEdit(item, e)} className="text-blue-600 hover:underline">Edit</button>
+                    <button onClick={(e) => handleDelete(item.id, e)} className="text-red-600 hover:underline">Delete</button>
                   </td>
                 </tr>
               ))}
-              {paginated.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="px-6 py-10 text-center text-gray-400">No matching designations discovered.</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span className="text-xs text-gray-400">
-              Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safePage * ITEMS_PER_PAGE, filteredRecords.length)} of {filteredRecords.length}
-            </span>
-            <div className="flex gap-1">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-all">Prev</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button key={p} onClick={() => setPage(p)}
-                  className={`px-3 py-1 text-sm border rounded-lg ${p === safePage ? "bg-orange-600 text-white border-orange-600" : "border-gray-200 hover:bg-gray-50"}`}>{p}</button>
-              ))}
-              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-all">Next</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── CREATE MODAL ── */}
-        {showCreate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Add Designation</h2>
-                <button onClick={() => { setShowCreate(false); setForm({ ...emptyForm }); setFormErrors({}); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <form onSubmit={handleCreate} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    className={`w-full border ${formErrors.title ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`} />
-                  {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <select value={form.department_name} onChange={(e) => setForm({ ...form, department_name: e.target.value })}
-                    className={`w-full border ${formErrors.department_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    <option value="">Select department</option>
-                    {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.department_name && <p className="text-red-500 text-xs mt-1">{formErrors.department_name}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
-                  <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}
-                    className={`w-full border ${formErrors.level ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.level && <p className="text-red-500 text-xs mt-1">{formErrors.level}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-                    {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => { setShowCreate(false); setForm({ ...emptyForm }); setFormErrors({}); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors">Create Designation</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ── EDIT MODAL ── */}
-        {showEdit && editItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Edit Designation</h2>
-                <button onClick={() => { setShowEdit(false); setEditItem(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <form onSubmit={handleUpdate} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                  <input type="text" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className={`w-full border ${formErrors.title ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`} />
-                  {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <select value={editForm.department_name} onChange={(e) => setEditForm({ ...editForm, department_name: e.target.value })}
-                    className={`w-full border ${formErrors.department_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    <option value="">Select department</option>
-                    {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.department_name && <p className="text-red-500 text-xs mt-1">{formErrors.department_name}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
-                  <select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value })}
-                    className={`w-full border ${formErrors.level ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.level && <p className="text-red-500 text-xs mt-1">{formErrors.level}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={2} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-                    {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => { setShowEdit(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors">Update Designation</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ── DETAIL MODAL ── */}
-        {showDetail && detailItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Designation Details</h2>
-                <button onClick={() => { setShowDetail(false); setDetailItem(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Designation ID</label>
-                    <p className="text-sm text-gray-900 font-mono">#{detailItem.id}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Title</label>
-                    <p className="text-sm text-gray-900 font-medium">{detailItem.title}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Department</label>
-                    <p className="text-sm text-gray-900">{detailItem.department_name || "-"}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Level</label>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">{detailItem.level}</span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Salary Range</label>
-                    <p className="text-sm text-gray-900 font-mono">{detailItem.min_salary ?? "N/A"} - {detailItem.max_salary ?? "N/A"}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Employees</label>
-                    <p className="text-sm text-gray-900 font-semibold">{detailItem.employees_count ?? 0}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                    <p className="capitalize text-sm font-medium text-gray-900">{detailItem.status}</p>
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
-                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">{detailItem.description || "No description provided."}</p>
-                </div>
-                <div className="flex justify-end gap-3 pt-4">
-                  <button onClick={() => { setShowDetail(false); setDetailItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Close</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Slide-out Sidebar details mapping updated */}
+      {showDetail && detailItem && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex justify-end">
+          <div className="w-full max-w-md bg-white h-full p-6 shadow-xl overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">{detailItem.title}</h2>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Department</label>
+                <p className="text-sm text-gray-900 font-medium">{detailItem.department_name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Hierarchy Level</label>
+                <p className="text-sm text-gray-900 font-medium">{detailItem.level}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Description</label>
+                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border">{detailItem.description || "N/A"}</p>
+              </div>
+            </div>
+            <button onClick={() => setShowDetail(false)} className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-medium">Close Panel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Creation/Editing Modal state binding fixed */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50"><h3 className="text-base font-semibold text-gray-900">{editingId ? "Edit Designation" : "Add New Designation"}</h3></div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Designation Title</label>
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20" required placeholder="e.g. Senior Software Engineer" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Department Name</label>
+                <select value={formData.department_name} onChange={(e) => setFormData({ ...formData, department_name: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20" required>
+                  <option value="">Select Department</option>
+                  {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Hierarchy Level</label>
+                  <select value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none" required>
+                    {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+                <textarea rows="3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none" placeholder="Brief details about responsibilities..."></textarea>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">Save Designation</button>
+            </div>
+          </form>
+        </div>
+      )}
     </HRPage>
   );
 }

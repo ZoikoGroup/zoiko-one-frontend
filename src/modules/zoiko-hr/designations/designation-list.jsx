@@ -1,8 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, RefreshCw } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getDesignations } from "../../../service/hrService";
+import { 
+  getDesignations, 
+  createDesignation, 
+  updateDesignation, 
+  deleteDesignation 
+} from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/designations" },
@@ -23,354 +28,187 @@ const DEPT_OPTIONS = [
   { value: "Product", label: "Product" },
   { value: "Marketing", label: "Marketing" },
   { value: "Sales", label: "Sales" },
-  { value: "HR", label: "HR" },
+  { value: "HR", label: "Human Resources" },
   { value: "Finance", label: "Finance" },
 ];
-const ITEMS_PER_PAGE = 10;
 
-const emptyForm = { title: "", department: "", level: "L3", description: "", status: "active" };
-
-function SubNav() {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/designations"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
-  );
-}
+// Initial form schema adjusted to use department_name
+const initialForm = {
+  title: "",
+  department_name: "", 
+  level: "L1",
+  description: "",
+  status: "active",
+};
 
 export default function DesignationList() {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({ status: "", level: "", department: "" });
-  const { data, loading } = useDesignations({ search, ...filters });
-  const [page, setPage] = useState(1);
-  const [showCreate, setShowCreate] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [formData, setFormData] = useState(initialForm);
   const [detailItem, setDetailItem] = useState(null);
-  const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState({ ...emptyForm });
-  const [editForm, setEditForm] = useState({ ...emptyForm });
-  const [formErrors, setFormErrors] = useState({});
+  const [editingId, setEditingId] = useState(null);
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-    setPage(1);
+  const fetchRecords = () => {
+    setLoading(true);
+    getDesignations()
+      .then((res) => setRecords(res.data || []))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   };
 
-  const totalPages = Math.max(1, Math.ceil(data.length / ITEMS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = data.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
-  const total = data.length;
-  const active = data.filter((d) => d.status === "active").length;
-  const inactive = data.filter((d) => d.status === "inactive").length;
-  const archived = data.filter((d) => d.status === "archived").length;
-
-  const validate = (d) => {
-    const e = {};
-    if (!d.title?.trim()) e.title = "Title is required";
-    if (!d.department) e.department = "Department is required";
-    if (!d.level) e.level = "Level is required";
-    return e;
+  const handleOpenCreate = () => {
+    setEditingId(null);
+    setFormData(initialForm);
+    setShowModal(true);
   };
 
-  const handleCreate = (e) => {
-    e.preventDefault();
-    const errors = validate(form);
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    setShowCreate(false);
-    setForm({ ...emptyForm });
-    setFormErrors({});
-  };
-
-  const openEdit = (item) => {
-    setEditItem(item);
-    setEditForm({
-      title: item.title,
-      department: item.department_name,
-      level: item.level,
+  const handleOpenEdit = (item, e) => {
+    e.stopPropagation();
+    setEditingId(item.id);
+    setFormData({
+      title: item.title || "",
+      department_name: item.department_name || "",
+      level: item.level || "L1",
       description: item.description || "",
-      status: item.status,
+      status: item.status || "active",
     });
-    setFormErrors({});
-    setShowEdit(true);
+    setShowModal(true);
   };
 
-  const handleUpdate = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const errors = validate(editForm);
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    setShowEdit(false);
-    setEditItem(null);
-    setFormErrors({});
+    const action = editingId 
+      ? updateDesignation(editingId, formData)
+      : createDesignation(formData);
+
+    action
+      .then(() => {
+        setShowModal(false);
+        fetchRecords();
+      })
+      .catch((err) => console.error("Error saving record:", err));
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to delete this designation?")) return;
+  const handleDelete = (id, e) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this designation?")) {
+      deleteDesignation(id)
+        .then(() => fetchRecords())
+        .catch((err) => console.error(err));
+    }
   };
-
-  const columns = [
-    { key: "title", label: "Title", render: (v, row) => (
-      <button onClick={() => { setDetailItem(row); setShowDetail(true); }} className="text-orange-600 hover:text-orange-800 hover:underline font-medium text-left">
-        {v}
-      </button>
-    )},
-    { key: "department_name", label: "Department" },
-    { key: "level", label: "Level", render: (v) => <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "L1" ? "bg-blue-100 text-blue-800" : v === "L2" ? "bg-indigo-100 text-indigo-800" : v === "L3" ? "bg-purple-100 text-purple-800" : v === "L4" ? "bg-pink-100 text-pink-800" : v === "L5" ? "bg-red-100 text-red-800" : v === "L6" ? "bg-orange-100 text-orange-800" : v === "L7" ? "bg-yellow-100 text-yellow-800" : v === "L8" ? "bg-green-100 text-green-800" : v === "L9" ? "bg-teal-100 text-teal-800" : v === "L10" ? "bg-cyan-100 text-cyan-800" : "bg-gray-100 text-gray-800"}`}>{v}</span> },
-    { key: "salary", label: "Salary Range", render: (v, row) => <span className="text-xs font-mono">{row.min_salary} - {row.max_salary}</span> },
-    { key: "employees_count", label: "Employees", render: (v) => <span className="font-medium">{v}</span> },
-    { key: "status", label: "Status", render: (v) => <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${v === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{v}</span> },
-    { key: "actions", label: "Actions", render: (v, row) => (
-      <div className="flex items-center gap-2">
-        <button onClick={() => openEdit(row)} className="text-xs text-gray-500 hover:text-gray-800 font-medium">Edit</button>
-        <button onClick={() => handleDelete(row.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
-      </div>
-    )},
-  ];
-
-  if (loading) return <div className="p-6 text-gray-400">Loading designations...</div>;
 
   return (
-    <HRPage title="Designations" subtitle="Manage job titles, roles, and position levels">
-      <SubNav />
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Designations</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage job titles, roles, and position levels</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-              <Download className="w-4 h-4" /> Export
-            </button>
-            <button onClick={() => { setForm({ ...emptyForm }); setFormErrors({}); setShowCreate(true); }} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium">
-              <Plus className="w-4 h-4" /> Add Designation
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <div className="bg-white px-4 py-2 border border-gray-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Total: </span><span className="font-bold text-gray-800">{total}</span>
-          </div>
-          <div className="bg-white px-4 py-2 border border-green-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Active: </span><span className="font-bold text-green-600">{active}</span>
-          </div>
-          <div className="bg-white px-4 py-2 border border-gray-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Inactive: </span><span className="font-bold text-gray-600">{inactive}</span>
-          </div>
-          <div className="bg-white px-4 py-2 border border-red-100 rounded-lg shadow-sm text-sm">
-            <span className="text-gray-400">Archived: </span><span className="font-bold text-red-600">{archived}</span>
-          </div>
-        </div>
-
-        <FilterBar
-          search={search}
-          onSearchChange={(v) => { setSearch(v); setPage(1); }}
-          filters={[
-            { key: "status", placeholder: "All Statuses", value: filters.status, options: STATUS_OPTIONS },
-            { key: "level", placeholder: "All Levels", value: filters.level, options: LEVEL_OPTIONS },
-            { key: "department", placeholder: "All Departments", value: filters.department, options: DEPT_OPTIONS },
-          ]}
-          onFilterChange={handleFilterChange}
-        />
-
-        <DataTable columns={columns} data={paginated} />
-
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400">
-              Showing {(safePage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safePage * ITEMS_PER_PAGE, data.length)} of {data.length}
-            </span>
-            <div className="flex gap-1">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Prev</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button key={p} onClick={() => setPage(p)}
-                  className={`px-3 py-1 text-sm border rounded-lg ${p === safePage ? "bg-orange-600 text-white border-orange-600" : "border-gray-200 hover:bg-gray-50"}`}>{p}</button>
-              ))}
-              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Next</button>
-            </div>
-          </div>
-        )}
-
-        {showCreate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Add Designation</h2>
-                <button onClick={() => { setShowCreate(false); setForm({ ...emptyForm }); setFormErrors({}); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <form onSubmit={handleCreate} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    className={`w-full border ${formErrors.title ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`} />
-                  {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}
-                    className={`w-full border ${formErrors.department ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    <option value="">Select department</option>
-                    {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
-                  <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}
-                    className={`w-full border ${formErrors.level ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.level && <p className="text-red-500 text-xs mt-1">{formErrors.level}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-                    {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => { setShowCreate(false); setForm({ ...emptyForm }); setFormErrors({}); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors">Create Designation</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showEdit && editItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Edit Designation</h2>
-                <button onClick={() => { setShowEdit(false); setEditItem(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <form onSubmit={handleUpdate} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                  <input type="text" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className={`w-full border ${formErrors.title ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`} />
-                  {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                  <select value={editForm.department} onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                    className={`w-full border ${formErrors.department ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    <option value="">Select department</option>
-                    {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
-                  <select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value })}
-                    className={`w-full border ${formErrors.level ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500`}>
-                    {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  {formErrors.level && <p className="text-red-500 text-xs mt-1">{formErrors.level}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={2} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
-                    {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                </div>
-                {editItem.created_at && <div className="text-xs text-gray-400">Created: {formatDate(editItem.created_at)}</div>}
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => { setShowEdit(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors">Update Designation</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showDetail && detailItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Designation Details</h2>
-                <button onClick={() => { setShowDetail(false); setDetailItem(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Designation ID</label>
-                    <p className="text-sm text-gray-900 font-mono">#{detailItem.id}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Title</label>
-                    <p className="text-sm text-gray-900 font-medium">{detailItem.title}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Department</label>
-                    <p className="text-sm text-gray-900">{detailItem.department_name || "-"}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Level</label>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${detailItem.level === "L1" ? "bg-blue-100 text-blue-800" : detailItem.level === "L2" ? "bg-indigo-100 text-indigo-800" : detailItem.level === "L3" ? "bg-purple-100 text-purple-800" : detailItem.level === "L4" ? "bg-pink-100 text-pink-800" : detailItem.level === "L5" ? "bg-red-100 text-red-800" : detailItem.level === "L6" ? "bg-orange-100 text-orange-800" : detailItem.level === "L7" ? "bg-yellow-100 text-yellow-800" : detailItem.level === "L8" ? "bg-green-100 text-green-800" : detailItem.level === "L9" ? "bg-teal-100 text-teal-800" : detailItem.level === "L10" ? "bg-cyan-100 text-cyan-800" : "bg-gray-100 text-gray-800"}`}>{detailItem.level}</span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Salary Range</label>
-                    <p className="text-sm text-gray-900">{detailItem.min_salary} - {detailItem.max_salary}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Employees</label>
-                    <p className="text-sm text-gray-900">{detailItem.employees_count}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                    <StatusBadge status={detailItem.status} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Created</label>
-                    <p className="text-sm text-gray-600">{formatDate(detailItem.created_at)}</p>
-                  </div>
-                  {detailItem.updated_at && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">Updated</label>
-                      <p className="text-sm text-gray-600">{formatDate(detailItem.updated_at)}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
-                  <p className="text-sm text-gray-700">{detailItem.description || "-"}</p>
-                </div>
-                <div className="flex justify-end gap-3 pt-4">
-                  <button onClick={() => { setShowDetail(false); setDetailItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Close</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+    <HRPage title="Designation List" breadcrumbs={[{ label: "HR" }, { label: "Designations", href: "/zoiko-hr/designations" }, { label: "List" }]}>
+      <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
+        {NAV_ITEMS.map((item) => (
+          <NavLink key={item.href} to={item.href} className={({ isActive }) => `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700"}`}>{item.label}</NavLink>
+        ))}
       </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <button onClick={handleOpenCreate} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"><Plus className="w-4 h-4" /> Add Designation</button>
+          <button onClick={fetchRecords} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 transition-colors"><RefreshCw className="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Designation Title</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {records.map((item) => (
+                <tr key={item.id} onClick={() => { setDetailItem(item); setShowDetail(true); }} className="hover:bg-gray-50/80 cursor-pointer transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.title}</td>
+                  {/* Updated item table rendering to match backend key */}
+                  <td className="px-4 py-3 text-sm text-gray-600">{item.department_name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{item.level}</td>
+                  <td className="px-4 py-3 text-sm flex gap-2">
+                    <button onClick={(e) => handleOpenEdit(item, e)} className="text-blue-600 hover:underline">Edit</button>
+                    <button onClick={(e) => handleDelete(item.id, e)} className="text-red-600 hover:underline">Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Slide-out Sidebar details mapping updated */}
+      {showDetail && detailItem && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex justify-end">
+          <div className="w-full max-w-md bg-white h-full p-6 shadow-xl overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">{detailItem.title}</h2>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Department</label>
+                <p className="text-sm text-gray-900 font-medium">{detailItem.department_name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Hierarchy Level</label>
+                <p className="text-sm text-gray-900 font-medium">{detailItem.level}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Description</label>
+                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border">{detailItem.description || "N/A"}</p>
+              </div>
+            </div>
+            <button onClick={() => setShowDetail(false)} className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-medium">Close Panel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Creation/Editing Modal state binding fixed */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50"><h3 className="text-base font-semibold text-gray-900">{editingId ? "Edit Designation" : "Add New Designation"}</h3></div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Designation Title</label>
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20" required placeholder="e.g. Senior Software Engineer" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Department Name</label>
+                <select value={formData.department_name} onChange={(e) => setFormData({ ...formData, department_name: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20" required>
+                  <option value="">Select Department</option>
+                  {DEPT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Hierarchy Level</label>
+                  <select value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none" required>
+                    {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+                <textarea rows="3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none" placeholder="Brief details about responsibilities..."></textarea>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">Save Designation</button>
+            </div>
+          </form>
+        </div>
+      )}
     </HRPage>
   );
 }

@@ -1,128 +1,130 @@
 import { useState, useEffect } from "react";
 import { getObligations, getEvidence, uploadEvidence } from "../../service/complyService";
-import { CalendarDays, Upload, CheckCircle, Clock, AlertTriangle } from "lucide-react";
+import { CalendarDays, Upload, CheckCircle, Clock, AlertTriangle, Search, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
-// ==========================================
-// INTERNAL MOCKED COMPONENTS (NO DEPENDENCIES)
-// ==========================================
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
 
-const StatsCard = ({ title, value, icon: Icon, trend, change }) => (
-  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
-    <div>
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
-      {change !== undefined && change !== 0 && (
-        <span className={`text-xs font-medium mt-1 inline-block ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-          {trend === 'up' ? '↑' : '↓'} {change}%
-        </span>
+function StatsCard({ title, value, change, trend, icon: Icon }) {
+  const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
+  const trendColor = trend === "up" ? "text-emerald-600" : trend === "down" ? "text-red-600" : "text-gray-400";
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-gray-500 font-medium">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        </div>
+        {Icon && <div className="p-2 bg-emerald-50 rounded-lg"><Icon className="w-5 h-5 text-emerald-600" /></div>}
+      </div>
+      {change != null && (
+        <div className="flex items-center gap-1 mt-3">
+          <TrendIcon className={`w-4 h-4 ${trendColor}`} />
+          <span className={`text-sm font-medium ${trendColor}`}>
+            {change > 0 ? "+" : ""}{change}%
+          </span>
+          <span className="text-sm text-gray-400">vs last month</span>
+        </div>
       )}
     </div>
-    {Icon && (
-      <div className="p-2 bg-gray-50 rounded-lg border border-gray-100 text-gray-400">
-        <Icon size={20} />
+  );
+}
+
+function FilterBar({ search, onSearchChange, filters = [], onFilterChange }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 mb-4">
+      <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+        />
       </div>
-    )}
-  </div>
-);
-
-const DataTable = ({ columns = [], data = [], onRowClick }) => (
-  <div className="overflow-x-auto w-full border border-gray-100 rounded-lg">
-    <table className="w-full text-left border-collapse text-sm">
-      <thead>
-        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
-          {columns.map((col, idx) => (
-            <th key={idx} className="p-3">{col.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data && data.length > 0 ? (
-          data.map((row, rIdx) => (
-            <tr 
-              key={rIdx} 
-              onClick={() => onRowClick && onRowClick(row)}
-              className={`border-b border-gray-100 hover:bg-gray-50 text-gray-700 ${onRowClick ? 'cursor-pointer' : ''}`}
-            >
-              {columns.map((col, cIdx) => (
-                <td key={cIdx} className="p-3">
-                  {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
-                </td>
-              ))}
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={columns.length} className="p-8 text-center text-gray-400">
-              No items discovered.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-);
-
-const FilterBar = ({ search, onSearchChange, filters = [], onFilterChange }) => (
-  <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center justify-between">
-    <div className="relative w-full sm:w-72">
-      <input
-        type="text"
-        placeholder="Search..."
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        className="w-full pl-4 pr-4 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-      />
-    </div>
-    <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
       {filters.map((f) => (
         <select
           key={f.key}
           value={f.value}
           onChange={(e) => onFilterChange(f.key, e.target.value)}
-          className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:border-blue-500"
+          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
         >
           <option value="">{f.placeholder}</option>
-          {f.options?.map((opt) => (
+          {f.options.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       ))}
     </div>
-  </div>
-);
+  );
+}
 
-const StatusBadge = ({ status }) => {
-  const normalized = String(status).toLowerCase();
-  const badgeStyles = {
-    pending: "bg-yellow-50 text-yellow-700 border-yellow-100",
-    in_progress: "bg-blue-50 text-blue-700 border-blue-100",
-    completed: "bg-green-50 text-green-700 border-green-100",
-    overdue: "bg-red-50 text-red-700 border-red-100",
-    approved: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    rejected: "bg-rose-50 text-rose-700 border-rose-100",
-    regulatory: "bg-purple-50 text-purple-700 border-purple-100",
-    contractual: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    internal: "bg-gray-100 text-gray-700 border-gray-200",
-  };
-
-  const style = badgeStyles[normalized] || "bg-gray-50 text-gray-600 border-gray-200";
+function DataTable({ columns, data, onRowClick }) {
+  if (!data || data.length === 0) {
+    return <div className="text-center py-12 text-gray-400 text-sm">No data available</div>;
+  }
 
   return (
-    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border capitalize ${style}`}>
-      {normalized.replace("_", " ")}
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((col) => (
+              <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-100">
+          {data.map((row, i) => (
+            <tr
+              key={row.id ?? i}
+              className={`hover:bg-emerald-50/50 transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
+              onClick={() => onRowClick?.(row)}
+            >
+              {columns.map((col) => (
+                <td key={col.key} className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                  {col.render ? col.render(row[col.key], row) : row[col.key]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const colorClass = statusColor(status);
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colorClass}`}>
+      {status ? status.replace(/_/g, " ") : "N/A"}
     </span>
   );
-};
+}
 
-const formatDate = (dateString) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? dateString : date.toLocaleDateString();
-};
-
-// ==========================================
-// MAIN MODULE EXPORT
-// ==========================================
+function statusColor(status) {
+  const map = {
+    pending: "bg-yellow-100 text-yellow-800",
+    in_progress: "bg-blue-100 text-blue-800",
+    completed: "bg-blue-100 text-blue-800",
+    overdue: "bg-red-100 text-red-800",
+    approved: "bg-emerald-100 text-emerald-800",
+    rejected: "bg-red-100 text-red-800",
+    regulatory: "bg-purple-100 text-purple-800",
+    contractual: "bg-cyan-100 text-cyan-800",
+    internal: "bg-slate-100 text-slate-800",
+  };
+  return map[status] || "bg-gray-100 text-gray-800";
+}
 
 export default function ComplianceMonitoring() {
   const [activeTab, setActiveTab] = useState("obligations");

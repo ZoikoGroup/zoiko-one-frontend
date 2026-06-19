@@ -108,13 +108,7 @@ import {
 import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
 import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
 import CompanyDocuments from "./modules/zoiko-hr/documents/company-documents.jsx";
-import Templates from "./modules/zoiko-hr/documents/templates.jsx";
-import Policies from "./modules/zoiko-hr/documents/policies.jsx";
-import ComplianceDocuments from "./modules/zoiko-hr/documents/compliance-documents.jsx";
 import ApprovalWorkflow from "./modules/zoiko-hr/documents/approvals.jsx";
-import ExpiringDocuments from "./modules/zoiko-hr/documents/expiring-documents.jsx";
-import Archive from "./modules/zoiko-hr/documents/archive.jsx";
-import DocumentsReports from "./modules/zoiko-hr/documents/reports.jsx";
 import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 
 import ComplianceDashboard from "./modules/zoiko-hr/compliance/dashboard.jsx";
@@ -153,6 +147,10 @@ import Succession from "./modules/zoiko-hr/workforce-planning/succession.jsx";
 import ScenarioPlanning from "./modules/zoiko-hr/workforce-planning/scenario-planning.jsx";
 import WorkforceReports from "./modules/zoiko-hr/workforce-planning/reports.jsx";
 import WorkforceSettings from "./modules/zoiko-hr/workforce-planning/settings.jsx";
+
+
+
+
 
 
 import ZoikoHRCompDashboard from "./modules/zoiko-hr/compensation/dashboard.jsx";
@@ -429,13 +427,7 @@ const routeOverrides = {
   // Documents submodule routes
   "/zoiko-hr/documents/employee-documents": <EmployeeDocuments />,
   "/zoiko-hr/documents/company-documents": <CompanyDocuments />,
-  "/zoiko-hr/documents/templates": <Templates />,
-  "/zoiko-hr/documents/policies": <Policies />,
-  "/zoiko-hr/documents/compliance": <ComplianceDocuments />,
   "/zoiko-hr/documents/approvals": <ApprovalWorkflow />,
-  "/zoiko-hr/documents/expiring-documents": <ExpiringDocuments />,
-  "/zoiko-hr/documents/archive": <Archive />,
-  "/zoiko-hr/documents/reports": <DocumentsReports />,
   "/zoiko-hr/documents/settings": <DocumentsSettings />,
 
   // Workforce Planning submodule routes

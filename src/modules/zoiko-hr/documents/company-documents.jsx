@@ -1,112 +1,153 @@
-import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
-import { Plus, Download, FileText } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Building2, RefreshCw } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDocuments } from "../../../service/hrService";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/documents" },
-  { label: "Employee Documents", href: "/zoiko-hr/documents/employee-documents" },
-  { label: "Company Documents", href: "/zoiko-hr/documents/company-documents" },
-  { label: "Templates", href: "/zoiko-hr/documents/templates" },
-  { label: "Policies", href: "/zoiko-hr/documents/policies" },
-  { label: "Compliance Documents", href: "/zoiko-hr/documents/compliance" },
-  { label: "Approval Workflow", href: "/zoiko-hr/documents/approvals" },
-  { label: "Expiring Documents", href: "/zoiko-hr/documents/expiring-documents" },
-  { label: "Archive", href: "/zoiko-hr/documents/archive" },
-  { label: "Reports", href: "/zoiko-hr/documents/reports" },
-  { label: "Settings", href: "/zoiko-hr/documents/settings" },
-];
-
-function SubNav() {
+// ── Shared inline helpers ─────────────────────────────────────────────────────
+const STATUS_META = {
+  pending:  { label: "Pending",  bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200",  dot: "bg-amber-500"  },
+  approved: { label: "Approved", bg: "bg-emerald-50",  text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
+  rejected: { label: "Rejected", bg: "bg-rose-50",    text: "text-rose-700",   border: "border-rose-200",   dot: "bg-rose-500"   },
+  expired:  { label: "Expired",  bg: "bg-slate-100",  text: "text-slate-500",  border: "border-slate-200",  dot: "bg-slate-400"  },
+};
+const StatusBadge = ({ status }) => {
+  const m = STATUS_META[status] || STATUS_META.pending;
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/documents"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${m.bg} ${m.text} ${m.border}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      {m.label}
+    </span>
   );
-}
+};
+const fileTypeIcon = (filename = "") => {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const map = { pdf: "📄", doc: "📝", docx: "📝", xls: "📊", xlsx: "📊", png: "🖼️", jpg: "🖼️", jpeg: "🖼️", pptx: "📑" };
+  return map[ext] || "📎";
+};
+const fmtDate = (iso) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+};
 
-function StatusBadge({ status }) {
-  const colorMap = { active: "bg-green-100 text-green-800", draft: "bg-gray-100 text-gray-800" };
-  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colorMap[status] || "bg-gray-100 text-gray-800"}`}>{status?.replace(/_/g, " ")}</span>;
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  try { return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }); }
-  catch { return dateStr; }
-}
+const STATUS_FILTERS = ["all", "pending", "approved", "rejected", "expired"];
 
 export default function CompanyDocuments() {
-  const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [docs, setDocs]         = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(null);
+  const [search, setSearch]     = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    let mounted = true;
+  const load = () => {
+    setLoading(true);
+    setError(null);
     getDocuments()
-      .then((res) => { if (mounted) setDocs(Array.isArray(res) ? res : res?.data || []); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []);
+      .then(res => setDocs(Array.isArray(res?.data) ? res.data : []))
+      .catch(() => setError("Could not fetch company documents. Please try again."))
+      .finally(() => setLoading(false));
+  };
 
-  const filtered = search
-    ? docs.filter((d) => (d.name || "").toLowerCase().includes(search.toLowerCase()) || (d.type || "").toLowerCase().includes(search.toLowerCase()))
-    : docs;
+  useEffect(() => { load(); }, []);
 
-  if (loading) return <div className="p-6 text-gray-400">Loading company documents...</div>;
+  const companyDocs = useMemo(() =>
+    docs
+      .filter(d => d.category?.toLowerCase() === "company")
+      .filter(d => statusFilter === "all" || d.status === statusFilter)
+      .filter(d => !search.trim() || d.name?.toLowerCase().includes(search.trim().toLowerCase())),
+    [docs, search, statusFilter]
+  );
 
   return (
-    <HRPage title="Company Documents" subtitle="Policies, manuals, and company-wide documents">
-      <SubNav />
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Company Documents</h1>
-            <p className="text-sm text-gray-500 mt-1">Policies, manuals, and company-wide documents</p>
+    <HRPage title="Company Documents">
+      <div className="space-y-6 pb-10">
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-50 rounded-xl">
+              <Building2 className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Company Documents</h2>
+              <p className="text-sm text-slate-500">Policies, handbooks, and official company files.</p>
+            </div>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
-            <Plus className="w-4 h-4" /> Upload
+          <button onClick={load} className="flex items-center gap-2 text-sm font-medium text-slate-600 border border-gray-200 bg-white px-4 py-2 rounded-lg hover:bg-gray-50 self-start sm:self-center">
+            <RefreshCw className="w-4 h-4" /> Refresh
           </button>
         </div>
 
-        <div className="relative max-w-sm">
-          <input type="text" placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-4 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" />
+        {/* Search + Filter */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search company documents…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {STATUS_FILTERS.map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 py-2 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                  statusFilter === s ? "bg-indigo-600 text-white shadow-sm" : "bg-white border border-gray-200 text-slate-600 hover:bg-gray-50"
+                }`}
+              >
+                {s === "all" ? "All" : s}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((doc, i) => (
-            <div key={doc.id || i} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2 bg-purple-50 rounded-lg"><FileText className="w-5 h-5 text-purple-600" /></div>
-                <StatusBadge status={doc.status} />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-1">{doc.name}</h3>
-              <div className="space-y-1 text-xs text-gray-500">
-                <p>Type: {doc.type || doc.category || "-"} | Version: {doc.version || "1.0"}</p>
-                <p>Updated: {formatDate(doc.updatedDate || doc.updated)}</p>
-                <p>Size: {doc.size || "-"}</p>
-              </div>
-              <button className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
-                <Download className="w-4 h-4" /> Download
-              </button>
+        {/* Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
+            <svg className="animate-spin h-8 w-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+            <span className="text-sm font-medium">Loading company documents…</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 text-rose-500 text-sm font-medium bg-rose-50 rounded-xl border border-rose-100 p-6">{error}</div>
+        ) : companyDocs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <span className="text-5xl mb-4">🏢</span>
+            <p className="text-base font-semibold text-slate-700 mb-1">
+              {search || statusFilter !== "all" ? "No results found" : "No company documents yet"}
+            </p>
+            <p className="text-sm text-slate-400">
+              {search || statusFilter !== "all" ? "Try adjusting your search or filter." : "Company policies and handbooks will appear here once uploaded."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-slate-400 font-medium">{companyDocs.length} document{companyDocs.length !== 1 ? "s" : ""}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {companyDocs.map(d => (
+                <div key={d.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-5 flex flex-col gap-3 group">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl select-none shrink-0 mt-0.5">{fileTypeIcon(d.name)}</span>
+                    <p className="font-semibold text-slate-800 leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors">
+                      {d.name}
+                    </p>
+                  </div>
+                  {d.description && <p className="text-xs text-slate-400 line-clamp-2">{d.description}</p>}
+                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                    <StatusBadge status={d.status} />
+                    <span className="text-xs text-slate-400">{fmtDate(d.created_at)}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-          {filtered.length === 0 && (
-            <div className="col-span-full text-center py-12 text-gray-400">No documents found</div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </HRPage>
   );

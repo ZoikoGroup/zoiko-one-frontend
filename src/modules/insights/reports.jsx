@@ -1,13 +1,99 @@
 import { useState, useEffect } from "react";
 import { getCustomReportsData, getSavedReportsData } from "../../service/insightsService";
-import StatsCard from "../../components/insights/StatsCard";
-import FilterBar from "../../components/insights/FilterBar";
-import DataTable from "../../components/insights/DataTable";
-import StatusBadge from "../../components/insights/StatusBadge";
-import { formatDate } from "../../components/insights/helpers";
-import { CHART_COLORS } from "../../components/insights/chartColors";
-import { FileText, Plus, BarChart3, Star, Clock, Download, Eye } from "lucide-react";
+import { FileText, Plus, BarChart3, Star, Clock, Download, Eye, Search } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+// ==========================================
+// EMBEDDED DEPENDENCIES & HELPERS
+// ==========================================
+const CHART_COLORS = {
+  primary: "#4f46e5",
+  success: "#10b981",
+  warning: "#f59e0b",
+  danger: "#ef4444",
+  info: "#06b6d4"
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+};
+
+const StatsCard = ({ title, value, icon: Icon, subtitle }) => (
+  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+    <div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
+      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+    </div>
+    {Icon && (
+      <div className="p-2 bg-gray-50 rounded-lg border border-gray-100 text-gray-400">
+        <Icon size={20} />
+      </div>
+    )}
+  </div>
+);
+
+const FilterBar = ({ search, onSearchChange, filters = [], onFilterChange }) => (
+  <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-4">
+    <div className="relative w-full sm:flex-1">
+      <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+      <input
+        type="text"
+        placeholder="Search reports..."
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50"
+      />
+    </div>
+    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+      {filters.map((filter) => (
+        <select
+          key={filter.key}
+          value={filter.value}
+          onChange={(e) => onFilterChange(filter.key, e.target.value)}
+          className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">{filter.placeholder}</option>
+          {filter.options.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ))}
+    </div>
+  </div>
+);
+
+const DataTable = ({ columns = [], data = [] }) => (
+  <div className="overflow-x-auto w-full border border-gray-100 rounded-lg bg-white">
+    <table className="w-full text-left border-collapse text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+          {columns.map((col, idx) => <th key={idx} className="p-3">{col.label}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, rIdx) => (
+            <tr key={rIdx} className="border-b border-gray-100 hover:bg-gray-50 text-gray-700">
+              {columns.map((col, cIdx) => (
+                <td key={cIdx} className="p-3">
+                  {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : (
+          <tr><td colSpan={columns.length} className="p-8 text-center text-gray-400">No reports matched.</td></tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
 
 const tabs = [
   { id: "custom", label: "Custom Reports" },
@@ -20,7 +106,7 @@ export default function Reports({ defaultTab = "custom" }) {
   const [savedData, setSavedData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({ type: "", format: "", status: "" });
+  const [filters, setFilters] = useState({ type: "", format: "" });
 
   useEffect(() => {
     setLoading(true);
@@ -30,212 +116,82 @@ export default function Reports({ defaultTab = "custom" }) {
     ]).finally(() => setLoading(false));
   }, []);
 
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full" /></div>;
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-sm text-gray-500 mt-1">Create, manage and view report templates and generated reports</p>
-      </div>
-
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap ${activeTab === tab.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>{tab.label}</button>
-        ))}
-      </div>
-
-      {activeTab === "custom" && customData && <CustomReportsContent data={customData} search={search} onSearchChange={setSearch} filters={filters} onFilterChange={(k, v) => setFilters(prev => ({ ...prev, [k]: v }))} />}
-      {activeTab === "saved" && savedData && <SavedReportsContent data={savedData} search={search} onSearchChange={setSearch} filters={filters} onFilterChange={(k, v) => setFilters(prev => ({ ...prev, [k]: v }))} />}
-    </div>
-  );
-}
-
-function CustomReportsContent({ data, search, onSearchChange, filters, onFilterChange }) {
-  const { templates, reportTypes } = data;
-
-  const stats = [
-    { title: "Total Templates", value: templates.length, change: 4, trend: "up", icon: FileText, subtitle: `${templates.filter(t => t.status === "active").length} active` },
-    { title: "Report Types", value: reportTypes.length, change: 0, trend: "stable", icon: BarChart3, subtitle: "Categories" },
-    { title: "Active Reports", value: templates.filter(t => t.status === "active").length, change: 3, trend: "up", icon: Eye, subtitle: "Scheduled + ad-hoc" },
-    { title: "Archived", value: templates.filter(t => t.status === "archived").length, change: -1, trend: "down", icon: Clock, subtitle: "Inactive templates" },
-  ];
-
-  const columns = [
-    { key: "name", label: "Report Name", render: (v, r) => <div><span className="font-medium">{v}</span><div className="text-xs text-gray-400">{r.type} &middot; {r.category}</div></div> },
-    { key: "format", label: "Format", render: (v) => <StatusBadge status={v} /> },
-    { key: "frequency", label: "Frequency", render: (v) => <StatusBadge status={v} /> },
-    { key: "lastGenerated", label: "Last Generated", render: (v) => formatDate(v) },
-    { key: "createdBy", label: "Created By" },
-    { key: "status", label: "Status", render: (v) => <StatusBadge status={v} /> },
-  ];
-
-  let filtered = [...templates];
-  if (search) filtered = filtered.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
-  if (filters.type) filtered = filtered.filter(r => r.type === filters.type);
-  if (filters.format) filtered = filtered.filter(r => r.format === filters.format);
-  if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
+  const targetedSource = activeTab === "custom" ? customData?.reports || [] : savedData || [];
+  const filteredReports = targetedSource.filter((r) => {
+    if (search && !r.name.toLowerCase().includes(search.toLowerCase()) && !r.createdBy?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filters.type && r.type !== filters.type) return false;
+    if (filters.format && r.format?.toLowerCase() !== filters.format.toLowerCase()) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Custom Reports</h3>
+          <h1 className="text-2xl font-bold text-gray-900">Executive Repository</h1>
+          <p className="text-sm text-gray-500 mt-1">Export, design and configure operational custom reports summaries</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-          <Plus className="w-4 h-4" />
-          New Report
+        <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+          <Plus size={16} /> New Report
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Reports by Type</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={reportTypes} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} stroke="#9ca3af" width={100} />
-              <Tooltip />
-              <Bar dataKey="count" fill={CHART_COLORS.primary} barSize={16} radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {["Financial", "Workforce", "Compliance", "Project", "Inventory", "Payroll"].map(type => (
-              <button key={type} className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all text-left">
-                <FileText className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{type}</p>
-                  <p className="text-xs text-gray-500">Generate report</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900">Report Templates</h3>
-        </div>
-        <FilterBar
-          search={search}
-          onSearchChange={onSearchChange}
-          filters={[
-            { key: "type", placeholder: "All Types", value: filters.type, options: ["Financial", "Workforce", "Compliance", "Project", "Inventory", "Payroll"].map(t => ({ value: t, label: t })) },
-            { key: "format", placeholder: "All Formats", value: filters.format, options: ["pdf", "excel", "csv"].map(f => ({ value: f, label: f.toUpperCase() })) },
-            { key: "status", placeholder: "All Statuses", value: filters.status, options: [{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }] },
-          ]}
-          onFilterChange={onFilterChange}
-        />
-        <DataTable columns={columns} data={filtered} />
-      </div>
-    </div>
-  );
-}
-
-function SavedReportsContent({ data, search, onSearchChange, filters, onFilterChange }) {
-  const { reports, recentGenerations } = data;
-
-  const stats = [
-    { title: "Saved Reports", value: reports.length, change: 3, trend: "up", icon: FileText, subtitle: `${reports.filter(r => r.starred).length} starred` },
-    { title: "Starred", value: reports.filter(r => r.starred).length, change: 1, trend: "up", icon: Star, subtitle: "Favorites" },
-    { title: "Scheduled", value: reports.filter(r => r.frequency !== "One-time").length, change: 2, trend: "up", icon: Clock, subtitle: "Auto-generated" },
-    { title: "Recent (30d)", value: recentGenerations.length, change: 5, trend: "up", icon: Eye, subtitle: "Last 30 days" },
-  ];
-
-  const columns = [
-    { key: "name", label: "Report", render: (v, r) => (
-      <div className="flex items-center gap-2">
-        {r.starred && <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />}
-        <div>
-          <span className="font-medium">{v}</span>
-          <div className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
-            <span>{r.type}</span>
-            {r.tags.map((t, i) => <span key={i} className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{t}</span>)}
-          </div>
-        </div>
-      </div>
-    )},
-    { key: "format", label: "Format", render: (v) => <StatusBadge status={v} /> },
-    { key: "generatedAt", label: "Generated", render: (v) => formatDate(v) },
-    { key: "generatedBy", label: "By" },
-    { key: "size", label: "Size" },
-    { key: "frequency", label: "Frequency" },
-    { key: "lastViewed", label: "Last Viewed", render: (v) => formatDate(v) },
-  ];
-
-  let filtered = [...reports];
-  if (search) filtered = filtered.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
-  if (filters.type) filtered = filtered.filter(r => r.type === filters.type);
-  if (filters.format) filtered = filtered.filter(r => r.format === filters.format);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Saved Reports</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-            <Download className="w-4 h-4" />
-            Export All
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => { setActiveTab(t.id); setSearch(""); setFilters({ type: "", format: "" }); }}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            {t.label}
           </button>
-        </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatsCard title="Total Formulated" value={targetedSource.length} icon={FileText} subtitle="Generated files" />
+        <StatsCard title="Most Exported Format" value="PDF Document" icon={Download} />
+        <StatsCard title="Automated Schedules" value="4 Active Runs" icon={Clock} />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-base font-semibold text-gray-900 mb-3">Recent Generations</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {recentGenerations.map(r => (
-            <div key={r.id} className="border border-gray-100 rounded-lg p-3 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-900">{r.name}</span>
-                <StatusBadge status={r.format} />
-              </div>
-              <div className="flex items-center gap-3 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDate(r.generatedAt)}</span>
-                <span>{r.size}</span>
-                {r.scheduled && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">Scheduled</span>}
-              </div>
-              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-50">
-                <button className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800"><Eye className="w-3 h-3" /> Preview</button>
-                <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"><Download className="w-3 h-3" /> Download</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <FilterBar
+        search={search}
+        onSearchChange={setSearch}
+        filters={[
+          { key: "type", placeholder: "All Types", value: filters.type, options: ["Financial", "Workforce", "Compliance", "Project", "Inventory", "Payroll"].map(t => ({ value: t, label: t })) },
+          { key: "format", placeholder: "All Formats", value: filters.format, options: [{ value: "pdf", label: "PDF" }, { value: "excel", label: "Excel" }, { value: "csv", label: "CSV" }] }
+        ]}
+        onFilterChange={handleFilterChange}
+      />
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900">All Saved Reports</h3>
-        </div>
-        <FilterBar
-          search={search}
-          onSearchChange={onSearchChange}
-          filters={[
-            { key: "type", placeholder: "All Types", value: filters.type, options: ["Financial", "Workforce", "Compliance", "Project", "Inventory", "Payroll"].map(t => ({ value: t, label: t })) },
-            { key: "format", placeholder: "All Formats", value: filters.format, options: ["pdf", "excel", "csv"].map(f => ({ value: f, label: f.toUpperCase() })) },
-          ]}
-          onFilterChange={onFilterChange}
-        />
-        <DataTable columns={columns} data={filtered} />
-      </div>
+      <DataTable
+        columns={[
+          { key: "name", label: "Report Title", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
+          { key: "type", label: "Classification" },
+          { key: "createdDate", label: "Generated Date", render: (v) => formatDate(v) },
+          { key: "createdBy", label: "Owner / Author" },
+          { key: "format", label: "Format", render: (v) => <span className="uppercase text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">{v || "pdf"}</span> },
+          {
+            key: "actions",
+            label: "Action",
+            render: () => (
+              <div className="flex items-center gap-3 text-xs font-semibold">
+                <button className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"><Eye size={12} /> Preview</button>
+                <button className="text-gray-500 hover:text-gray-700 flex items-center gap-1"><Download size={12} /> Download</button>
+              </div>
+            )
+          }
+        ]}
+        data={filteredReports}
+      />
     </div>
   );
 }

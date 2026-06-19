@@ -128,9 +128,19 @@ import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
 import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
 import ZoikoHRAttendanceMyAttendance from "./modules/zoiko-hr/attendance/my-attendance.jsx";
-import ZoikoHRAttendanceCorrections from "./modules/zoiko-hr/attendance/corrections.jsx";
-import ZoikoHRAttendanceSchedule from "./modules/zoiko-hr/attendance/schedule.jsx";
+import ZoikoHRAttendanceRegularization from "./modules/zoiko-hr/attendance/regularization.jsx";
+import ZoikoHRAttendancePolicies from "./modules/zoiko-hr/attendance/policies.jsx";
+import ZoikoHRAttendanceShifts from "./modules/zoiko-hr/attendance/shifts.jsx";
+import ZoikoHRAttendanceRosters from "./modules/zoiko-hr/attendance/rosters.jsx";
+import ZoikoHRAttendanceBiometric from "./modules/zoiko-hr/attendance/biometric.jsx";
+import ZoikoHRAttendanceGeofencing from "./modules/zoiko-hr/attendance/geofencing.jsx";
+import ZoikoHRAttendanceOvertime from "./modules/zoiko-hr/attendance/overtime.jsx";
 import ZoikoHRAttendanceReports from "./modules/zoiko-hr/attendance/reports.jsx";
+import ZoikoHRAttendanceAnalytics from "./modules/zoiko-hr/attendance/analytics.jsx";
+import ZoikoHRAttendanceExceptions from "./modules/zoiko-hr/attendance/exceptions.jsx";
+import ZoikoHRAttendanceHolidays from "./modules/zoiko-hr/attendance/holidays.jsx";
+import ZoikoHRAttendanceWeekends from "./modules/zoiko-hr/attendance/weekends.jsx";
+import ZoikoHRAttendanceAuditLogs from "./modules/zoiko-hr/attendance/audit-logs.jsx";
 import ZoikoHRAttendanceSettings from "./modules/zoiko-hr/attendance/settings.jsx";
 
 import WorkforceDashboard from "./modules/zoiko-hr/workforce-planning/dashboard.jsx";
@@ -141,16 +151,7 @@ import ScenarioPlanning from "./modules/zoiko-hr/workforce-planning/scenario-pla
 import WorkforceReports from "./modules/zoiko-hr/workforce-planning/reports.jsx";
 import WorkforceSettings from "./modules/zoiko-hr/workforce-planning/settings.jsx";
 
-import ZoikoHRLearningDashboard from "./modules/zoiko-hr/learning/dashboard.jsx";
-import ZoikoHRLearningCourses from "./modules/zoiko-hr/learning/courses.jsx";
-import ZoikoHRLearningTrainingPrograms from "./modules/zoiko-hr/learning/training-programs.jsx";
-import ZoikoHRLearningPaths from "./modules/zoiko-hr/learning/learning-paths.jsx";
-import ZoikoHRLearningCertifications from "./modules/zoiko-hr/learning/certifications.jsx";
-import ZoikoHRLearningSkillMatrix from "./modules/zoiko-hr/learning/skill-matrix.jsx";
-import ZoikoHRLearningAssessments from "./modules/zoiko-hr/learning/assessments.jsx";
-import ZoikoHRLearningCalendar from "./modules/zoiko-hr/learning/calendar.jsx";
-import ZoikoHRLearningProgress from "./modules/zoiko-hr/learning/progress.jsx";
-import ZoikoHRLearningReports from "./modules/zoiko-hr/learning/reports.jsx";
+
 import ZoikoHRCompDashboard from "./modules/zoiko-hr/compensation/dashboard.jsx";
 import ZoikoHRCompSalaryStructures from "./modules/zoiko-hr/compensation/salary-structures.jsx";
 import ZoikoHRCompPayGrades from "./modules/zoiko-hr/compensation/pay-grades.jsx";
@@ -276,9 +277,19 @@ const routeOverrides = {
   "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
   "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
   "/zoiko-hr/attendance/my-attendance": <ZoikoHRAttendanceMyAttendance />,
-  "/zoiko-hr/attendance/corrections": <ZoikoHRAttendanceCorrections />,
-  "/zoiko-hr/attendance/schedule": <ZoikoHRAttendanceSchedule />,
+  "/zoiko-hr/attendance/regularization": <ZoikoHRAttendanceRegularization />,
+  "/zoiko-hr/attendance/policies": <ZoikoHRAttendancePolicies />,
+  "/zoiko-hr/attendance/shifts": <ZoikoHRAttendanceShifts />,
+  "/zoiko-hr/attendance/rosters": <ZoikoHRAttendanceRosters />,
+  "/zoiko-hr/attendance/biometric": <ZoikoHRAttendanceBiometric />,
+  "/zoiko-hr/attendance/geofencing": <ZoikoHRAttendanceGeofencing />,
+  "/zoiko-hr/attendance/overtime": <ZoikoHRAttendanceOvertime />,
   "/zoiko-hr/attendance/reports": <ZoikoHRAttendanceReports />,
+  "/zoiko-hr/attendance/analytics": <ZoikoHRAttendanceAnalytics />,
+  "/zoiko-hr/attendance/exceptions": <ZoikoHRAttendanceExceptions />,
+  "/zoiko-hr/attendance/holidays": <ZoikoHRAttendanceHolidays />,
+  "/zoiko-hr/attendance/weekends": <ZoikoHRAttendanceWeekends />,
+  "/zoiko-hr/attendance/audit-logs": <ZoikoHRAttendanceAuditLogs />,
   "/zoiko-hr/attendance/settings": <ZoikoHRAttendanceSettings />,
   "/zoiko-hr/performance": <PerformanceDashboard />,
   "/zoiko-hr/recruitment": <RecruitmentDashboard />,
@@ -303,16 +314,17 @@ const routeOverrides = {
   "/zoiko-hr/assets/maintenance": <AssetMaintenance />,
   "/zoiko-hr/assets/reports": <AssetReports />,
   "/zoiko-hr/assets/settings": <AssetSettings />,
-  "/zoiko-hr/learning": <ZoikoHRLearningDashboard />,
-  "/zoiko-hr/learning/courses": <ZoikoHRLearningCourses />,
-  "/zoiko-hr/learning/training-programs": <ZoikoHRLearningTrainingPrograms />,
-  "/zoiko-hr/learning/paths": <ZoikoHRLearningPaths />,
-  "/zoiko-hr/learning/certifications": <ZoikoHRLearningCertifications />,
-  "/zoiko-hr/learning/skills": <ZoikoHRLearningSkillMatrix />,
-  "/zoiko-hr/learning/assessments": <ZoikoHRLearningAssessments />,
-  "/zoiko-hr/learning/calendar": <ZoikoHRLearningCalendar />,
-  "/zoiko-hr/learning/progress": <ZoikoHRLearningProgress />,
-  "/zoiko-hr/learning/reports": <ZoikoHRLearningReports />,
+  "/zoiko-hr/learning": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/courses": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/training-programs": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/paths": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/certifications": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/skills": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/assessments": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/calendar": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/progress": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/reports": <ZoikoHRLearning />,
+  "/zoiko-hr/learning/enrollments": <ZoikoHRLearning />,
   "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
   "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
   "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,

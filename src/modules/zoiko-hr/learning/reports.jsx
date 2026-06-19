@@ -4,6 +4,13 @@ import {
   getCourseCompletionReport,
   getCertificationReport,
   getSkillGapAnalysis,
+  exportCourseCompletionReportCsv,
+  exportCourseCompletionReportExcel,
+  exportCertificationReportCsv,
+  exportCertificationReportExcel,
+  exportSkillGapReportCsv,
+  exportSkillGapReportExcel,
+  getEmployees,
 } from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 10;
@@ -76,15 +83,31 @@ function CompletionTab() {
           <span className="font-bold text-blue-600">{stats.avgRate}%</span>
         </div>
       </div>
-      {data.length > 0 && (
-        <input
-          type="text"
-          placeholder="Search by course name..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      )}
+      <div className="flex flex-wrap justify-between items-center gap-3">
+        {data.length > 0 && (
+          <input
+            type="text"
+            placeholder="Search by course name..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        )}
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={exportCourseCompletionReportCsv}
+            className="border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>📥</span> Export CSV
+          </button>
+          <button
+            onClick={exportCourseCompletionReportExcel}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>📊</span> Export Excel
+          </button>
+        </div>
+      </div>
       {filtered.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm">
           <p className="text-gray-500 font-medium">
@@ -148,6 +171,7 @@ function CompletionTab() {
 
 function CertificationTab() {
   const [data, setData] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -155,8 +179,9 @@ function CertificationTab() {
     setLoading(true);
     setError(null);
     try {
-      const res = await getCertificationReport();
+      const [res, emps] = await Promise.all([getCertificationReport(), getEmployees()]);
       setData(Array.isArray(res) ? res : []);
+      setEmployees(emps?.items || (Array.isArray(emps) ? emps : []));
     } catch (err) {
       setError(err.message || "Failed to load certification report");
       setData([]);
@@ -166,6 +191,14 @@ function CertificationTab() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const employeeMap = useMemo(() => {
+    const m = {};
+    employees.forEach((e) => {
+      m[e.id] = e;
+    });
+    return m;
+  }, [employees]);
 
   const getCertRowStyle = (expiry) => {
     if (!expiry) return "";
@@ -198,6 +231,22 @@ function CertificationTab() {
 
   return (
     <div className="space-y-4">
+      {data.length > 0 && (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={exportCertificationReportCsv}
+            className="border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>📥</span> Export CSV
+          </button>
+          <button
+            onClick={exportCertificationReportExcel}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>📊</span> Export Excel
+          </button>
+        </div>
+      )}
       {data.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm">
           <p className="text-gray-500 font-medium">No certification data available.</p>
@@ -217,22 +266,26 @@ function CertificationTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {data.map((c, i) => (
-                  <tr key={c.id || i} className={`hover:bg-gray-50 transition-colors ${getCertRowStyle(c.expiry_date)}`}>
-                    <td className="px-4 py-3 font-medium text-gray-800">{c.certification_name || c.name}</td>
-                    <td className="px-4 py-3 text-gray-700">{c.employee_name || c.employee_id}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{c.issued_date || c.issued}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{c.expiry_date || c.expiry || <span className="text-gray-300">-</span>}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
-                      {c.expiry_date ? (
-                        <span className={getDaysLeft(c.expiry_date) < 0 ? "text-red-600 font-medium" : getDaysLeft(c.expiry_date) < 30 ? "text-yellow-600 font-medium" : ""}>
-                          {getDaysLeft(c.expiry_date)}
-                        </span>
-                      ) : <span className="text-gray-300">-</span>}
-                    </td>
-                    <td className="px-4 py-3">{getStatusBadge(c.expiry_date)}</td>
-                  </tr>
-                ))}
+                {data.map((c, i) => {
+                  const emp = employeeMap[c.employee_id];
+                  const empName = emp ? `${emp.first_name || ""} ${emp.last_name || ""}`.trim() : `#${c.employee_id}`;
+                  return (
+                    <tr key={c.id || i} className={`hover:bg-gray-50 transition-colors ${getCertRowStyle(c.expiry_date)}`}>
+                      <td className="px-4 py-3 font-medium text-gray-800">{c.certification_name || c.name}</td>
+                      <td className="px-4 py-3 text-gray-700">{empName}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{c.issue_date || c.issued_date || c.issued}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{c.expiry_date || c.expiry || <span className="text-gray-300">-</span>}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">
+                        {c.expiry_date ? (
+                          <span className={getDaysLeft(c.expiry_date) < 0 ? "text-red-600 font-medium" : getDaysLeft(c.expiry_date) < 30 ? "text-yellow-600 font-medium" : ""}>
+                            {getDaysLeft(c.expiry_date)}
+                          </span>
+                        ) : <span className="text-gray-300">-</span>}
+                      </td>
+                      <td className="px-4 py-3">{getStatusBadge(c.expiry_date)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -281,6 +334,22 @@ function SkillGapTab() {
 
   return (
     <div className="space-y-4">
+      {data.length > 0 && (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={exportSkillGapReportCsv}
+            className="border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>📥</span> Export CSV
+          </button>
+          <button
+            onClick={exportSkillGapReportExcel}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>📊</span> Export Excel
+          </button>
+        </div>
+      )}
       {data.map((dept, i) => (
         <div key={dept.department_id || i} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
@@ -320,7 +389,7 @@ function SkillGapTab() {
   );
 }
 
-export default function ZoikoHRReports() {
+export default function ZoikoHRReports({ isTab }) {
   const [activeTab, setActiveTab] = useState("completion");
 
   const tabs = [
@@ -329,8 +398,8 @@ export default function ZoikoHRReports() {
     { key: "skillgap", label: "Skill Gap" },
   ];
 
-  return (
-    <HRPage title="Reports & Analytics" subtitle="Course completion, certification, and skill gap reports.">
+  const content = (
+    <>
       <div className="mb-6 border-b border-gray-200">
         <div className="flex gap-1 overflow-x-auto">
           {tabs.map((t) => (
@@ -352,6 +421,16 @@ export default function ZoikoHRReports() {
       {activeTab === "completion" && <CompletionTab />}
       {activeTab === "certification" && <CertificationTab />}
       {activeTab === "skillgap" && <SkillGapTab />}
+    </>
+  );
+
+  if (isTab) {
+    return content;
+  }
+
+  return (
+    <HRPage title="Reports & Analytics" subtitle="Course completion, certification, and skill gap reports.">
+      {content}
     </HRPage>
   );
 }

@@ -1,17 +1,8 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
 import { Plus, Users, Search } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/attendance" },
-  { label: "Daily Records", href: "/zoiko-hr/attendance/daily" },
-  { label: "My Attendance", href: "/zoiko-hr/attendance/my-attendance" },
-  { label: "Corrections", href: "/zoiko-hr/attendance/corrections" },
-  { label: "Schedule", href: "/zoiko-hr/attendance/schedule" },
-  { label: "Reports", href: "/zoiko-hr/attendance/reports" },
-  { label: "Settings", href: "/zoiko-hr/attendance/settings" },
-];
+
 
 const DEFAULT_SHIFTS = [
   { id: 1, name: "Morning Shift", startTime: "08:00", endTime: "16:00", department: "Engineering" },
@@ -26,22 +17,7 @@ const DEFAULT_ASSIGNMENTS = [
   { id: 3, employee: "Bob Wilson", shift: "Night Shift", date: "2025-01-15", department: "Support" },
 ];
 
-function SubNav() {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/attendance"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
-  );
-}
+
 
 export default function AttendanceSchedule() {
   const [shifts, setShifts] = useState(DEFAULT_SHIFTS);
@@ -75,8 +51,7 @@ export default function AttendanceSchedule() {
 
   return (
     <HRPage title="Shift Schedule" subtitle="Manage shifts and assignments">
-      <SubNav />
-      <div className="space-y-6">
+            <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Shift Schedule</h1>
@@ -255,3 +230,4 @@ export default function AttendanceSchedule() {
     </HRPage>
   );
 }
+

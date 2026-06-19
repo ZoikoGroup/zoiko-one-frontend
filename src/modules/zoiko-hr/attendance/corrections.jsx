@@ -1,18 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { NavLink } from "react-router-dom";
 import { Plus, CheckCircle, XCircle, Search } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getAttendance, createAttendance } from "../../../service/hrService";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/attendance" },
-  { label: "Daily Records", href: "/zoiko-hr/attendance/daily" },
-  { label: "My Attendance", href: "/zoiko-hr/attendance/my-attendance" },
-  { label: "Corrections", href: "/zoiko-hr/attendance/corrections" },
-  { label: "Schedule", href: "/zoiko-hr/attendance/schedule" },
-  { label: "Reports", href: "/zoiko-hr/attendance/reports" },
-  { label: "Settings", href: "/zoiko-hr/attendance/settings" },
-];
+
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -20,22 +11,7 @@ const STATUS_COLORS = {
   rejected: "bg-red-100 text-red-800",
 };
 
-function SubNav() {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/attendance"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
-  );
-}
+
 
 function StatusBadge({ status }) {
   const colorClass = STATUS_COLORS[status] || "bg-gray-100 text-gray-800";
@@ -121,8 +97,7 @@ export default function AttendanceCorrections() {
   if (loading) {
     return (
       <HRPage title="Attendance Corrections" subtitle="Manage attendance correction requests">
-        <SubNav />
-        <div className="flex justify-center items-center py-20">
+                <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-500">Loading corrections...</span>
         </div>
@@ -132,8 +107,7 @@ export default function AttendanceCorrections() {
 
   return (
     <HRPage title="Attendance Corrections" subtitle="Manage attendance correction requests">
-      <SubNav />
-      <div className="space-y-6">
+            <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Attendance Corrections</h1>
@@ -254,3 +228,4 @@ export default function AttendanceCorrections() {
     </HRPage>
   );
 }
+

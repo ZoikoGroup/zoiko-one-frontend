@@ -1,38 +1,22 @@
 import { useState, useEffect, useMemo } from "react";
 import HRPage from "../../../components/HRPage";
-
-const STATUS_COLORS = {
-  active: "bg-green-100 text-green-800",
-  inactive: "bg-gray-100 text-gray-800",
-  expired: "bg-red-100 text-red-800",
-};
-
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "expired", label: "Expired" },
-];
+import {
+  getBenefits,
+  createBenefit,
+  updateBenefit,
+  deleteBenefit,
+} from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 8;
 
 const initialForm = {
-  employee_id: "",
-  benefit_type: "",
-  provider: "",
-  amount: "",
-  effective_date: "",
-  expiry_date: "",
-  status: "active",
+  name: "",
+  description: "",
+  is_active: true,
 };
 
-const mockBenefits = [
-  { id: 1, employee_id: 1, benefit_type: "Health Insurance", provider: "MedLife", amount: 12000, effective_date: "2026-01-01", expiry_date: "2026-12-31", status: "active" },
-  { id: 2, employee_id: 2, benefit_type: "Dental", provider: "DentCare", amount: 5000, effective_date: "2026-02-01", expiry_date: "2026-12-31", status: "active" },
-  { id: 3, employee_id: 3, benefit_type: "Gym Membership", provider: "", amount: 3000, effective_date: "2026-03-01", expiry_date: "2026-12-31", status: "inactive" },
-];
-
 export default function ZoikOHRBenefits() {
-  const [benefits, setBenefits] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
@@ -46,47 +30,46 @@ export default function ZoikOHRBenefits() {
   const [formErrors, setFormErrors] = useState({});
   const [editForm, setEditForm] = useState({ ...initialForm });
 
-  const fetchBenefits = async () => {
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 300));
-      setBenefits([...mockBenefits]);
+      const data = await getBenefits();
+      setItems(data);
     } catch (err) {
       setError(err.message || "Failed to load benefits");
-      setBenefits([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBenefits();
+    fetchData();
   }, []);
 
   const stats = useMemo(() => {
-    const total = benefits.length;
-    const active = benefits.filter((b) => b.status === "active").length;
-    const totalAmount = benefits.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
-    return { total, active, totalAmount };
-  }, [benefits]);
+    const total = items.length;
+    const active = items.filter((b) => b.is_active).length;
+    const inactive = items.filter((b) => !b.is_active).length;
+    return { total, active, inactive };
+  }, [items]);
 
   const filtered = useMemo(() => {
-    let result = benefits;
+    let result = items;
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
         (b) =>
-          b.benefit_type?.toLowerCase().includes(q) ||
-          b.provider?.toLowerCase().includes(q) ||
-          String(b.employee_id).includes(q)
+          b.name?.toLowerCase().includes(q) ||
+          b.description?.toLowerCase().includes(q)
       );
     }
     if (statusFilter) {
-      result = result.filter((b) => b.status === statusFilter);
+      const isActive = statusFilter === "active";
+      result = result.filter((b) => b.is_active === isActive);
     }
     return result;
-  }, [benefits, search, statusFilter]);
+  }, [items, search, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -103,10 +86,7 @@ export default function ZoikOHRBenefits() {
 
   const validateForm = (data) => {
     const errors = {};
-    if (!data.employee_id) errors.employee_id = "Employee ID is required";
-    if (!data.benefit_type?.trim()) errors.benefit_type = "Benefit type is required";
-    if (!data.effective_date) errors.effective_date = "Effective date is required";
-    if (data.amount && isNaN(parseFloat(data.amount))) errors.amount = "Must be a valid number";
+    if (!data.name?.trim()) errors.name = "Benefit name is required";
     return errors;
   };
 
@@ -117,17 +97,12 @@ export default function ZoikOHRBenefits() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      const newItem = {
-        id: Math.max(0, ...benefits.map((b) => b.id)) + 1,
-        employee_id: parseInt(formData.employee_id),
-        benefit_type: formData.benefit_type.trim(),
-        provider: formData.provider.trim() || null,
-        amount: formData.amount ? parseFloat(formData.amount) : null,
-        effective_date: formData.effective_date,
-        expiry_date: formData.expiry_date || null,
-        status: formData.status,
-      };
-      setBenefits((prev) => [...prev, newItem]);
+      await createBenefit({
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        is_active: formData.is_active,
+      });
+      await fetchData();
       setShowCreateModal(false);
       resetForm();
     } catch (err) {
@@ -140,13 +115,9 @@ export default function ZoikOHRBenefits() {
   const openEditModal = (item) => {
     setEditItem(item);
     setEditForm({
-      employee_id: String(item.employee_id || ""),
-      benefit_type: item.benefit_type || "",
-      provider: item.provider || "",
-      amount: item.amount || "",
-      effective_date: item.effective_date || "",
-      expiry_date: item.expiry_date || "",
-      status: item.status || "active",
+      name: item.name || "",
+      description: item.description || "",
+      is_active: item.is_active ?? true,
     });
     setFormErrors({});
     setShowEditModal(true);
@@ -160,22 +131,12 @@ export default function ZoikOHRBenefits() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      setBenefits((prev) =>
-        prev.map((b) =>
-          b.id === editItem.id
-            ? {
-                ...b,
-                employee_id: parseInt(editForm.employee_id),
-                benefit_type: editForm.benefit_type.trim(),
-                provider: editForm.provider.trim() || null,
-                amount: editForm.amount ? parseFloat(editForm.amount) : null,
-                effective_date: editForm.effective_date,
-                expiry_date: editForm.expiry_date || null,
-                status: editForm.status,
-              }
-            : b
-        )
-      );
+      await updateBenefit(editItem.id, {
+        name: editForm.name.trim(),
+        description: editForm.description.trim() || null,
+        is_active: editForm.is_active,
+      });
+      await fetchData();
       setShowEditModal(false);
       setEditItem(null);
     } catch (err) {
@@ -185,12 +146,17 @@ export default function ZoikOHRBenefits() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this benefit?")) return;
-    setBenefits((prev) => prev.filter((b) => b.id !== id));
+    try {
+      await deleteBenefit(id);
+      await fetchData();
+    } catch (err) {
+      setError(err.message || "Failed to delete benefit");
+    }
   };
 
-  if (loading && benefits.length === 0) {
+  if (loading && items.length === 0) {
     return (
       <HRPage title="Benefits Administration" subtitle="Manage employee benefits, enrollments, and coverage.">
         <div className="flex justify-center items-center py-20">
@@ -225,9 +191,9 @@ export default function ZoikOHRBenefits() {
               <span className="text-gray-400">Active: </span>
               <span className="font-bold text-green-600">{stats.active}</span>
             </div>
-            <div className="bg-white px-4 py-2 border border-purple-100 rounded-lg shadow-sm text-sm">
-              <span className="text-gray-400">Total Amount: </span>
-              <span className="font-bold text-purple-600">${stats.totalAmount.toLocaleString()}</span>
+            <div className="bg-white px-4 py-2 border border-red-100 rounded-lg shadow-sm text-sm">
+              <span className="text-gray-400">Inactive: </span>
+              <span className="font-bold text-red-600">{stats.inactive}</span>
             </div>
           </div>
           <button
@@ -238,11 +204,11 @@ export default function ZoikOHRBenefits() {
           </button>
         </div>
 
-        {benefits.length > 0 && (
+        {items.length > 0 && (
           <div className="flex flex-wrap gap-3">
             <input
               type="text"
-              placeholder="Search by type, provider, or employee..."
+              placeholder="Search by name or description..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -253,9 +219,8 @@ export default function ZoikOHRBenefits() {
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Statuses</option>
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
           </div>
         )}
@@ -264,7 +229,7 @@ export default function ZoikOHRBenefits() {
           <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm">
             <div className="text-4xl mb-3">🎁</div>
             <p className="text-gray-500 font-medium">
-              {benefits.length === 0
+              {items.length === 0
                 ? "No benefits yet. Add your first benefit to get started."
                 : "No benefits match your search criteria."}
             </p>
@@ -276,12 +241,8 @@ export default function ZoikOHRBenefits() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Employee</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Provider</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Amount</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Effective</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Expiry</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Description</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
                       <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                     </tr>
@@ -289,15 +250,13 @@ export default function ZoikOHRBenefits() {
                   <tbody className="divide-y divide-gray-50">
                     {paginated.map((b) => (
                       <tr key={b.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">#{b.employee_id}</td>
-                        <td className="px-4 py-3 text-gray-700">{b.benefit_type}</td>
-                        <td className="px-4 py-3 text-gray-700">{b.provider || <span className="text-gray-300">-</span>}</td>
-                        <td className="px-4 py-3 text-gray-700">{b.amount ? `$${parseFloat(b.amount).toLocaleString()}` : <span className="text-gray-300">-</span>}</td>
-                        <td className="px-4 py-3 text-gray-700">{b.effective_date}</td>
-                        <td className="px-4 py-3 text-gray-700">{b.expiry_date || <span className="text-gray-300">-</span>}</td>
+                        <td className="px-4 py-3 font-medium text-gray-800">{b.name}</td>
+                        <td className="px-4 py-3 text-gray-700 max-w-xs truncate">{b.description || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3">
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[b.status] || STATUS_COLORS.active}`}>
-                            {b.status}
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                            b.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                          }`}>
+                            {b.is_active ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -372,75 +331,33 @@ export default function ZoikOHRBenefits() {
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                <input
-                  type="number"
-                  value={formData.employee_id}
-                  onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
-                  className={`w-full border ${formErrors.employee_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.employee_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_id}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Benefit Type *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Benefit Name *</label>
                 <input
                   type="text"
-                  value={formData.benefit_type}
-                  onChange={(e) => setFormData({ ...formData, benefit_type: e.target.value })}
-                  className={`w-full border ${formErrors.benefit_type ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={`w-full border ${formErrors.name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
-                {formErrors.benefit_type && <p className="text-red-500 text-xs mt-1">{formErrors.benefit_type}</p>}
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
-                <input
-                  type="text"
-                  value={formData.provider}
-                  onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+              <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className={`w-full border ${formErrors.amount ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="rounded border-gray-300"
                 />
-                {formErrors.amount && <p className="text-red-500 text-xs mt-1">{formErrors.amount}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Effective Date *</label>
-                <input
-                  type="date"
-                  value={formData.effective_date}
-                  onChange={(e) => setFormData({ ...formData, effective_date: e.target.value })}
-                  className={`w-full border ${formErrors.effective_date ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.effective_date && <p className="text-red-500 text-xs mt-1">{formErrors.effective_date}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                <input
-                  type="date"
-                  value={formData.expiry_date}
-                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                <label htmlFor="is_active" className="text-sm font-medium text-gray-700">Active</label>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
@@ -462,78 +379,36 @@ export default function ZoikOHRBenefits() {
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               <div className="text-sm text-gray-500 mb-1">
-                Editing: <span className="font-medium text-gray-800">{editItem.benefit_type}</span> (Employee #{editItem.employee_id})
+                Editing: <span className="font-medium text-gray-800">{editItem.name}</span>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                <input
-                  type="number"
-                  value={editForm.employee_id}
-                  onChange={(e) => setEditForm({ ...editForm, employee_id: e.target.value })}
-                  className={`w-full border ${formErrors.employee_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.employee_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_id}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Benefit Type *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Benefit Name *</label>
                 <input
                   type="text"
-                  value={editForm.benefit_type}
-                  onChange={(e) => setEditForm({ ...editForm, benefit_type: e.target.value })}
-                  className={`w-full border ${formErrors.benefit_type ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className={`w-full border ${formErrors.name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
-                {formErrors.benefit_type && <p className="text-red-500 text-xs mt-1">{formErrors.benefit_type}</p>}
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
-                <input
-                  type="text"
-                  value={editForm.provider}
-                  onChange={(e) => setEditForm({ ...editForm, provider: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+              <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  step="0.01"
-                  value={editForm.amount}
-                  onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
-                  className={`w-full border ${formErrors.amount ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  type="checkbox"
+                  id="edit_is_active"
+                  checked={editForm.is_active}
+                  onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
+                  className="rounded border-gray-300"
                 />
-                {formErrors.amount && <p className="text-red-500 text-xs mt-1">{formErrors.amount}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Effective Date *</label>
-                <input
-                  type="date"
-                  value={editForm.effective_date}
-                  onChange={(e) => setEditForm({ ...editForm, effective_date: e.target.value })}
-                  className={`w-full border ${formErrors.effective_date ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.effective_date && <p className="text-red-500 text-xs mt-1">{formErrors.effective_date}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                <input
-                  type="date"
-                  value={editForm.expiry_date}
-                  onChange={(e) => setEditForm({ ...editForm, expiry_date: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                <label htmlFor="edit_is_active" className="text-sm font-medium text-gray-700">Active</label>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowEditModal(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>

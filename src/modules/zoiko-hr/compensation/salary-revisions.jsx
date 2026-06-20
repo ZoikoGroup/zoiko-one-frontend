@@ -5,6 +5,7 @@ import {
   createSalaryRevision,
   updateSalaryRevision,
   deleteSalaryRevision,
+  getEmployeeCompensation,
 } from "../../../service/hrService";
 
 const STATUS_COLORS = {
@@ -16,11 +17,10 @@ const STATUS_COLORS = {
 const ITEMS_PER_PAGE = 8;
 
 const initialForm = {
-  employee_id: "",
+  employee_compensation_id: "",
   old_salary: "",
   new_salary: "",
   reason: "",
-  approved_by: "",
   effective_date: "",
 };
 
@@ -37,6 +37,7 @@ export default function ZoikoHRSalaryRevisions() {
   const [formData, setFormData] = useState({ ...initialForm });
   const [formErrors, setFormErrors] = useState({});
   const [editForm, setEditForm] = useState({ ...initialForm });
+  const [compensations, setCompensations] = useState([]);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -52,8 +53,18 @@ export default function ZoikoHRSalaryRevisions() {
     }
   };
 
+  const fetchCompensations = async () => {
+    try {
+      const data = await getEmployeeCompensation();
+      setCompensations(Array.isArray(data) ? data : []);
+    } catch {
+      setCompensations([]);
+    }
+  };
+
   useEffect(() => {
     fetchItems();
+    fetchCompensations();
   }, []);
 
   const stats = useMemo(() => {
@@ -69,10 +80,13 @@ export default function ZoikoHRSalaryRevisions() {
     let result = items;
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter((i) => String(i.employee_id).includes(q));
+      result = result.filter((i) => {
+        const comp = compensations.find((c) => c.id === i.employee_compensation_id);
+        return comp ? String(comp.employee_id).includes(q) : false;
+      });
     }
     return result;
-  }, [items, search]);
+  }, [items, search, compensations]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -89,8 +103,7 @@ export default function ZoikoHRSalaryRevisions() {
 
   const validateForm = (data) => {
     const errors = {};
-    if (!data.employee_id) errors.employee_id = "Employee ID is required";
-    if (!data.old_salary || isNaN(parseFloat(data.old_salary))) errors.old_salary = "Valid old salary is required";
+    if (!data.employee_compensation_id) errors.employee_compensation_id = "Employee compensation is required";
     if (!data.new_salary || isNaN(parseFloat(data.new_salary))) errors.new_salary = "Valid new salary is required";
     if (!data.effective_date) errors.effective_date = "Effective date is required";
     return errors;
@@ -104,12 +117,11 @@ export default function ZoikoHRSalaryRevisions() {
     setSubmitting(true);
     try {
       await createSalaryRevision({
-        employee_id: formData.employee_id ? parseInt(formData.employee_id) : null,
+        employee_compensation_id: parseInt(formData.employee_compensation_id),
         old_salary: formData.old_salary ? parseFloat(formData.old_salary) : null,
-        new_salary: formData.new_salary ? parseFloat(formData.new_salary) : null,
+        new_salary: parseFloat(formData.new_salary),
         reason: formData.reason.trim() || null,
-        approved_by: formData.approved_by.trim() || null,
-        effective_date: formData.effective_date || null,
+        effective_date: formData.effective_date,
       });
       setShowCreateModal(false);
       resetForm();
@@ -124,11 +136,10 @@ export default function ZoikoHRSalaryRevisions() {
   const openEditModal = (item) => {
     setEditItem(item);
     setEditForm({
-      employee_id: item.employee_id || "",
+      employee_compensation_id: item.employee_compensation_id || "",
       old_salary: item.old_salary || "",
       new_salary: item.new_salary || "",
       reason: item.reason || "",
-      approved_by: item.approved_by || "",
       effective_date: item.effective_date || "",
     });
     setFormErrors({});
@@ -146,7 +157,7 @@ export default function ZoikoHRSalaryRevisions() {
       const payload = {};
       for (const key of Object.keys(initialForm)) {
         let val, orig;
-        if (key === "employee_id") {
+        if (key === "employee_compensation_id") {
           val = editForm[key] ? parseInt(editForm[key]) : null;
           orig = editItem[key] ? parseInt(editItem[key]) : null;
         } else if (["old_salary", "new_salary"].includes(key)) {
@@ -218,7 +229,7 @@ export default function ZoikoHRSalaryRevisions() {
             </div>
           </div>
           <button
-            onClick={() => { resetForm(); setShowCreateModal(true); }}
+            onClick={() => { resetForm(); fetchCompensations(); setShowCreateModal(true); }}
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             + Add Revision
@@ -268,9 +279,12 @@ export default function ZoikoHRSalaryRevisions() {
                       const oldSal = parseFloat(item.old_salary) || 0;
                       const newSal = parseFloat(item.new_salary) || 0;
                       const change = newSal - oldSal;
+                      const comp = compensations.find((c) => c.id === item.employee_compensation_id);
                       return (
                         <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600">{item.employee_id}</td>
+                          <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600">
+                            {comp ? `#${comp.employee_id}` : `EC#${item.employee_compensation_id}`}
+                          </td>
                           <td className="px-4 py-3 text-gray-700">${oldSal.toLocaleString()}</td>
                           <td className="px-4 py-3 text-gray-700">${newSal.toLocaleString()}</td>
                           <td className={`px-4 py-3 font-medium ${change >= 0 ? "text-green-600" : "text-red-600"}`}>
@@ -356,25 +370,33 @@ export default function ZoikoHRSalaryRevisions() {
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                <input
-                  type="number"
-                  value={formData.employee_id}
-                  onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
-                  className={`w-full border ${formErrors.employee_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.employee_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_id}</p>}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Employee Compensation *</label>
+                <select
+                  value={formData.employee_compensation_id}
+                  onChange={(e) => setFormData({ ...formData, employee_compensation_id: e.target.value })}
+                  className={`w-full border ${formErrors.employee_compensation_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  <option value="">-- Select Employee Compensation --</option>
+                  {compensations.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      Employee #{c.employee_id} — Structure #{c.structure_id} (Eff: {c.effective_date})
+                    </option>
+                  ))}
+                </select>
+                {formErrors.employee_compensation_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_compensation_id}</p>}
+                {compensations.length === 0 && (
+                  <p className="text-amber-600 text-xs mt-1">No employee compensations found. Create one first.</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Old Salary *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Old Salary</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.old_salary}
                   onChange={(e) => setFormData({ ...formData, old_salary: e.target.value })}
-                  className={`w-full border ${formErrors.old_salary ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {formErrors.old_salary && <p className="text-red-500 text-xs mt-1">{formErrors.old_salary}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">New Salary *</label>
@@ -393,15 +415,6 @@ export default function ZoikoHRSalaryRevisions() {
                   rows={2}
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
-                <input
-                  type="text"
-                  value={formData.approved_by}
-                  onChange={(e) => setFormData({ ...formData, approved_by: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -435,25 +448,30 @@ export default function ZoikoHRSalaryRevisions() {
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                <input
-                  type="number"
-                  value={editForm.employee_id}
-                  onChange={(e) => setEditForm({ ...editForm, employee_id: e.target.value })}
-                  className={`w-full border ${formErrors.employee_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.employee_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_id}</p>}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Employee Compensation *</label>
+                <select
+                  value={editForm.employee_compensation_id}
+                  onChange={(e) => setEditForm({ ...editForm, employee_compensation_id: e.target.value })}
+                  className={`w-full border ${formErrors.employee_compensation_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  <option value="">-- Select Employee Compensation --</option>
+                  {compensations.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      Employee #{c.employee_id} — Structure #{c.structure_id} (Eff: {c.effective_date})
+                    </option>
+                  ))}
+                </select>
+                {formErrors.employee_compensation_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_compensation_id}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Old Salary *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Old Salary</label>
                 <input
                   type="number"
                   step="0.01"
                   value={editForm.old_salary}
                   onChange={(e) => setEditForm({ ...editForm, old_salary: e.target.value })}
-                  className={`w-full border ${formErrors.old_salary ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {formErrors.old_salary && <p className="text-red-500 text-xs mt-1">{formErrors.old_salary}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">New Salary *</label>
@@ -472,15 +490,6 @@ export default function ZoikoHRSalaryRevisions() {
                   rows={2}
                   value={editForm.reason}
                   onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Approved By</label>
-                <input
-                  type="text"
-                  value={editForm.approved_by}
-                  onChange={(e) => setEditForm({ ...editForm, approved_by: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

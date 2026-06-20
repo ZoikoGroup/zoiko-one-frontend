@@ -5,6 +5,10 @@ import { getMyAttendance, clockIn, clockOut } from "../../../service/hrService";
 
 
 
+const ITEMS_PER_PAGE = 20;
+
+
+
 const STATUS_COLORS = {
   present: "bg-green-100 text-green-800",
   absent: "bg-red-100 text-red-800",
@@ -62,7 +66,8 @@ export default function MyAttendance() {
   const fetchRecords = async () => {
     try {
       const data = await getMyAttendance();
-      setRecords(Array.isArray(data) ? data : []);
+      const list = data?.items || (Array.isArray(data) ? data : []);
+      setRecords(list);
     } catch (err) {
       setError(err.message || "Failed to load records");
       setRecords([]);
@@ -74,7 +79,11 @@ export default function MyAttendance() {
   useEffect(() => {
     let mounted = true;
     getMyAttendance()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
+      .then((data) => {
+        if (!mounted) return;
+        const list = data?.items || (Array.isArray(data) ? data : []);
+        setRecords(list);
+      })
       .catch(() => {})
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
@@ -84,7 +93,7 @@ export default function MyAttendance() {
     setClocking(true);
     setMessage(null);
     try {
-      await clockIn({ clock_in: new Date().toISOString() });
+      await clockIn({});
       setMessage({ type: "success", text: "Clocked in successfully" });
       await fetchRecords();
     } catch (err) {
@@ -100,10 +109,10 @@ export default function MyAttendance() {
     try {
       const todayRecord = records.find((r) => {
         const todayStr = new Date().toISOString().split("T")[0];
-        return (r.work_date || r.date || "").startsWith(todayStr) && r.clock_in && !r.clock_out;
+        return r.date && r.date.toString().startsWith(todayStr) && r.check_in && !r.check_out;
       });
       if (todayRecord) {
-        await clockOut(todayRecord.id, { clock_out: new Date().toISOString() });
+        await clockOut(todayRecord.id, { clock_out_time: new Date().toISOString() });
       }
       setMessage({ type: "success", text: "Clocked out successfully" });
       await fetchRecords();
@@ -116,7 +125,7 @@ export default function MyAttendance() {
 
   const todayRecord = records.find((r) => {
     const todayStr = new Date().toISOString().split("T")[0];
-    return (r.work_date || r.date || "").startsWith(todayStr);
+    return r.date && r.date.toString().startsWith(todayStr);
   }) || {};
 
   const summary = { present: 0, absent: 0, late: 0, remote: 0 };
@@ -171,9 +180,9 @@ export default function MyAttendance() {
           <div className="flex flex-col items-center gap-6">
             <div className="text-center">
               <Clock className="w-10 h-10 mx-auto mb-2 text-indigo-200" />
-              <p className="text-4xl font-bold font-mono">{todayRecord.clock_in ? formatTime(todayRecord.clock_in) : "--"}</p>
+              <p className="text-4xl font-bold font-mono">{todayRecord.check_in ? formatTime(todayRecord.check_in) : "--"}</p>
               <p className="text-sm text-indigo-200 mt-1">
-                {todayRecord.clock_in ? (todayRecord.clock_out ? "Clocked Out" : "Currently Clocked In") : "Not Clocked In"}
+                {todayRecord.check_in ? (todayRecord.check_out ? "Clocked Out" : "Currently Clocked In") : "Not Clocked In"}
               </p>
             </div>
             <div className="bg-white/20 rounded-lg p-4 w-full max-w-md">
@@ -186,15 +195,15 @@ export default function MyAttendance() {
                   <p className="text-xs text-indigo-100">Status</p>
                   <StatusBadge status={todayRecord.status || "not_clocked"} />
                 </div>
-                {todayRecord.clock_in && (
+                {todayRecord.check_in && (
                   <>
                     <div>
                       <p className="text-xs text-indigo-100">Check In</p>
-                      <p className="font-semibold">{formatTime(todayRecord.clock_in)}</p>
+                      <p className="font-semibold">{formatTime(todayRecord.check_in)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-indigo-100">Check Out</p>
-                      <p className="font-semibold">{formatTime(todayRecord.clock_out)}</p>
+                      <p className="font-semibold">{formatTime(todayRecord.check_out)}</p>
                     </div>
                   </>
                 )}
@@ -202,12 +211,12 @@ export default function MyAttendance() {
             </div>
             <div className="flex gap-4">
               <button onClick={handleClockIn}
-                disabled={todayRecord.clock_in || clocking}
+                disabled={todayRecord.check_in || clocking}
                 className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-400">
                 <LogIn className="w-4 h-4" /> {clocking ? "Processing..." : "Clock In"}
               </button>
               <button onClick={handleClockOut}
-                disabled={!todayRecord.clock_in || todayRecord.clock_out || clocking}
+                disabled={!todayRecord.check_in || todayRecord.check_out || clocking}
                 className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition bg-orange-600 text-white hover:bg-orange-700 disabled:bg-gray-400">
                 <LogOut className="w-4 h-4" /> {clocking ? "Processing..." : "Clock Out"}
               </button>
@@ -234,14 +243,14 @@ export default function MyAttendance() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {recentRecords.map((r, i) => {
-                  const hours = r.clock_in && r.clock_out
-                    ? ((new Date(r.clock_out) - new Date(r.clock_in)) / 3600000).toFixed(1)
+                  const hours = r.check_in && r.check_out
+                    ? ((new Date(r.check_out) - new Date(r.check_in)) / 3600000).toFixed(1)
                     : "-";
                   return (
                     <tr key={r.id ?? i} className="hover:bg-indigo-50/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(r.work_date || r.date)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.clock_in)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.clock_out)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(r.date)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.check_in)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.check_out)}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{hours}</td>
                       <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                     </tr>

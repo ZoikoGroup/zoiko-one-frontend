@@ -7,6 +7,7 @@ import {
   createRoster,
   bulkCreateRosters,
   deleteRoster,
+  getEmployees,
 } from "../../../service/hrService";
 
 
@@ -25,6 +26,7 @@ function formatDate(dateStr) {
 export default function AttendanceRosters() {
   const [rosters, setRosters] = useState([]);
   const [shifts, setShifts] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("daily");
@@ -44,12 +46,15 @@ export default function AttendanceRosters() {
 
   const fetchAll = async () => {
     try {
-      const [rostersRes, shiftsRes] = await Promise.all([
+      const [rostersRes, shiftsRes, employeesRes] = await Promise.all([
         getRosters(),
         getShifts(),
+        getEmployees({ per_page: 500 }),
       ]);
       setRosters(Array.isArray(rostersRes) ? rostersRes : rostersRes?.data || []);
       setShifts(Array.isArray(shiftsRes) ? shiftsRes : shiftsRes?.data || []);
+      const empList = employeesRes?.items || (Array.isArray(employeesRes) ? employeesRes : []);
+      setEmployees(empList);
     } catch {
       // partial failures ok
     }
@@ -61,11 +66,14 @@ export default function AttendanceRosters() {
     Promise.all([
       getRosters(),
       getShifts(),
+      getEmployees({ per_page: 500 }),
     ])
-      .then(([rostersRes, shiftsRes]) => {
+      .then(([rostersRes, shiftsRes, employeesRes]) => {
         if (!mounted) return;
         setRosters(Array.isArray(rostersRes) ? rostersRes : rostersRes?.data || []);
         setShifts(Array.isArray(shiftsRes) ? shiftsRes : shiftsRes?.data || []);
+        const empList = employeesRes?.items || (Array.isArray(employeesRes) ? employeesRes : []);
+        setEmployees(empList);
       })
       .catch(() => {})
       .finally(() => { if (mounted) setLoading(false); });
@@ -316,9 +324,14 @@ export default function AttendanceRosters() {
               </div>
               <form onSubmit={handleAssign} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                  <input type="number" min={1} value={assignForm.employee_id} onChange={(e) => setAssignForm({ ...assignForm, employee_id: e.target.value })}
-                    className={`w-full border ${formErrors.employee_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`} />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Employee *</label>
+                  <select value={assignForm.employee_id} onChange={(e) => setAssignForm({ ...assignForm, employee_id: e.target.value })}
+                    className={`w-full border ${formErrors.employee_id ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`}>
+                    <option value="">Select employee</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} ({emp.email})</option>
+                    ))}
+                  </select>
                   {formErrors.employee_id && <p className="text-red-500 text-xs mt-1">{formErrors.employee_id}</p>}
                 </div>
                 <div>

@@ -101,7 +101,7 @@ export default function DailyRecords() {
     }
     if (filters.status) result = result.filter((r) => r.status === filters.status);
     if (filters.department) result = result.filter((r) => (r.department || r.department_name || "") === filters.department);
-    if (filters.date) result = result.filter((r) => r.work_date === filters.date || r.date === filters.date);
+    if (filters.date) result = result.filter((r) => r.date === filters.date);
     return result;
   }, [records, search, filters]);
 
@@ -121,10 +121,10 @@ export default function DailyRecords() {
     setEditRecord(record);
     setForm({
       employee_id: record.employee_id || "",
-      date: record.work_date || record.date || "",
+      date: record.date || "",
       status: record.status || "present",
-      check_in: record.clock_in ? new Date(record.clock_in).toISOString().slice(0, 16) : "",
-      check_out: record.clock_out ? new Date(record.clock_out).toISOString().slice(0, 16) : "",
+      check_in: record.check_in ? new Date(record.check_in).toISOString().slice(0, 16) : "",
+      check_out: record.check_out ? new Date(record.check_out).toISOString().slice(0, 16) : "",
       notes: record.notes || "",
     });
     setFormErrors({});
@@ -147,10 +147,10 @@ export default function DailyRecords() {
     try {
       const payload = {
         employee_id: Number(form.employee_id),
-        work_date: form.date,
+        date: form.date,
         status: form.status,
-        clock_in: form.check_in || null,
-        clock_out: form.check_out || null,
+        check_in: form.check_in || null,
+        check_out: form.check_out || null,
         notes: form.notes || null,
       };
       if (editRecord) {
@@ -265,9 +265,9 @@ export default function DailyRecords() {
                     <tr key={r.id} className="hover:bg-indigo-50/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.employee_name || r.employee || "Employee #" + r.id}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{r.department || r.department_name || "-"}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(r.work_date || r.date)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.clock_in)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.clock_out)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(r.date)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.check_in)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatTime(r.check_out)}</td>
                       <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">

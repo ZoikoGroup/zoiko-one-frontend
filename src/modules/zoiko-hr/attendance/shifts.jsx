@@ -11,7 +11,21 @@ import {
 
 
 const SHIFT_TYPES = ["General", "Morning", "Evening", "Night", "Rotational"];
+const SHIFT_TYPE_MAP = {
+  General: "general",
+  Morning: "morning",
+  Evening: "evening",
+  Night: "night",
+  Rotational: "rotational",
+};
 
+const SHIFT_TYPE_REVERSE_MAP = {
+  general: "General",
+  morning: "Morning",
+  evening: "Evening",
+  night: "Night",
+  rotational: "Rotational",
+};
 
 
 const initialForm = {
@@ -72,7 +86,7 @@ export default function AttendanceShifts() {
     setEditItem(shift);
     setFormData({
       name: shift.name || "",
-      shift_type: shift.shift_type || "General",
+      shift_type: SHIFT_TYPE_REVERSE_MAP[shift.shift_type] || shift.shift_type || "General",
       start_time: shift.start_time || "09:00",
       end_time: shift.end_time || "18:00",
       grace_time_minutes: shift.grace_time_minutes ?? 15,
@@ -103,6 +117,7 @@ export default function AttendanceShifts() {
     try {
       const payload = {
         ...formData,
+        shift_type: SHIFT_TYPE_MAP[formData.shift_type] || formData.shift_type,
         description: formData.description?.trim() || null,
       };
       if (editItem) {

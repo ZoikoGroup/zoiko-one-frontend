@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { Calendar, Clock, CheckCircle, XCircle, Search } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeave, reviewLeaveRequest } from "../../../service/hrService";
+import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -74,7 +74,6 @@ export default function LeaveRequests() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [deptFilter, setDeptFilter] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewStatus, setReviewStatus] = useState("");
@@ -82,34 +81,45 @@ export default function LeaveRequests() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [stats, setStats] = useState({ total_requests: 0, pending_requests: 0, approved_requests: 0, rejected_requests: 0 });
 
   useEffect(() => {
     let mounted = true;
-    getLeave()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false); });
+    const fetch = async () => {
+      try {
+        const [leaveData, dashData] = await Promise.all([
+          getLeaveRequests(),
+          getLeaveDashboard(),
+        ]);
+        if (!mounted) return;
+        setRecords(Array.isArray(leaveData) ? leaveData : []);
+        if (dashData) {
+          setStats({
+            total_requests: dashData.total_requests || 0,
+            pending_requests: dashData.pending_requests || 0,
+            approved_requests: dashData.approved_requests || 0,
+            rejected_requests: dashData.rejected_requests || 0,
+          });
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetch();
     return () => { mounted = false; };
   }, []);
-
-  const stats = useMemo(() => {
-    const total = records.length;
-    const pending = records.filter((r) => r.status === "pending").length;
-    const approved = records.filter((r) => r.status === "approved").length;
-    const rejected = records.filter((r) => r.status === "rejected").length;
-    return { total, pending, approved, rejected };
-  }, [records]);
 
   const filtered = useMemo(() => {
     let result = records;
     if (search) {
       const q = search.toLowerCase();
-      result = result.filter((r) => (r.employee_name || "").toLowerCase().includes(q) || (r.department || "").toLowerCase().includes(q));
+      result = result.filter((r) => (r.employee_name || "").toLowerCase().includes(q));
     }
     if (statusFilter) result = result.filter((r) => r.status === statusFilter);
-    if (deptFilter) result = result.filter((r) => r.department === deptFilter);
     return result;
-  }, [records, search, statusFilter, deptFilter]);
+  }, [records, search, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -128,11 +138,11 @@ export default function LeaveRequests() {
     setSubmitting(true);
     setMessage(null);
     try {
-      await reviewLeaveRequest(selectedRequest.id, { status: reviewStatus, comments: reviewComments });
+      await reviewLeaveRequest(selectedRequest.id, { status: reviewStatus, reason: reviewComments || undefined });
       setMessage(`Request ${reviewStatus} successfully`);
       setShowReviewModal(false);
       setSelectedRequest(null);
-      const data = await getLeave();
+      const data = await getLeaveRequests();
       setRecords(Array.isArray(data) ? data : []);
     } catch {
       setMessage("Failed to review request");
@@ -142,10 +152,10 @@ export default function LeaveRequests() {
   };
 
   const statCards = [
-    { title: "Total Requests", value: stats.total, icon: Calendar },
-    { title: "Pending", value: stats.pending, icon: Clock },
-    { title: "Approved", value: stats.approved, icon: CheckCircle },
-    { title: "Rejected", value: stats.rejected, icon: XCircle },
+    { title: "Total Requests", value: stats.total_requests, icon: Calendar },
+    { title: "Pending", value: stats.pending_requests, icon: Clock },
+    { title: "Approved", value: stats.approved_requests, icon: CheckCircle },
+    { title: "Rejected", value: stats.rejected_requests, icon: XCircle },
   ];
 
   if (loading) {
@@ -193,15 +203,7 @@ export default function LeaveRequests() {
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
-          <select value={deptFilter} onChange={(e) => { setDeptFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
-            <option value="">All Departments</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Sales">Sales</option>
-            <option value="HR">HR</option>
-            <option value="Finance">Finance</option>
-          </select>
+
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">

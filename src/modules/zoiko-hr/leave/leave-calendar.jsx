@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeave } from "../../../service/hrService";
+import { getLeaveCalendar, getLeaveRequests } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -49,17 +49,23 @@ export default function LeaveCalendar() {
   const [loading, setLoading] = useState(true);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [deptFilter, setDeptFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
 
   useEffect(() => {
     let mounted = true;
-    getLeave()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false); });
+    const fetch = async () => {
+      try {
+        const data = await getLeaveCalendar({ year: currentYear, month: currentMonth + 1 });
+        if (mounted) setRecords(Array.isArray(data) ? data : []);
+      } catch {
+        // ignore
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetch();
     return () => { mounted = false; };
-  }, []);
+  }, [currentYear, currentMonth]);
 
   const prevMonth = () => {
     if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(currentYear - 1); }
@@ -75,10 +81,9 @@ export default function LeaveCalendar() {
 
   const filtered = useMemo(() => {
     let result = records;
-    if (deptFilter) result = result.filter((r) => r.department === deptFilter);
     if (typeFilter) result = result.filter((r) => r.leave_type === typeFilter);
     return result;
-  }, [records, deptFilter, typeFilter]);
+  }, [records, typeFilter]);
 
   const calendarDays = useMemo(() => {
     const days = [];
@@ -113,15 +118,6 @@ export default function LeaveCalendar() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
-            <option value="">All Departments</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Sales">Sales</option>
-            <option value="HR">HR</option>
-            <option value="Finance">Finance</option>
-          </select>
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
             <option value="">All Leave Types</option>

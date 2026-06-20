@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, Edit3, Trash2, X, Check } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeave } from "../../../service/hrService";
+import { getLeaveTypeConfigs, createLeaveTypeConfig, updateLeaveTypeConfig, deleteLeaveTypeConfig } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -14,21 +14,10 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/zoiko-hr/leave/settings" },
 ];
 
-const DEFAULT_TYPES = [
-  { id: 1, name: "Annual Leave", code: "ANNUAL", default_days: 20, carry_forward: true, min_notice: 1, max_consecutive: 15, requires_approval: true, status: "active" },
-  { id: 2, name: "Sick Leave", code: "SICK", default_days: 12, carry_forward: false, min_notice: 0, max_consecutive: 5, requires_approval: true, status: "active" },
-  { id: 3, name: "Casual Leave", code: "CASUAL", default_days: 10, carry_forward: false, min_notice: 1, max_consecutive: 3, requires_approval: true, status: "active" },
-  { id: 4, name: "Earned Leave", code: "EARNED", default_days: 15, carry_forward: true, min_notice: 5, max_consecutive: 30, requires_approval: true, status: "active" },
-  { id: 5, name: "Maternity Leave", code: "MATERNITY", default_days: 90, carry_forward: false, min_notice: 30, max_consecutive: 90, requires_approval: true, status: "active" },
-  { id: 6, name: "Paternity Leave", code: "PATERNITY", default_days: 10, carry_forward: false, min_notice: 7, max_consecutive: 10, requires_approval: true, status: "active" },
-  { id: 7, name: "Unpaid Leave", code: "UNPAID", default_days: 30, carry_forward: false, min_notice: 1, max_consecutive: 30, requires_approval: true, status: "active" },
-  { id: 8, name: "Study Leave", code: "STUDY", default_days: 10, carry_forward: false, min_notice: 14, max_consecutive: 10, requires_approval: true, status: "active" },
-  { id: 9, name: "Emergency Leave", code: "EMERGENCY", default_days: 5, carry_forward: false, min_notice: 0, max_consecutive: 3, requires_approval: false, status: "active" },
-];
-
 const initialForm = {
-  name: "", code: "", default_days: 10, carry_forward: false,
-  min_notice: 1, max_consecutive: 15, requires_approval: true,
+  name: "", code: "", default_days_per_year: 10, carry_forward_allowed: false,
+  carry_forward_max_days: null, min_notice_days: 1, max_consecutive_days: 15,
+  requires_approval: true, is_active: true,
 };
 
 function SubNav() {
@@ -49,11 +38,23 @@ function SubNav() {
 }
 
 export default function LeaveTypes() {
-  const [data, setData] = useState(DEFAULT_TYPES);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ ...initialForm });
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    getLeaveTypeConfigs()
+      .then((res) => { if (mounted) setData(Array.isArray(res) ? res : []); })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
 
   const openAdd = () => {
     setForm({ ...initialForm });
@@ -64,9 +65,15 @@ export default function LeaveTypes() {
 
   const openEdit = (item) => {
     setForm({
-      name: item.name, code: item.code, default_days: item.default_days,
-      carry_forward: item.carry_forward, min_notice: item.min_notice,
-      max_consecutive: item.max_consecutive, requires_approval: item.requires_approval,
+      name: item.name,
+      code: item.code,
+      default_days_per_year: item.default_days_per_year,
+      carry_forward_allowed: item.carry_forward_allowed,
+      carry_forward_max_days: item.carry_forward_max_days,
+      min_notice_days: item.min_notice_days,
+      max_consecutive_days: item.max_consecutive_days,
+      requires_approval: item.requires_approval,
+      is_active: item.is_active,
     });
     setEditingId(item.id);
     setErrors({});
@@ -77,30 +84,70 @@ export default function LeaveTypes() {
     const errs = {};
     if (!d.name?.trim()) errs.name = "Required";
     if (!d.code?.trim()) errs.code = "Required";
-    if (!d.default_days || d.default_days < 1) errs.default_days = "Must be at least 1";
-    if (d.min_notice < 0) errs.min_notice = "Cannot be negative";
-    if (d.max_consecutive < 1) errs.max_consecutive = "Must be at least 1";
+    else if (!/^[a-z][a-z0-9_]*$/.test(d.code.trim().toLowerCase())) errs.code = "Must start with a letter and contain only lowercase letters, numbers, underscores";
+    else if (!editingId && data.some((t) => t.code === d.code.trim().toLowerCase())) errs.code = "This code already exists";
+    if (!d.default_days_per_year || d.default_days_per_year < 1) errs.default_days_per_year = "Must be at least 1";
+    if ((d.min_notice_days ?? 0) < 0) errs.min_notice_days = "Cannot be negative";
+    if ((d.max_consecutive_days ?? 1) < 1) errs.max_consecutive_days = "Must be at least 1";
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const formatError = (msg) => {
+    if (!msg) return "Failed to save";
+    const m = msg.toLowerCase();
+    if (m.includes("already exists")) {
+      const match = msg.match(/'([^']+)'/);
+      const code = match ? match[1].toUpperCase() : "THIS TYPE";
+      return `Leave Type code '${code}' already exists.`;
+    }
+    return msg;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate(form);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    if (editingId) {
-      setData(data.map((d) => d.id === editingId ? { ...d, ...form } : d));
-    } else {
-      setData([...data, { id: Date.now(), ...form, status: "active" }]);
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      if (editingId) {
+        await updateLeaveTypeConfig(editingId, form);
+      } else {
+        await createLeaveTypeConfig(form);
+      }
+      setMessage("Saved successfully");
+      setShowModal(false);
+      const res = await getLeaveTypeConfigs();
+      setData(Array.isArray(res) ? res : []);
+    } catch (err) {
+      setMessage(formatError(err.message));
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this leave type?")) {
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this leave type?")) return;
+    try {
+      await deleteLeaveTypeConfig(id);
       setData(data.filter((d) => d.id !== id));
+    } catch {
+      setMessage("Failed to delete");
     }
   };
+
+  if (loading) {
+    return (
+      <HRPage title="Leave Types" subtitle="Configure leave types and entitlements">
+        <SubNav />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+          <span className="ml-3 text-gray-500">Loading leave types...</span>
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
     <HRPage title="Leave Types" subtitle="Configure leave types and entitlements">
@@ -124,26 +171,26 @@ export default function LeaveTypes() {
                   <h3 className="font-semibold text-gray-900">{item.name}</h3>
                   <span className="text-xs text-gray-400 uppercase">{item.code}</span>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                  {item.status}
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.is_active !== false ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                  {item.is_active !== false ? "active" : "inactive"}
                 </span>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Default Days</span>
-                  <span className="font-medium text-gray-900">{item.default_days}</span>
+                  <span className="text-gray-500">Default Days/Year</span>
+                  <span className="font-medium text-gray-900">{item.default_days_per_year}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Carry Forward</span>
-                  <span className="font-medium text-gray-900">{item.carry_forward ? <Check className="w-4 h-4 text-green-600 inline" /> : <X className="w-4 h-4 text-red-400 inline" />}</span>
+                  <span className="font-medium text-gray-900">{item.carry_forward_allowed ? <Check className="w-4 h-4 text-green-600 inline" /> : <X className="w-4 h-4 text-red-400 inline" />}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Min Notice</span>
-                  <span className="font-medium text-gray-900">{item.min_notice} days</span>
+                  <span className="font-medium text-gray-900">{item.min_notice_days ?? "-"} days</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Max Consecutive</span>
-                  <span className="font-medium text-gray-900">{item.max_consecutive} days</span>
+                  <span className="font-medium text-gray-900">{item.max_consecutive_days ?? "-"} days</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Requires Approval</span>
@@ -179,55 +226,66 @@ export default function LeaveTypes() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
-                    <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })}
+                    <input type="text" value={form.code} placeholder="e.g. emergency, comp_off" onChange={(e) => setForm({ ...form, code: e.target.value.toLowerCase() })}
                       className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.code ? "border-red-300" : "border-gray-200"}`} />
                     {errors.code && <p className="text-xs text-red-500 mt-1">{errors.code}</p>}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Days *</label>
-                    <input type="number" min="1" value={form.default_days} onChange={(e) => setForm({ ...form, default_days: parseInt(e.target.value) || 0 })}
-                      className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.default_days ? "border-red-300" : "border-gray-200"}`} />
-                    {errors.default_days && <p className="text-xs text-red-500 mt-1">{errors.default_days}</p>}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Days/Year *</label>
+                    <input type="number" min="1" value={form.default_days_per_year} onChange={(e) => setForm({ ...form, default_days_per_year: parseInt(e.target.value) || 0 })}
+                      className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.default_days_per_year ? "border-red-300" : "border-gray-200"}`} />
+                    {errors.default_days_per_year && <p className="text-xs text-red-500 mt-1">{errors.default_days_per_year}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Consecutive *</label>
-                    <input type="number" min="1" value={form.max_consecutive} onChange={(e) => setForm({ ...form, max_consecutive: parseInt(e.target.value) || 0 })}
-                      className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.max_consecutive ? "border-red-300" : "border-gray-200"}`} />
-                    {errors.max_consecutive && <p className="text-xs text-red-500 mt-1">{errors.max_consecutive}</p>}
+                    <input type="number" min="1" value={form.max_consecutive_days} onChange={(e) => setForm({ ...form, max_consecutive_days: parseInt(e.target.value) || 0 })}
+                      className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.max_consecutive_days ? "border-red-300" : "border-gray-200"}`} />
+                    {errors.max_consecutive_days && <p className="text-xs text-red-500 mt-1">{errors.max_consecutive_days}</p>}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Min Notice (days)</label>
-                    <input type="number" min="0" value={form.min_notice} onChange={(e) => setForm({ ...form, min_notice: parseInt(e.target.value) || 0 })}
-                      className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.min_notice ? "border-red-300" : "border-gray-200"}`} />
-                    {errors.min_notice && <p className="text-xs text-red-500 mt-1">{errors.min_notice}</p>}
+                    <input type="number" min="0" value={form.min_notice_days} onChange={(e) => setForm({ ...form, min_notice_days: parseInt(e.target.value) || 0 })}
+                      className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${errors.min_notice_days ? "border-red-300" : "border-gray-200"}`} />
+                    {errors.min_notice_days && <p className="text-xs text-red-500 mt-1">{errors.min_notice_days}</p>}
                   </div>
-                  <div className="flex items-end pb-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={form.carry_forward} onChange={(e) => setForm({ ...form, carry_forward: e.target.checked })}
-                        className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500" />
-                      <span className="text-sm text-gray-700">Carry Forward</span>
-                    </label>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Carry Forward Max Days</label>
+                    <input type="number" min="0" value={form.carry_forward_max_days || ""} onChange={(e) => setForm({ ...form, carry_forward_max_days: e.target.value ? parseInt(e.target.value) : null })}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.carry_forward_allowed} onChange={(e) => setForm({ ...form, carry_forward_allowed: e.target.checked })}
+                      className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded" />
+                    <span className="text-sm text-gray-700">Allow Carry Forward</span>
+                  </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={form.requires_approval} onChange={(e) => setForm({ ...form, requires_approval: e.target.checked })}
-                      className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500" />
+                      className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded" />
                     <span className="text-sm text-gray-700">Requires Approval</span>
                   </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                      className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded" />
+                    <span className="text-sm text-gray-700">Active</span>
+                  </label>
                 </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors">
-                    {editingId ? "Update" : "Create"}
-                  </button>
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                  <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                  <button type="submit" disabled={submitting} className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors disabled:opacity-50">{editingId ? "Update" : "Create"}</button>
                 </div>
               </form>
             </div>
+          </div>
+        )}
+        {message && (
+          <div className={`px-4 py-3 rounded-lg text-sm ${message.includes("success") ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"}`}>
+            {message}
           </div>
         )}
       </div>

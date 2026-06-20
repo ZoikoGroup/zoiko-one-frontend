@@ -1,24 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import { Landmark, TrendingUp, Clock, AlertOctagon, BarChart3, Receipt } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { DataTable } from "./DataTable.jsx";
+import {api} from "../../../service/api"; // backend base connectivity layer
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+const formatCurrency = (amount) => 
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount || 0);
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/travel" },
   { label: "Requests", href: "/zoiko-hr/travel/requests" },
   { label: "Approvals", href: "/zoiko-hr/travel/approvals" },
-  { label: "Itineraries", href: "/zoiko-hr/travel/itineraries" },
   { label: "Expenses", href: "/zoiko-hr/travel/expenses" },
-  { label: "Reports", href: "/zoiko-hr/travel/reports" },
-  { label: "Settings", href: "/zoiko-hr/travel/settings" },
+  { label: "Settings", href: "/zoiko-hr/travel/settings" }
 ];
 
 function SubNav() {
@@ -28,12 +22,10 @@ function SubNav() {
         <NavLink
           key={item.href}
           to={item.href}
-          end={item.href === "/zoiko-hr/travel"}
+          end={item.href === "/zoiko-hr/travel/expenses"}
           className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+            `whitespace-nowrap px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-all duration-200 ${
+              isActive ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`
           }
         >
@@ -44,95 +36,121 @@ function SubNav() {
   );
 }
 
-const mockExpensesData = [
-  { id: 1, employee: "Alice Johnson", destination: "New York", amount: 1500, category: "Travel", status: "approved", submittedDate: "2025-03-28", approvedBy: "John Smith" },
-  { id: 2, employee: "Bob Smith", destination: "London", amount: 2500, category: "Accommodation", status: "approved", submittedDate: "2025-03-25", approvedBy: "Jane Doe" },
-  { id: 3, employee: "Carol Davis", destination: "Paris", amount: 3000, category: "Travel", status: "pending", submittedDate: "2025-03-24", approvedBy: null },
-  { id: 4, employee: "David Lee", destination: "Tokyo", amount: 4000, category: "Meals", status: "approved", submittedDate: "2025-03-23", approvedBy: "Mike Johnson" },
-  { id: 5, employee: "Eva Martinez", destination: "Singapore", amount: 5000, category: "Transport", status: "approved", submittedDate: "2025-03-22", approvedBy: "Sarah Williams" },
-  { id: 6, employee: "Frank Wilson", destination: "Berlin", amount: 800, category: "Travel", status: "pending", submittedDate: "2025-03-21", approvedBy: null },
-  { id: 7, employee: "Grace Kim", destination: "Sydney", amount: 3500, category: "Accommodation", status: "approved", submittedDate: "2025-03-20", approvedBy: "David Lee" },
-  { id: 8, employee: "Henry Brown", destination: "Dubai", amount: 2000, category: "Meals", status: "rejected", submittedDate: "2025-03-19", approvedBy: "Emma Taylor" },
-];
-
 export default function TravelExpenses() {
-  const [expenses] = useState(mockExpensesData);
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const approvedExpenses = expenses.filter((e) => e.status === "approved").reduce((sum, e) => sum + e.amount, 0);
-  const pendingExpenses = expenses.filter((e) => e.status === "pending").reduce((sum, e) => sum + e.amount, 0);
-  const rejectedExpenses = expenses.filter((e) => e.status === "rejected").reduce((sum, e) => sum + e.amount, 0);
+  useEffect(() => {
+    async function fetchLiveExpenses() {
+      try {
+        setLoading(true);
+        const response = await api.get("/hr/travel/expenses");
+        setExpenses(response?.data || response || []);
+      } catch (err) {
+        console.error("Error connecting with expenses catalog schema:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLiveExpenses();
+  }, []);
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const approvedExpenses = expenses.filter((e) => e.status?.toLowerCase() === "approved").reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const pendingExpenses = expenses.filter((e) => e.status?.toLowerCase() === "pending").reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const rejectedExpenses = expenses.filter((e) => e.status?.toLowerCase() === "rejected").reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
   const categoryData = expenses.reduce((acc, e) => {
-    acc[e.category] = (acc[e.category] || 0) + e.amount;
+    if (e.category) acc[e.category] = (acc[e.category] || 0) + (parseFloat(e.amount) || 0);
     return acc;
   }, {});
-
-  const columns = [
-    { key: "employee", label: "Employee", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
-    { key: "destination", label: "Destination", render: (v) => <span className="text-gray-700">{v}</span> },
-    { key: "amount", label: "Amount", render: (v) => <span className="font-medium text-gray-900">{formatCurrency(v)}</span> },
-    { key: "category", label: "Category", render: (v) => <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{v}</span> },
-    { key: "status", label: "Status", render: (v) => <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "approved" ? "bg-green-100 text-green-800" : v === "pending" ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}>{v}</span> },
-    { key: "submittedDate", label: "Submitted", render: (v) => <span className="text-gray-500">{v}</span> },
-    { key: "approvedBy", label: "Approved By", render: (v) => <span className="text-gray-700">{v || "-"}</span> },
-  ];
 
   return (
     <HRPage title="Travel" subtitle="Manage travel expenses and reimbursements">
       <SubNav />
-
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Travel Expenses</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage travel expenses and reimbursements</p>
+          <h1 className="text-2xl font-black text-gray-900">Travel Expenses</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Live aggregated expense summary tracking schemas</p>
         </div>
 
+        {/* Analytic Metrics Layout */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500">Total Expenses</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(totalExpenses)}</p>
-            <p className="text-xs text-gray-400 mt-1">All expenses</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Disbursed</p>
+            <p className="text-2xl font-black text-gray-900 mt-2">{formatCurrency(totalExpenses)}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500">Approved Expenses</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{formatCurrency(approvedExpenses)}</p>
-            <p className="text-xs text-gray-400 mt-1">Approved amount</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <p className="text-xs font-bold text-green-500 uppercase tracking-wider">Approved Value</p>
+            <p className="text-2xl font-black text-green-600 mt-2">{formatCurrency(approvedExpenses)}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500">Pending Expenses</p>
-            <p className="text-2xl font-bold text-yellow-600 mt-1">{formatCurrency(pendingExpenses)}</p>
-            <p className="text-xs text-gray-400 mt-1">Pending approval</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <p className="text-xs font-bold text-yellow-500 uppercase tracking-wider">Pending Audit</p>
+            <p className="text-2xl font-black text-yellow-600 mt-2">{formatCurrency(pendingExpenses)}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500">Rejected Expenses</p>
-            <p className="text-2xl font-bold text-red-600 mt-1">{formatCurrency(rejectedExpenses)}</p>
-            <p className="text-xs text-gray-400 mt-1">Rejected amount</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Rejected Outlay</p>
+            <p className="text-2xl font-black text-red-600 mt-2">{formatCurrency(rejectedExpenses)}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">All Expenses</h2>
-          <DataTable columns={columns} data={expenses} />
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Expense Breakdown</h2>
-          <div className="space-y-3">
-            {Object.entries(categoryData).map(([category, amount]) => (
-              <div key={category}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="font-medium text-gray-700">{category}</span>
-                  <span className="text-gray-500">{formatCurrency(amount)}</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${(amount / totalExpenses) * 100}%` }}
-                  />
-                </div>
+        {/* Structured Grid Splitter Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+            <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2"><Receipt className="w-4 h-4 text-blue-500" /> Transaction Audit Stream</h2>
+            {loading ? (
+              <p className="text-center py-6 text-gray-400 font-medium animate-pulse">Syncing transactions...</p>
+            ) : expenses.length === 0 ? (
+              <p className="text-center py-6 text-gray-400 text-sm">No expenses submitted in current database node.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-gray-400 font-bold bg-gray-50/50">
+                      <th className="p-3">Claimant</th>
+                      <th className="p-3">Classification</th>
+                      <th className="p-3">Outlay</th>
+                      <th className="p-3">State</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-gray-700 font-medium">
+                    {expenses.map((row, idx) => (
+                      <tr key={row.id || idx} className="hover:bg-gray-50/30 transition-colors">
+                        <td className="p-3 font-semibold text-gray-900">{row.employee_name || row.employee || `Emp ID: ${row.employee_id}`}</td>
+                        <td className="p-3 capitalize">{row.category || "General"}</td>
+                        <td className="p-3 font-semibold text-gray-900">{formatCurrency(row.amount)}</td>
+                        <td className="p-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${
+                            row.status === "approved" ? "bg-green-100 text-green-800" : row.status === "pending" ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"
+                          }`}>{row.status || "Pending"}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            )}
+          </div>
+
+          {/* Allocation Breakdown Component */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-purple-500" /> Allocation Breakdown</h2>
+            <div className="space-y-4">
+              {Object.entries(categoryData).map(([category, amount]) => (
+                <div key={category} className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-1 capitalize">
+                    <span>{category}</span>
+                    <span>{formatCurrency(amount)}</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

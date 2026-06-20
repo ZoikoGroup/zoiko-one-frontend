@@ -1,61 +1,95 @@
-import { ArrowRight, Users, Clock, WalletCards, CreditCard, Briefcase, FileCheck2, BarChart3, Wallet } from "lucide-react";
+import { ArrowRight, Users, Clock, DollarSign, FileText, Briefcase, CheckSquare, BarChart3, Sparkles, CreditCard, Package, FileSignature } from "lucide-react";
 
 const products = [
   {
     name: "Zoiko HR",
+    tag: "PEOPLE SYSTEM OF RECORD",
     icon: Users,
-    color: "#4F46E5",
-    bg: "#EEF2FF",
-    desc: "Employee records, onboarding, leave, performance and full lifecycle management.",
-    question: '"Can we manage the full employee lifecycle from one place?"',
+    accent: "#4F46E5",
+    tileBg: "#4338CA",
+    items: ["Employee records", "Onboarding & offboarding", "Leave & lifecycle", "Worker documents", "Data controls"],
+    cta: "Explore Zoiko HR",
   },
   {
     name: "ZoikoTime",
+    tag: "EVIDENCE LAYER",
     icon: Clock,
-    color: "#0891B2",
-    bg: "#E0F2FE",
-    desc: "Time tracking, attendance, shifts, scheduling and payroll-ready evidence.",
-    question: '"How do we capture time without the spreadsheets?"',
+    accent: "#4F46E5",
+    tileBg: "#7C3AED",
+    items: ["Time & attendance", "Shifts & scheduling", "Timesheets", "Approvals", "Billable work"],
+    cta: "Explore ZoikoTime",
   },
   {
     name: "Zoiko Payroll",
-    icon: WalletCards,
-    color: "#059669",
-    bg: "#ECFDF5",
-    desc: "Pay runs, payslips, deductions, filings, approvals and payment readiness.",
-    question: '"Can payroll finally stop being a fire drill every cycle?"',
+    tag: "CONTROLLED PAY OUTCOMES",
+    icon: DollarSign,
+    accent: "#F97316",
+    tileBg: "#F97316",
+    items: ["Pay runs & payslips", "Deductions", "Approvals & corrections", "Filings", "Payroll reporting"],
+    cta: "Explore Zoiko Payroll",
   },
   {
     name: "Zoiko Billing",
-    icon: CreditCard,
-    color: "#D97706",
-    bg: "#FFFBEB",
-    desc: "Invoicing, recurring billing, collections, payment links and revenue dashboards.",
-    question: '"How do we get paid faster without chasing every invoice?"',
+    tag: "REVENUE & CASH",
+    icon: FileText,
+    accent: "#3B82F6",
+    tileBg: "#38BDF8",
+    items: ["Invoices", "Recurring & usage billing", "Collections", "Client accounts", "Revenue dashboards"],
+    cta: "Explore Zoiko Billing",
   },
   {
     name: "Zoiko Projects",
+    tag: "WORK MANAGEMENT",
     icon: Briefcase,
-    color: "#6366F1",
-    bg: "#EEF2FF",
-    desc: "Project planning, task tracking, timesheets, budgets and team collaboration.",
-    question: '"Can projects, time and billing finally live in the same system?"',
+    accent: "#4F46E5",
+    tileBg: "#4F46E5",
+    items: ["Projects & tasks", "Milestones & budgets", "Resource allocation", "Utilization", "Delivery visibility"],
+    cta: "Explore Zoiko Projects",
   },
   {
     name: "Zoiko Comply",
-    icon: FileCheck2,
-    color: "#DC2626",
-    bg: "#FEF2F2",
-    desc: "Compliance dashboards, filing calendars, audit logs and governance workflows.",
-    question: '"How do we prove compliance without the manual spreadsheet scramble?"',
+    tag: "GOVERNANCE LAYER",
+    icon: CheckSquare,
+    accent: "#4F46E5",
+    tileBg: "#1E1B4B",
+    items: ["Compliance calendars", "Obligation tracking", "Evidence packs", "Audit logs", "Governance workflows"],
+    cta: "Explore Zoiko Comply",
   },
   {
     name: "Zoiko Insights",
+    tag: "INTELLIGENCE LAYER",
     icon: BarChart3,
-    color: "#7C3AED",
-    bg: "#F5F3FF",
-    desc: "Executive dashboards, payroll analytics, revenue insights and forecasting.",
-    question: '"Where is the single source of truth for business decisions?"',
+    accent: "#F97316",
+    tileBg: "#F97316",
+    items: ["Dashboards", "Forecasting", "Utilization & risk", "Performance analytics", "Operational intelligence"],
+    cta: "Explore Zoiko Insights",
+  },
+  {
+    name: "Zoiko Spend",
+    tag: "EXPENSE MANAGEMENT",
+    icon: CreditCard,
+    accent: "#0EA5E9",
+    tileBg: "#0EA5E9",
+    items: ["Expense claims", "Spend approvals", "Budget tracking", "Receipt capture", "Policy enforcement"],
+    cta: "Explore Zoiko Spend",
+  },
+  {
+    name: "Zoiko Inventory",
+    tag: "STOCK & ASSETS",
+    icon: Package,
+    accent: "#10B981",
+    tileBg: "#10B981",
+    items: ["Stock tracking", "Asset registers", "Reorder workflows", "Supplier management", "Inventory reporting"],
+    cta: "Explore Zoiko Inventory",
+  },
+  {
+    name: "Zoiko Docs Pro",
+    tag: "DOCUMENT LAYER",
+    icon: FileSignature,
+    accent: "#8B5CF6",
+    tileBg: "#8B5CF6",
+    items: ["Document generation", "e-Signatures", "Template library", "Version control", "Audit trail"],
+    cta: "Explore Zoiko Docs Pro",
   },
 ];
 
@@ -65,59 +99,92 @@ export default function ProductGrid() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <p className="text-xs font-bold text-[#F97316] tracking-[0.15em] uppercase mb-4">
-            Seven products. One connected operating layer.
+            Seven Core Products
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight tracking-tight mb-4">
-            One platform, eight core products.
+            Start with one product. Expand
+            <br />
+            into the platform when you're ready.
           </h2>
           <p className="text-[#6B7280] max-w-xl mx-auto leading-relaxed">
-            Buy standalone, combine in bundles, or adopt the enterprise framework — each product
-            connects seamlessly.
+            Seven high-demand business operations products on one connected spine — buy one,
+            several, or the full enterprise deployment.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {products.map((p) => (
-            <div
-              key={p.name}
-              className="rounded-2xl p-6 border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 bg-white"
-            >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: p.bg }}
-              >
-                <p.icon size={20} color={p.color} />
-              </div>
-              <h3 className="text-base font-bold text-[#111827] mb-1.5">{p.name}</h3>
-              <p className="text-xs text-[#6B7280] leading-relaxed mb-3">{p.desc}</p>
-              <p className="text-xs italic text-[#9CA3AF] mb-4 leading-relaxed">"{p.question}"</p>
-              <button
-                className="inline-flex items-center gap-1 text-xs font-semibold transition-colors duration-200 hover:gap-1.5"
-                style={{ color: p.color }}
-              >
-                Explore {p.name.split(" ")[1] || p.name} <ArrowRight size={13} />
-              </button>
-            </div>
+        {/* Row 1 — original 7 + "All connected" = 4+4 */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {products.slice(0, 4).map((p) => (
+            <ProductCard key={p.name} p={p} />
           ))}
-
-          {/* Featured/CTA card */}
-          <div className="rounded-2xl p-6 bg-gradient-to-br from-[#93C5FD] to-[#2563EB] text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5">
-            <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-              <Wallet size={20} className="text-white" />
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {products.slice(4, 7).map((p) => (
+            <ProductCard key={p.name} p={p} />
+          ))}
+          {/* All seven, connected */}
+          <div className="rounded-2xl p-6 bg-gradient-to-br from-[#4F46E5] to-[#3B82F6] text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5">
+            <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center mb-4">
+              <Sparkles size={20} className="text-white" strokeWidth={2.25} />
             </div>
-            <h3 className="text-base font-bold mb-1.5">Zoiko Spend</h3>
-            <p className="text-xs text-white/80 leading-relaxed mb-3">
-              Vendor records, purchase requests, supplier invoices, spend policies and approvals.
+            <h3 className="text-sm font-bold mb-0.5">All seven, connected</h3>
+            <p className="text-[10px] font-semibold text-blue-200 tracking-wide mb-3">
+              ZOIKO ONE BUSINESS
             </p>
-            <p className="text-xs italic text-white/60 mb-4 leading-relaxed">
-              "How do we control spend without the procurement headache?"
+            <p className="text-xs text-blue-100 leading-relaxed mb-4">
+              Run the full connected platform on one operating layer with shared identity,
+              workflow, and approvals.
             </p>
-            <button className="inline-flex items-center gap-1 text-xs font-semibold text-white hover:gap-1.5 transition-all">
-              Explore Spend <ArrowRight size={13} />
+            <button className="inline-flex items-center gap-1 text-xs font-bold text-white hover:gap-1.5 transition-all">
+              See bundles <ArrowRight size={13} />
             </button>
           </div>
         </div>
+
+        {/* Row 3 — 3 new products */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {products.slice(7).map((p) => (
+            <ProductCard key={p.name} p={p} />
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-4">
+          <button className="inline-flex items-center gap-2 bg-white text-[#1E1B4B] font-semibold px-6 py-3 rounded-full text-sm border border-gray-200 shadow-sm transition-all duration-200 hover:border-[#3B82F6] hover:text-[#3B82F6]">
+            Compare Products
+          </button>
+          <button className="inline-flex items-center gap-2 bg-[#1E1B4B] hover:bg-[#2D2A6B] text-white font-bold px-6 py-3 rounded-full text-sm transition-all duration-200">
+            View Pricing
+          </button>
+        </div>
       </div>
     </section>
+  );
+}
+
+function ProductCard({ p }) {
+  return (
+    <div className="rounded-2xl p-6 border border-gray-100 shadow-sm bg-white transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 shadow-sm"
+        style={{ background: p.tileBg }}
+      >
+        <p.icon size={20} className="text-white" strokeWidth={2.25} />
+      </div>
+      <h3 className="text-sm font-bold text-[#111827] mb-0.5">{p.name}</h3>
+      <p className="text-[10px] font-semibold text-[#9CA3AF] tracking-wide mb-3">{p.tag}</p>
+      <ul className="space-y-1.5 mb-4">
+        {p.items.map((it) => (
+          <li key={it} className="flex items-start gap-1.5 text-xs text-[#6B7280]">
+            <span className="mt-0.5" style={{ color: p.accent }}>✓</span> {it}
+          </li>
+        ))}
+      </ul>
+      <button
+        className="inline-flex items-center gap-1 text-xs font-bold hover:gap-1.5 transition-all"
+        style={{ color: p.accent }}
+      >
+        {p.cta} <ArrowRight size={13} />
+      </button>
+    </div>
   );
 }

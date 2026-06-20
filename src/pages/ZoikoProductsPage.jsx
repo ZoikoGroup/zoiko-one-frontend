@@ -1,4 +1,5 @@
 import { useState } from "react";
+import LandingHeader from "../landing/LandingHeader";
 
 const PILLARS = [
   {
@@ -200,6 +201,7 @@ export default function ZoikoProductsPage() {
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", color: "#1a1a2e", background: "#fff", minHeight: "100vh" }}>
+      <LandingHeader />
 
       {/* HERO */}
       <section style={{
@@ -222,7 +224,7 @@ export default function ZoikoProductsPage() {
           pointerEvents: "none",
         }} />
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 720 }}>
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 900 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             background: "rgba(255,255,255,0.92)", borderRadius: 999,
@@ -234,7 +236,7 @@ export default function ZoikoProductsPage() {
           </div>
 
           <h1 style={{ fontSize: "clamp(32px, 6vw, 60px)", fontWeight: 800, lineHeight: 1.15, margin: "0 0 20px", color: "#0f172a" }}>
-            A connected product system across<br /><span style={{ color: "#E07B2A" }}>five pillars.</span>
+            A connected product system across <span style={{ color: "#E07B2A" }}>five pillars.</span>
           </h1>
 
           <p style={{ fontSize: 17, color: "#475569", lineHeight: 1.65, margin: "0 0 36px" }}>

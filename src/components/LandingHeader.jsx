@@ -73,7 +73,7 @@ export default function LandingHeader() {
           </div>
 
           {[
-            { label: "Platform", href: "/#platform" },
+{ label: "Platform", href: "/platform" },
             { label: "Pricing", href: "/#pricing" },
             { label: "Trust Center", href: "/trust-center" },
           ].map((l) => (
@@ -127,7 +127,7 @@ export default function LandingHeader() {
                 className="text-sm text-gray-700 no-underline py-1.5">{p.label}</Link>
             ))}
             <div className="h-px bg-gray-200 my-2" />
-            {[{ label: "Platform", href: "/#platform" }, { label: "Pricing", href: "/#pricing" }, { label: "Trust Center", href: "/trust-center" }].map(l => (
+            {[{ label: "Platform", href: "/platform" }, { label: "Pricing", href: "/#pricing" }, { label: "Trust Center", href: "/trust-center" }].map(l => (
               <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
                 className="text-sm text-gray-700 no-underline py-1.5">{l.label}</a>
             ))}

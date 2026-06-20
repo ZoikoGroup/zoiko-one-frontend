@@ -68,7 +68,7 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
   },
   inner: {
-    maxWidth: "1100px",
+    maxWidth: "1280px",
     margin: "0 auto",
     display: "grid",
     gridTemplateColumns: "1fr 1fr",

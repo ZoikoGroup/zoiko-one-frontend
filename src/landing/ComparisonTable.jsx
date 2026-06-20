@@ -9,7 +9,7 @@ const stats = [
 export default function ComparisonTable() {
   return (
     <section className="bg-white py-20 md:py-24">
-      <div className="px-4 sm:px-6 lg:px-20 text-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12 text-center">
         <p className="text-xs font-bold text-[#3B82F6] tracking-[0.15em] uppercase mb-4">Proof</p>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight tracking-tight mb-14">
           See how connected operations

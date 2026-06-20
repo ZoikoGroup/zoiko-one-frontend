@@ -263,9 +263,7 @@ const products = {
               { label: "Dashboard",          href: "/zoiko-hr/travel",                icon: LayoutDashboard },
               { label: "Travel Requests",    href: "/zoiko-hr/travel/requests",       icon: Plane },
               { label: "Approvals",          href: "/zoiko-hr/travel/approvals",      icon: ClipboardCheck },
-              { label: "Itineraries",        href: "/zoiko-hr/travel/itineraries",    icon: MapPin },
               { label: "Expenses",           href: "/zoiko-hr/travel/expenses",       icon: Receipt },
-              { label: "Reports",            href: "/zoiko-hr/travel/reports",        icon: FileText },
               { label: "Settings",           href: "/zoiko-hr/travel/settings",       icon: SlidersHorizontal },
             ]},
             { label: "Compliance",        icon: ShieldCheck, children: [

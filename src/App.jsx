@@ -90,9 +90,7 @@ import EssSettings from "./modules/zoiko-hr/ess/settings.jsx";
 import TravelDashboard from "./modules/zoiko-hr/travel/dashboard.jsx";
 import TravelRequests from "./modules/zoiko-hr/travel/travel-requests.jsx";
 import TravelApprovals from "./modules/zoiko-hr/travel/approvals.jsx";
-import TravelItineraries from "./modules/zoiko-hr/travel/itineraries.jsx";
 import TravelExpenses from "./modules/zoiko-hr/travel/expenses.jsx";
-import TravelReports from "./modules/zoiko-hr/travel/reports.jsx";
 import TravelSettings from "./modules/zoiko-hr/travel/settings.jsx";
 
 import {
@@ -331,6 +329,10 @@ const routeOverrides = {
   "/zoiko-hr/assets/maintenance": <AssetMaintenance />,
   "/zoiko-hr/assets/reports": <AssetReports />,
   "/zoiko-hr/assets/settings": <AssetSettings />,
+
+
+
+  
   "/zoiko-hr/learning": <ZoikoHRLearning />,
   "/zoiko-hr/learning/courses": <ZoikoHRLearning />,
   "/zoiko-hr/learning/training-programs": <ZoikoHRLearning />,
@@ -342,6 +344,9 @@ const routeOverrides = {
   "/zoiko-hr/learning/progress": <ZoikoHRLearning />,
   "/zoiko-hr/learning/reports": <ZoikoHRLearning />,
   "/zoiko-hr/learning/enrollments": <ZoikoHRLearning />,
+
+
+
   "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
   "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
   "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
@@ -375,9 +380,7 @@ const routeOverrides = {
   "/zoiko-hr/travel": <TravelDashboard />,
   "/zoiko-hr/travel/requests": <TravelRequests />,
   "/zoiko-hr/travel/approvals": <TravelApprovals />,
-  "/zoiko-hr/travel/itineraries": <TravelItineraries />,
   "/zoiko-hr/travel/expenses": <TravelExpenses />,
-  "/zoiko-hr/travel/reports": <TravelReports />,
   "/zoiko-hr/travel/settings": <TravelSettings />,
   // Compliance submodule routes
   "/zoiko-hr/compliance": <ComplianceDashboard />,

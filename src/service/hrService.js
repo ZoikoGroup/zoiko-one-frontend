@@ -13,8 +13,6 @@ export const updateRecord = (resource, id, payload) => api.put(`/hr/${resource}/
 export const deleteRecord = (resource, id) => api.delete(`/hr/${resource}/${id}`)
 
 export const getOverview = () => fetchList("overview");
-export const getDepartments = () => fetchList("departments");
-export const getDesignations = () => fetchList("designations");
 export const getAttendance = () => fetchList("attendance");
 export const getLeave = () => api.get("/hr/leaves");
 export const getWorkforce = () => fetchList("workforce");
@@ -23,10 +21,22 @@ export const getPayrollSummary = () => fetchList("payrollSummary");
 export const getRecruitment = () => fetchList("recruitment");
 export const getLearning = () => fetchList("learning");
 
+// NOTE: getDepartments/getDesignations are intentionally NOT built on
+// fetchList() — api.js uses raw fetch and resolves to the parsed JSON body
+// directly (no axios-style { data } envelope). Components consuming these
+// expect `res.data`, so we wrap the result here. See DEPARTMENT/DESIGNATION
+// CRUD SPECIFIC section below for the matching create/update/delete wraps.
+export const getDepartments = () => api.get("/hr/departments").then(data => ({ data }));
+export const getDesignations = () => api.get("/hr/designations").then(data => ({ data }));
+
 
 export const createRecruitmentCandidate = (payload) => api.post("/hr/recruitment", payload);
 export const updateRecruitmentCandidate = (id, payload) => api.put(`/hr/recruitment/${id}`, payload);
 export const deleteRecruitmentCandidate = (id) => api.delete(`/hr/recruitment/${id}`);
+
+// ════════════════════════════════════════════════════════════════════════════
+// TRAVEL MODULE
+// ════════════════════════════════════════════════════════════════════════════
 
 export const getEmployees = (params = {}) => api.get("/hr/employees", { params });
 export const getTravel = (employeeId) => api.get(`/hr/travel${employeeId ? `?employee_id=${employeeId}` : ''}`);
@@ -468,16 +478,24 @@ export const getEngagementDashboard = () => api.get("/hr/engagement/dashboard");
 export const getHrDashboardStats = () => api.get("/hr/dashboard/stats");
 
 // ── DEPARTMENT CRUD SPECIFIC ────────────────────────────────────────────────
-export const getDepartmentById = (id) => api.get(`/hr/departments/${id}`);
-export const createDepartment = (payload) => api.post("/hr/departments", payload);
-export const updateDepartment = (id, payload) => api.put(`/hr/departments/${id}`, payload);
-export const deleteDepartment = (id) => api.delete(`/hr/departments/${id}`);
+export const getDepartmentById = (id) =>
+  api.get(`/hr/departments/${id}`).then(data => ({ data }));
+export const createDepartment = (payload) =>
+  api.post("/hr/departments", payload).then(data => ({ data }));
+export const updateDepartment = (id, payload) =>
+  api.put(`/hr/departments/${id}`, payload).then(data => ({ data }));
+export const deleteDepartment = (id) =>
+  api.delete(`/hr/departments/${id}`).then(data => ({ data }));
 
 // ── DESIGNATIONS CRUD SPECIFIC ──────────────────────────────────────────────
-export const getDesignationById = (id) => api.get(`/hr/designations/${id}`);
-export const createDesignation = (payload) => api.post("/hr/designations", payload);
-export const updateDesignation = (id, payload) => api.put(`/hr/designations/${id}`, payload);
-export const deleteDesignation = (id) => api.delete(`/hr/designations/${id}`);
+export const getDesignationById = (id) =>
+  api.get(`/hr/designations/${id}`).then(data => ({ data }));
+export const createDesignation = (payload) =>
+  api.post("/hr/designations", payload).then(data => ({ data }));
+export const updateDesignation = (id, payload) =>
+  api.put(`/hr/designations/${id}`, payload).then(data => ({ data }));
+export const deleteDesignation = (id) =>
+  api.delete(`/hr/designations/${id}`).then(data => ({ data }));
 
 // ── EMPLOYEE CRUD SPECIFIC ──────────────────────────────────────────────────
 export const getEmployeeById = (id) => api.get(`/hr/employees/${id}`);
@@ -714,23 +732,28 @@ export const updateCorrectiveAction = (id, payload) => api.put(`/hr/compliance/c
 export const deleteCorrectiveAction = (id) => api.delete(`/hr/compliance/corrective-actions/${id}`);
 
 // ── DOCUMENTS ──────────────────────────────────────────────────────────────
+// NOTE: api.js uses raw fetch and resolves to the parsed JSON body directly
+// (not an axios-style { data, status, headers } envelope). Every document
+// component (employee-documents.jsx, company-documents.jsx, dashboard.jsx,
+// approvals.jsx, settings.jsx) was written expecting `res.data`, so we wrap
+// the result here to match that shape without having to touch 5 files.
 
 // Get all documents
-export const getDocuments = () => api.get("/hr/documents");
+export const getDocuments = () =>
+  api.get("/hr/documents").then(data => ({ data }));
 
 // Upload a new document (using FormData)
-// Upload a new document (using FormData)
-export const uploadDocument = (formData) => 
-  api.post("/hr/documents/upload", formData);
+export const uploadDocument = (formData) =>
+  api.post("/hr/documents/upload", formData).then(data => ({ data }));
 
 // Delete a document
-export const deleteDocument = (documentId) => 
-  api.delete(`/hr/documents/${documentId}`);
+export const deleteDocument = (documentId) =>
+  api.delete(`/hr/documents/${documentId}`).then(data => ({ data }));
 
 // Update document status (Approve, Reject, Expire)
-export const updateDocumentStatus = (documentId, newStatus) => 
-  api.patch(`/hr/documents/${documentId}/status`, { status: newStatus });
+export const updateDocumentStatus = (documentId, newStatus) =>
+  api.patch(`/hr/documents/${documentId}/status`, { status: newStatus }).then(data => ({ data }));
 
 // Edit/Update document metadata
-export const updateDocument = (documentId, updateData) => 
-  api.put(`/hr/documents/${documentId}`, updateData);
+export const updateDocument = (documentId, updateData) =>
+  api.put(`/hr/documents/${documentId}`, updateData).then(data => ({ data }));

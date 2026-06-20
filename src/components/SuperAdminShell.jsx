@@ -6,7 +6,7 @@ export default function SuperAdminShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-slate-900 font-sans">
+    <div className="min-h-screen bg-white text-slate-900 font-sans">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-72">
         <Header onMenuClick={() => setSidebarOpen(true)} />

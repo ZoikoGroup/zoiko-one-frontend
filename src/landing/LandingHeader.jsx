@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-const navLinks = ["Platform", "Products", "Solutions", "Pricing", "Resources", "Company"];
+const navLinks = ["Home", "Platform", "Products", "Solutions", "Pricing", "Resources", "Company"];
 
 export default function LandingHeader() {
   return (
@@ -15,11 +15,14 @@ export default function LandingHeader() {
 
           <div className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2A2F55]">
             {navLinks.map((l) => {
+              if (l === "Home") {
+                return <Link key={l} to="/" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
               if (l === "Products") {
                 return <Link key={l} to="/products" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
               }
               return (
-                <a key={l} href={l === "Platform" ? "/#platform" : l === "Pricing" ? "/#pricing" : "/"} className="hover:text-[#4F46E5] transition-colors">
+                <a key={l} href={l === "Platform" ? "/platform" : l === "Pricing" ? "/#pricing" : "/"} className="hover:text-[#4F46E5] transition-colors">
                   {l}
                 </a>
               );

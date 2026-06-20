@@ -1,11 +1,131 @@
 import { useState, useEffect } from "react";
 import { getPolicies, getPoliciesSummary } from "../../service/complyService";
-import StatsCard from "../../components/comply/StatsCard";
-import DataTable from "../../components/comply/DataTable";
-import FilterBar from "../../components/comply/FilterBar";
-import StatusBadge from "../../components/comply/StatusBadge";
-import { formatDate } from "../../components/comply/helpers";
 import { FileText, Shield, CheckCircle, Clock, AlertTriangle, History, User } from "lucide-react";
+
+// ==========================================
+// INTERNAL MOCKED COMPONENTS (NO DEPENDENCIES)
+// ==========================================
+
+const StatsCard = ({ title, value, icon: Icon, trend, change }) => (
+  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+    <div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
+      {change && (
+        <span className={`text-xs font-medium mt-1 inline-block ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+          {trend === 'up' ? '↑' : '↓'} {change}%
+        </span>
+      )}
+    </div>
+    {Icon && (
+      <div className="p-2 bg-gray-50 rounded-lg border border-gray-100 text-gray-400">
+        <Icon size={20} />
+      </div>
+    )}
+  </div>
+);
+
+const DataTable = ({ columns = [], data = [], onRowClick }) => (
+  <div className="overflow-x-auto w-full border border-gray-100 rounded-lg">
+    <table className="w-full text-left border-collapse text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+          {columns.map((col, idx) => (
+            <th key={idx} className="p-3">{col.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, rIdx) => (
+            <tr 
+              key={rIdx} 
+              onClick={() => onRowClick && onRowClick(row)}
+              className={`border-b border-gray-100 hover:bg-gray-50 text-gray-700 ${onRowClick ? 'cursor-pointer' : ''}`}
+            >
+              {columns.map((col, cIdx) => (
+                <td key={cIdx} className="p-3">
+                  {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={columns.length} className="p-8 text-center text-gray-400">
+              No entries found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
+
+const FilterBar = ({ search, onSearchChange, filters = [], onFilterChange }) => (
+  <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center justify-between">
+    <div className="relative w-full sm:w-72">
+      <input
+        type="text"
+        placeholder="Search..."
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="w-full pl-4 pr-4 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+      />
+    </div>
+    <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+      {filters.map((f) => (
+        <select
+          key={f.key}
+          value={f.value}
+          onChange={(e) => onFilterChange(f.key, e.target.value)}
+          className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:border-blue-500"
+        >
+          <option value="">{f.placeholder}</option>
+          {f.options?.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ))}
+    </div>
+  </div>
+);
+
+const StatusBadge = ({ status }) => {
+  const normalized = String(status).toLowerCase();
+  const badgeStyles = {
+    draft: "bg-gray-100 text-gray-700 border-gray-200",
+    pending_review: "bg-yellow-50 text-yellow-700 border-yellow-100",
+    approved: "bg-blue-50 text-blue-700 border-blue-100",
+    published: "bg-green-50 text-green-700 border-green-100",
+    archived: "bg-red-50 text-red-600 border-red-100",
+    security: "bg-purple-50 text-purple-700 border-purple-100",
+    data_privacy: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    hr: "bg-pink-50 text-pink-700 border-pink-100",
+    finance: "bg-amber-50 text-amber-700 border-amber-100",
+    operations: "bg-cyan-50 text-cyan-700 border-cyan-100",
+    legal: "bg-orange-50 text-orange-700 border-orange-100",
+    it: "bg-teal-50 text-teal-700 border-teal-100",
+  };
+
+  const style = badgeStyles[normalized] || "bg-gray-50 text-gray-600 border-gray-200";
+
+  return (
+    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border capitalize ${style}`}>
+      {normalized.replace("_", " ")}
+    </span>
+  );
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? dateString : date.toLocaleDateString();
+};
+
+// ==========================================
+// MAIN EXPORT
+// ==========================================
 
 export default function Policies() {
   const [policies, setPolicies] = useState([]);

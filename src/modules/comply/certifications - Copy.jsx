@@ -2,74 +2,69 @@ import { useState, useEffect } from "react";
 import { getCertifications } from "../../service/complyService";
 import { Award, FileCheck, AlertTriangle } from "lucide-react";
 
-// ==========================================
-// INTERNAL MOCKED COMPONENTS (NO DEPENDENCIES)
-// ==========================================
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
 
-const DataTable = ({ columns = [], data = [], onRowClick }) => (
-  <div className="overflow-x-auto w-full border border-gray-100 rounded-lg">
-    <table className="w-full text-left border-collapse text-sm">
-      <thead>
-        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
-          {columns.map((col, idx) => (
-            <th key={idx} className="p-3">{col.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data && data.length > 0 ? (
-          data.map((row, rIdx) => (
-            <tr 
-              key={rIdx} 
-              onClick={() => onRowClick && onRowClick(row)}
-              className={`border-b border-gray-100 hover:bg-gray-50 text-gray-700 ${onRowClick ? 'cursor-pointer' : ''}`}
+function DataTable({ columns, data, onRowClick }) {
+  if (!data || data.length === 0) {
+    return <div className="text-center py-12 text-gray-400 text-sm">No data available</div>;
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((col) => (
+              <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-100">
+          {data.map((row, i) => (
+            <tr
+              key={row.id ?? i}
+              className={`hover:bg-emerald-50/50 transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
+              onClick={() => onRowClick?.(row)}
             >
-              {columns.map((col, cIdx) => (
-                <td key={cIdx} className="p-3">
-                  {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
+              {columns.map((col) => (
+                <td key={col.key} className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                  {col.render ? col.render(row[col.key], row) : row[col.key]}
                 </td>
               ))}
             </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={columns.length} className="p-8 text-center text-gray-400">
-              No certifications found.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-);
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
-const StatusBadge = ({ status }) => {
-  const normalized = String(status).toLowerCase();
-  const badgeStyles = {
-    active: "bg-green-50 text-green-700 border-green-100",
-    in_progress: "bg-blue-50 text-blue-700 border-blue-100",
-    expired: "bg-red-50 text-red-700 border-red-100",
-    pending: "bg-yellow-50 text-yellow-700 border-yellow-100",
-  };
-
-  const style = badgeStyles[normalized] || "bg-gray-50 text-gray-600 border-gray-200";
+function StatusBadge({ status }) {
+  const colorClass = statusColor(status);
 
   return (
-    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border capitalize ${style}`}>
-      {normalized.replace("_", " ")}
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colorClass}`}>
+      {status ? status.replace(/_/g, " ") : "N/A"}
     </span>
   );
-};
+}
 
-const formatDate = (dateString) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? dateString : date.toLocaleDateString();
-};
-
-// ==========================================
-// MAIN MODULE EXPORT
-// ==========================================
+function statusColor(status) {
+  const map = {
+    active: "bg-emerald-100 text-emerald-800",
+    in_progress: "bg-blue-100 text-blue-800",
+    pending: "bg-yellow-100 text-yellow-800",
+    completed: "bg-blue-100 text-blue-800",
+    expired: "bg-red-100 text-red-800",
+  };
+  return map[status] || "bg-gray-100 text-gray-800";
+}
 
 export default function Certifications() {
   const [certifications, setCertifications] = useState([]);

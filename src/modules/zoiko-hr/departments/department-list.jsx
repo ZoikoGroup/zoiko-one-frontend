@@ -2,7 +2,13 @@ import { useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, Pencil, Trash2, Building2, Users, CircleDollarSign, UserX, Search, X } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getDepartments } from "../../../service/hrService";
+import { 
+  getDepartments, 
+  getDepartmentById, 
+  createDepartment, 
+  updateDepartment, 
+  deleteDepartment 
+} from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/departments" },
@@ -102,10 +108,11 @@ export default function DepartmentList() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      await fetch("http://localhost:3000/hr/departments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, budget: formData.budget ? parseFloat(formData.budget) : null, description: formData.description.trim() || null, head: formData.head.trim() || null }),
+      await createDepartment({ 
+        ...formData, 
+        budget: formData.budget ? parseFloat(formData.budget) : null, 
+        description: formData.description.trim() || null, 
+        head: formData.head.trim() || null 
       });
       setShowCreateModal(false);
       resetForm();
@@ -133,10 +140,11 @@ export default function DepartmentList() {
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
-      await fetch(`http://localhost:3000/hr/departments/${editItem.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...editForm, budget: editForm.budget ? parseFloat(editForm.budget) : null, description: editForm.description.trim() || null, head: editForm.head.trim() || null }),
+      await updateDepartment(editItem.id, { 
+        ...editForm, 
+        budget: editForm.budget ? parseFloat(editForm.budget) : null, 
+        description: editForm.description.trim() || null, 
+        head: editForm.head.trim() || null 
       });
       setShowEditModal(false);
       setEditItem(null);
@@ -152,7 +160,7 @@ export default function DepartmentList() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this department?")) return;
     try {
-      await fetch(`http://localhost:3000/hr/departments/${id}`, { method: "DELETE" });
+      await deleteDepartment(id);
       const data = await getDepartments();
       setRecords(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -162,8 +170,7 @@ export default function DepartmentList() {
 
   const openDetailModal = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3000/hr/departments/${id}`);
-      const item = await res.json();
+      const item = await getDepartmentById(id);
       setDetailItem(item);
       setShowDetailModal(true);
     } catch (err) {
@@ -316,7 +323,7 @@ export default function DepartmentList() {
 
         {showCreateModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div classKey="create-modal" className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800">Add Department</h2>
                 <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
@@ -347,7 +354,7 @@ export default function DepartmentList() {
                 </div>
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                   <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                   <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
                      {statusOptions.map((opt) => (
                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                      ))}

@@ -1,12 +1,119 @@
 import { useState, useEffect } from "react";
 import { getFinancialAnalytics, getComplianceAnalytics, getInventoryAnalytics, getProjectAnalytics, getForecastingData } from "../../service/insightsService";
-import StatsCard from "../../components/insights/StatsCard";
-import DataTable from "../../components/insights/DataTable";
-import StatusBadge from "../../components/insights/StatusBadge";
-import { formatCurrency, formatPercent, formatDate } from "../../components/insights/helpers";
-import { CHART_COLORS } from "../../components/insights/chartColors";
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, FileText, Building2, ShieldCheck, AlertTriangle, CheckCircle, Clock, Scale, Package, Truck, Store, Briefcase, BarChart3, Target } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+
+// ==========================================
+// EMBEDDED DEPENDENCIES & HELPERS
+// ==========================================
+const CHART_COLORS = {
+  primary: "#4f46e5",   // Indigo
+  success: "#10b981",   // Emerald
+  warning: "#f59e0b",   // Amber
+  danger: "#ef4444",    // Red
+  info: "#06b6d4",      // Cyan
+  secondary: "#6b7280"  // Gray
+};
+
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return "$0";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatPercent = (value) => {
+  if (value === undefined || value === null) return "0%";
+  return `${(value * 100).toFixed(1)}%`;
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+const StatsCard = ({ title, value, icon: Icon, trend, change, subtitle }) => (
+  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+    <div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
+      <div className="flex items-center gap-1.5 mt-1">
+        {change !== undefined && change !== 0 && (
+          <span className={`text-xs font-medium ${trend === 'up' || trend === 'healthy' ? 'text-green-600' : 'text-red-600'}`}>
+            {trend === 'up' || trend === 'healthy' ? '↑' : '↓'} {Math.abs(change)}%
+          </span>
+        )}
+        {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
+      </div>
+    </div>
+    {Icon && (
+      <div className="p-2 bg-gray-50 rounded-lg border border-gray-100 text-gray-400">
+        <Icon size={20} />
+      </div>
+    )}
+  </div>
+);
+
+const DataTable = ({ columns = [], data = [] }) => (
+  <div className="overflow-x-auto w-full border border-gray-100 rounded-lg">
+    <table className="w-full text-left border-collapse text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+          {columns.map((col, idx) => (
+            <th key={idx} className="p-3">{col.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, rIdx) => (
+            <tr key={rIdx} className="border-b border-gray-100 hover:bg-gray-50 text-gray-700">
+              {columns.map((col, cIdx) => (
+                <td key={cIdx} className="p-3">
+                  {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={columns.length} className="p-8 text-center text-gray-400">No data available.</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
+
+const StatusBadge = ({ status }) => {
+  const normalized = String(status).toLowerCase();
+  const badgeStyles = {
+    critical: "bg-red-100 text-red-800 border-red-200 font-semibold",
+    high: "bg-red-50 text-red-700 border-red-100",
+    medium: "bg-orange-50 text-orange-700 border-orange-100",
+    low: "bg-green-50 text-green-700 border-green-100",
+    active: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    completed: "bg-blue-50 text-blue-700 border-blue-100",
+    healthy: "bg-green-50 text-green-700 border-green-100",
+    warning: "bg-yellow-50 text-yellow-700 border-yellow-100",
+  };
+  const style = badgeStyles[normalized] || "bg-gray-50 text-gray-600 border-gray-200";
+  return (
+    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border capitalize ${style}`}>
+      {normalized.replace("_", " ")}
+    </span>
+  );
+};
 
 const tabs = [
   { id: "financial", label: "Financial" },
@@ -27,14 +134,18 @@ export default function Analytics({ defaultTab = "financial" }) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      getFinancialAnalytics().then(setFinancial).catch(() => {}),
-      getComplianceAnalytics().then(setCompliance).catch(() => {}),
-      getInventoryAnalytics().then(setInventory).catch(() => {}),
-      getProjectAnalytics().then(setProjects).catch(() => {}),
-      getForecastingData().then(setForecasting).catch(() => {}),
-    ]).finally(() => setLoading(false));
-  }, []);
+    const fetchTabMapping = {
+      financial: () => getFinancialAnalytics().then(setFinancial),
+      compliance: () => getComplianceAnalytics().then(setCompliance),
+      inventory: () => getInventoryAnalytics().then(setInventory),
+      projects: () => getProjectAnalytics().then(setProjects),
+      forecasting: () => getForecastingData().then(setForecasting),
+    };
+
+    if (fetchTabMapping[activeTab]) {
+      fetchTabMapping[activeTab]().catch(() => {}).finally(() => setLoading(false));
+    }
+  }, [activeTab]);
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full" /></div>;
@@ -43,470 +154,116 @@ export default function Analytics({ defaultTab = "financial" }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1">Comprehensive business analytics across all domains</p>
+        <h1 className="text-2xl font-bold text-gray-900">Advanced Analytics</h1>
+        <p className="text-sm text-gray-500 mt-1">Cross-functional intelligence and analytical reviews</p>
       </div>
 
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap ${activeTab === tab.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>{tab.label}</button>
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === tab.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 
-      {activeTab === "financial" && financial && <FinancialContent data={financial} />}
-      {activeTab === "compliance" && compliance && <ComplianceContent data={compliance} />}
-      {activeTab === "inventory" && inventory && <InventoryContent data={inventory} />}
-      {activeTab === "projects" && projects && <ProjectsContent data={projects} />}
-      {activeTab === "forecasting" && forecasting && <ForecastingContent data={forecasting} />}
-    </div>
-  );
-}
-
-function FinancialContent({ data }) {
-  const { summary, revenueVsExpense, cashFlow, expenseBreakdown, revenueByStream, accountsReceivable } = data;
-  const stats = [
-    { title: "Total Revenue", value: formatCurrency(summary.totalRevenue), change: summary.yoyRevenueGrowth, trend: "up", icon: DollarSign, subtitle: "Last 12 months" },
-    { title: "Net Profit", value: formatCurrency(summary.netProfit), change: summary.yoyProfitGrowth, trend: "up", icon: PiggyBank, subtitle: `Margin ${summary.profitMargin}%` },
-    { title: "Total Expenses", value: formatCurrency(summary.totalExpenses), change: 5.2, trend: "up", icon: TrendingDown, subtitle: "Operating + COGS" },
-    { title: "Outstanding AR", value: formatCurrency(summary.outstandingInvoices), change: -3.8, trend: "down", icon: FileText, subtitle: `${summary.collectionsRate}% collected` },
-    { title: "Vendor Spend", value: formatCurrency(summary.vendorSpend), change: 2.1, trend: "up", icon: Building2, subtitle: "Annual" },
-    { title: "Operating Exp", value: formatCurrency(summary.operatingExpenses), change: 4.5, trend: "up", icon: TrendingUp, subtitle: "SG&A" },
-  ];
-  const arColumns = [
-    { key: "age", label: "Age" },
-    { key: "amount", label: "Amount", render: (v) => formatCurrency(v) },
-    { key: "count", label: "Invoices" },
-  ];
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue vs Expenses</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={revenueVsExpense}>
-              <defs>
-                <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.success} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.success} stopOpacity={0}/></linearGradient>
-                <linearGradient id="exp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.danger} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.danger} stopOpacity={0}/></linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Legend />
-              <Area type="monotone" dataKey="revenue" stroke={CHART_COLORS.success} fill="url(#rev)" strokeWidth={2} name="Revenue" />
-              <Area type="monotone" dataKey="expenses" stroke={CHART_COLORS.danger} fill="url(#exp)" strokeWidth={2} name="Expenses" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Cash Flow</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={cashFlow}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e3).toFixed(0)}K`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Legend />
-              <Bar dataKey="operating" fill={CHART_COLORS.success} name="Operating" stackId="a" />
-              <Bar dataKey="investing" fill={CHART_COLORS.warning} name="Investing" stackId="a" />
-              <Bar dataKey="financing" fill={CHART_COLORS.info} name="Financing" stackId="a" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Expense Breakdown</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie data={expenseBreakdown} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3} dataKey="value" label={({ name, value }) => `${name}: ${formatCurrency(value)}`}>
-                {expenseBreakdown.map((e, i) => (
-                  <Cell key={e.name} fill={[CHART_COLORS.primary, CHART_COLORS.danger, CHART_COLORS.warning, CHART_COLORS.info, CHART_COLORS.success, CHART_COLORS.secondary, CHART_COLORS.gray, "#f97316"][i % 8]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue by Stream</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={revenueByStream} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="#9ca3af" width={140} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Bar dataKey="value" fill={CHART_COLORS.primary} barSize={16} radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Profit Trend</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={revenueVsExpense}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e3).toFixed(0)}K`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Line type="monotone" dataKey="profit" stroke={CHART_COLORS.success} strokeWidth={2} name="Net Profit" dot={{ r: 4 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Accounts Receivable Aging</h3>
-          <DataTable columns={arColumns} data={accountsReceivable} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ComplianceContent({ data }) {
-  const { summary, frameworkScores, monthlyTrend, findingsBySeverity, findingsByDepartment, upcomingDeadlines } = data;
-  const stats = [
-    { title: "Overall Score", value: `${summary.overallScore}%`, change: 3.5, trend: "up", icon: ShieldCheck, subtitle: "Compliance health" },
-    { title: "Passed Controls", value: summary.passedControls, change: 8, trend: "up", icon: CheckCircle, subtitle: `${summary.failedControls} failed` },
-    { title: "Open Findings", value: summary.openFindings, change: -5, trend: "down", icon: AlertTriangle, subtitle: `${summary.overdueActions} overdue` },
-    { title: "Pending Reviews", value: summary.pendingReviews, change: 2, trend: "up", icon: Clock, subtitle: "Awaiting review" },
-    { title: "Frameworks", value: summary.frameworks, change: 0, trend: "stable", icon: Scale, subtitle: "Active certifications" },
-    { title: "Next Assessment", value: formatDate(summary.nextAssessment), change: null, trend: "stable", icon: FileText, subtitle: `Last: ${formatDate(summary.lastAssessment)}` },
-  ];
-  const columns = [
-    { key: "title", label: "Deadline", render: (v) => <span className="font-medium">{v}</span> },
-    { key: "deadline", label: "Due Date", render: (v) => formatDate(v) },
-    { key: "owner", label: "Owner" },
-    { key: "status", label: "Status", render: (v) => <StatusBadge status={v} /> },
-  ];
-  const deptColumns = [
-    { key: "name", label: "Department" },
-    { key: "open", label: "Open", render: (v) => <span className={v > 2 ? "text-red-600 font-medium" : ""}>{v}</span> },
-    { key: "closed", label: "Closed", render: (v) => <span className="text-emerald-600">{v}</span> },
-    { key: "critical", label: "Critical", render: (v) => <span className={v > 0 ? "text-red-600 font-bold" : "text-gray-400"}>{v}</span> },
-  ];
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Framework Scores</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={frameworkScores} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="#9ca3af" width={100} />
-              <Tooltip formatter={(v) => `${v}%`} />
-              <Bar dataKey="score" fill={CHART_COLORS.primary} barSize={16} radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Compliance Score Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={monthlyTrend}>
-              <defs><linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}/></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis domain={[60, 90]} tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <Tooltip formatter={(v) => `${v}%`} />
-              <Area type="monotone" dataKey="score" stroke={CHART_COLORS.primary} fill="url(#scoreGrad)" strokeWidth={2} name="Score" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Findings by Severity</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={findingsBySeverity} cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`} dataKey="value">
-                {findingsBySeverity.map((e, i) => <Cell key={e.name} fill={[CHART_COLORS.danger, CHART_COLORS.warning, CHART_COLORS.info, CHART_COLORS.success][i % 4]} />)}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Findings by Department</h3>
-          <DataTable columns={deptColumns} data={findingsByDepartment} />
-        </div>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">Upcoming Compliance Deadlines</h3>
-        <DataTable columns={columns} data={upcomingDeadlines} />
-      </div>
-    </div>
-  );
-}
-
-function InventoryContent({ data }) {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({ category: "", location: "" });
-  const { summary, items, valueByCategory, stockTrend, lowStockAlerts } = data;
-  const stats = [
-    { title: "Total Items", value: summary.totalItems.toLocaleString(), change: 2.3, trend: "up", icon: Package, subtitle: `${summary.distinctItems} SKUs` },
-    { title: "Total Value", value: formatCurrency(summary.totalValue), change: 4.1, trend: "up", icon: DollarSign, subtitle: "Inventory value" },
-    { title: "Low Stock Items", value: summary.lowStockItems, change: 5, trend: "up", icon: AlertTriangle, subtitle: "Below minimum" },
-    { title: "Pending Orders", value: summary.pendingOrders, change: -3, trend: "down", icon: Truck, subtitle: "On order" },
-    { title: "Stockout Risk", value: `${summary.stockoutRisk}%`, change: 1.2, trend: "up", icon: TrendingDown, subtitle: "Items at risk" },
-    { title: "Avg Turnover", value: `${summary.avgTurnoverDays} days`, change: -2, trend: "down", icon: Store, subtitle: "Inventory turnover" },
-  ];
-  const columns = [
-    { key: "name", label: "Item", render: (v, r) => <div><span className="font-medium">{v}</span><div className="text-xs text-gray-400">{r.category}</div></div> },
-    { key: "location", label: "Location" }, { key: "quantity", label: "Qty" },
-    { key: "unitCost", label: "Unit Cost", render: (v) => formatCurrency(v) },
-    { key: "totalValue", label: "Total Value", render: (v) => formatCurrency(v) },
-    { key: "status", label: "Status", render: (v) => <StatusBadge status={v} /> },
-    { key: "lastRestocked", label: "Last Restocked" },
-  ];
-  let filteredItems = [...items];
-  if (search) filteredItems = filteredItems.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-  if (filters.category) filteredItems = filteredItems.filter(i => i.category === filters.category);
-  if (filters.location) filteredItems = filteredItems.filter(i => i.location === filters.location);
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Inventory Value by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={valueByCategory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="#9ca3af" angle={-45} textAnchor="end" height={60} />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e3).toFixed(0)}K`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Legend />
-              <Bar dataKey="value" fill={CHART_COLORS.primary} name="Value" barSize={12} />
-              <Bar dataKey="count" fill={CHART_COLORS.info} name="Count" barSize={12} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Stock Movement</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stockTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="incoming" stroke={CHART_COLORS.success} strokeWidth={2} name="Incoming" dot={false} />
-              <Line type="monotone" dataKey="outgoing" stroke={CHART_COLORS.danger} strokeWidth={2} name="Outgoing" dot={false} />
-              <Line type="monotone" dataKey="damaged" stroke={CHART_COLORS.warning} strokeWidth={2} name="Damaged" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      {lowStockAlerts.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h3 className="font-semibold text-red-800">Low Stock Alerts</h3>
-            <span className="text-sm text-red-600 ml-2">{lowStockAlerts.length} items below minimum threshold</span>
+      {activeTab === "financial" && financial && (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatsCard title="Gross Margin" value={formatPercent(financial.metrics.grossMargin)} icon={DollarSign} change={1.2} trend="up" subtitle="vs last Q" />
+            <StatsCard title="OpEx Efficiency" value={formatPercent(financial.metrics.opexEfficiency)} icon={PiggyBank} change={2.4} trend="up" subtitle="Reduction" />
+            <StatsCard title="Burn Rate" value={formatCurrency(financial.metrics.burnRate)} icon={TrendingDown} subtitle="Monthly" />
+            <StatsCard title="Runway" value={`${financial.metrics.runwayMonths} Mos`} icon={Clock} trend="up" subtitle="Healthy" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {lowStockAlerts.map(a => (
-              <div key={a.id} className="bg-white rounded-lg border border-red-100 p-3 flex items-center justify-between">
-                <div><p className="text-sm font-medium text-gray-900">{a.name}</p><p className="text-xs text-gray-500">{a.location}</p></div>
-                <div className="text-right"><p className="text-sm font-semibold text-red-600">{a.current} / {a.min} min</p></div>
-              </div>
-            ))}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue Breakdown by Entity</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={financial.entityRevenue}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="entity" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${v / 1000}k`} />
+                  <Tooltip formatter={(v) => formatCurrency(v)} />
+                  <Bar dataKey="revenue" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold text-gray-900">Inventory Items</h3></div>
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="w-full max-w-sm pl-4 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-          <select value={filters.category} onChange={e => setFilters(p => ({ ...p, category: e.target.value }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"><option value="">All Categories</option>{["Electronics", "Office Supplies", "Software Licenses", "Furniture", "Networking", "Security"].map(c => <option key={c} value={c}>{c}</option>)}</select>
-          <select value={filters.location} onChange={e => setFilters(p => ({ ...p, location: e.target.value }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"><option value="">All Locations</option>{["HQ - Floor 1", "HQ - Floor 2", "Warehouse A", "Warehouse B"].map(l => <option key={l} value={l}>{l}</option>)}</select>
-        </div>
-        <DataTable columns={columns} data={filteredItems} />
-      </div>
-    </div>
-  );
-}
 
-function ProjectsContent({ data }) {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({ status: "", category: "" });
-  const { summary, projects, statusDistribution, budgetByCategory, timeline } = data;
-  const stats = [
-    { title: "Total Projects", value: summary.totalProjects, change: 8.2, trend: "up", icon: Briefcase, subtitle: `${summary.activeProjects} active` },
-    { title: "Completed (YTD)", value: summary.completedThisYear, change: 14.3, trend: "up", icon: CheckCircle, subtitle: "This year" },
-    { title: "At Risk", value: summary.atRisk, change: 2, trend: "up", icon: AlertTriangle, subtitle: "Needs attention" },
-    { title: "Over Budget", value: summary.overBudget, change: -1, trend: "down", icon: DollarSign, subtitle: "Exceeding budget" },
-    { title: "Total Budget", value: formatCurrency(summary.totalBudget), change: 5.5, trend: "up", icon: TrendingUp, subtitle: `${summary.avgCompletion}% avg completion` },
-    { title: "Total Spent", value: formatCurrency(summary.totalSpent), change: 7.2, trend: "up", icon: Clock, subtitle: `${((summary.totalSpent / summary.totalBudget) * 100).toFixed(0)}% utilized` },
-  ];
-  const columns = [
-    { key: "name", label: "Project", render: (v, r) => <div><span className="font-medium">{v}</span><div className="text-xs text-gray-400">{r.category}</div></div> },
-    { key: "status", label: "Status", render: (v) => <StatusBadge status={v} /> },
-    { key: "budget", label: "Budget", render: (v) => formatCurrency(v) },
-    { key: "spent", label: "Spent", render: (v) => formatCurrency(v) },
-    { key: "progress", label: "Progress", render: (v) => <div className="flex items-center gap-2"><div className="w-24 bg-gray-100 rounded-full h-2"><div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${v}%` }} /></div><span className="text-xs">{v}%</span></div> },
-    { key: "teamSize", label: "Team" }, { key: "deadline", label: "Deadline" },
-    { key: "priority", label: "Priority", render: (v) => <span className={`capitalize text-xs font-medium px-2 py-0.5 rounded-full ${v === "critical" ? "bg-red-100 text-red-700" : v === "high" ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-700"}`}>{v}</span> },
-  ];
-  let filteredProjects = [...projects];
-  if (search) filteredProjects = filteredProjects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
-  if (filters.status) filteredProjects = filteredProjects.filter(p => p.status === filters.status);
-  if (filters.category) filteredProjects = filteredProjects.filter(p => p.category === filters.category);
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Project Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie data={statusDistribution} cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`} dataKey="value">
-                {statusDistribution.map((e, i) => <Cell key={e.name} fill={[CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.danger][i % 3]} />)}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+      {activeTab === "compliance" && compliance && (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StatsCard title="Control Effectiveness" value={formatPercent(compliance.summary.effectiveness)} icon={ShieldCheck} trend="up" />
+            <StatsCard title="Open Findings" value={compliance.summary.openFindings} icon={AlertTriangle} trend={compliance.summary.openFindings > 5 ? "down" : "healthy"} />
+            <StatsCard title="Audit Readiness" value={formatPercent(compliance.summary.auditReadiness)} icon={Scale} trend="up" />
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Framework Coverage Status</h3>
+            <DataTable
+              columns={[
+                { key: "framework", label: "Framework", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
+                { key: "totalControls", label: "Total Controls" },
+                { key: "implemented", label: "Implemented" },
+                { key: "complianceRate", label: "Compliance Rate", render: (v) => formatPercent(v / 100) },
+              ]}
+              data={compliance.frameworks}
+            />
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Budget by Category</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={budgetByCategory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Legend />
-              <Bar dataKey="budget" fill={CHART_COLORS.primary} name="Budget" barSize={16} />
-              <Bar dataKey="spent" fill={CHART_COLORS.warning} name="Spent" barSize={16} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">Project Timeline</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={timeline}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-            <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-            <Tooltip /><Legend />
-            <Line type="monotone" dataKey="started" stroke={CHART_COLORS.primary} strokeWidth={2} name="Started" dot={{ r: 4 }} />
-            <Line type="monotone" dataKey="completed" stroke={CHART_COLORS.success} strokeWidth={2} name="Completed" dot={{ r: 4 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold text-gray-900">All Projects</h3></div>
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="w-full max-w-sm pl-4 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-          <select value={filters.status} onChange={e => setFilters(p => ({ ...p, status: e.target.value }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"><option value="">All Statuses</option>{["on_track", "at_risk", "over_budget", "completed"].map(s => <option key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}</option>)}</select>
-          <select value={filters.category} onChange={e => setFilters(p => ({ ...p, category: e.target.value }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"><option value="">All Categories</option>{["Internal", "Client", "R&D", "Maintenance"].map(c => <option key={c} value={c}>{c}</option>)}</select>
-        </div>
-        <DataTable columns={columns} data={filteredProjects} />
-      </div>
-    </div>
-  );
-}
+      )}
 
-function ForecastingContent({ data }) {
-  const { summary, revenueForecast, expenseForecast, workforceForecast, scenarioAnalysis, trends } = data;
-  const stats = [
-    { title: "Next Qtr Revenue", value: formatCurrency(summary.nextQuarterRevenue), change: 8.5, trend: "up", icon: DollarSign, subtitle: "Q4 2026 forecast" },
-    { title: "Projected Growth", value: formatPercent(summary.projectedGrowth), change: 0.5, trend: "up", icon: TrendingUp, subtitle: `${summary.confidenceInterval}% confidence` },
-    { title: "Next Qtr Expenses", value: formatCurrency(summary.nextQuarterExpenses), change: 6.3, trend: "up", icon: TrendingDown, subtitle: "Q4 2026 forecast" },
-    { title: "Workforce Projection", value: summary.workforceProjection, change: 3.4, trend: "up", icon: Users, subtitle: "End of 2026" },
-    { title: "Avg Salary Proj.", value: formatCurrency(summary.avgSalaryProjection), change: 4.1, trend: "up", icon: BarChart3, subtitle: "2027 projection" },
-    { title: "Confidence Level", value: `${summary.confidenceInterval}%`, change: 2, trend: "up", icon: Target, subtitle: "Model accuracy" },
-  ];
-  const scenarioColumns = [
-    { key: "scenario", label: "Scenario", render: (v) => <span className="font-medium capitalize">{v}</span> },
-    { key: "probability", label: "Probability", render: (v) => `${v}%` },
-    { key: "revenue", label: "Projected Revenue", render: (v) => formatCurrency(v) },
-    { key: "expenses", label: "Projected Expenses", render: (v) => formatCurrency(v) },
-    { key: "margin", label: "Margin %", render: (v) => `${v}%` },
-  ];
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((s) => <StatsCard key={s.title} {...s} />)}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue Forecast</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={revenueForecast}>
-              <defs><linearGradient id="revFcast" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.1}/><stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}/></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="quarter" tick={{ fontSize: 11 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
-              <Tooltip formatter={(v) => v ? formatCurrency(v) : "-"} />
-              <Legend />
-              <Area type="monotone" dataKey="upper" stroke="transparent" fill={CHART_COLORS.primary} fillOpacity={0.1} name="Upper Bound" />
-              <Area type="monotone" dataKey="lower" stroke="transparent" fill={CHART_COLORS.primary} fillOpacity={0.1} name="Lower Bound" />
-              <Line type="monotone" dataKey="forecast" stroke={CHART_COLORS.primary} strokeWidth={2} name="Forecast" strokeDasharray="5 5" />
-              <Line type="monotone" dataKey="actual" stroke={CHART_COLORS.success} strokeWidth={2} name="Actual" />
-            </AreaChart>
-          </ResponsiveContainer>
+      {activeTab === "inventory" && inventory && (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatsCard title="Turnover Rate" value={`${inventory.metrics.turnoverRate}x`} icon={Package} subtitle="Annualized" />
+            <StatsCard title="Stockout Risk Items" value={inventory.metrics.stockoutRisks} icon={AlertTriangle} trend="down" />
+            <StatsCard title="Supplier Reliability" value={formatPercent(inventory.metrics.supplierReliability / 100)} icon={Truck} trend="up" />
+            <StatsCard title="Holding Value" value={formatCurrency(inventory.metrics.holdingValue)} icon={Store} />
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Expense Forecast</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={expenseForecast}>
-              <defs><linearGradient id="expFcast" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.danger} stopOpacity={0.1}/><stop offset="95%" stopColor={CHART_COLORS.danger} stopOpacity={0}/></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="quarter" tick={{ fontSize: 11 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
-              <Tooltip formatter={(v) => v ? formatCurrency(v) : "-"} />
-              <Legend />
-              <Area type="monotone" dataKey="upper" stroke="transparent" fill={CHART_COLORS.danger} fillOpacity={0.1} name="Upper Bound" />
-              <Area type="monotone" dataKey="lower" stroke="transparent" fill={CHART_COLORS.danger} fillOpacity={0.1} name="Lower Bound" />
-              <Line type="monotone" dataKey="forecast" stroke={CHART_COLORS.danger} strokeWidth={2} name="Forecast" strokeDasharray="5 5" />
-              <Line type="monotone" dataKey="actual" stroke={CHART_COLORS.success} strokeWidth={2} name="Actual" />
-            </AreaChart>
-          </ResponsiveContainer>
+      )}
+
+      {activeTab === "projects" && projects && (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StatsCard title="On-Time Delivery" value={formatPercent(projects.summary.onTimeDelivery / 100)} icon={CheckCircle} trend="up" />
+            <StatsCard title="Budget Variance" value={formatPercent(projects.summary.budgetVariance / 100)} icon={DollarSign} trend="up" subtitle="Under Budget" />
+            <StatsCard title="Resource Utilization" value={formatPercent(projects.summary.resourceUtilization / 100)} icon={Briefcase} />
+          </div>
         </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Workforce Forecast</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={workforceForecast}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="quarter" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <Tooltip /><Legend />
-              <Line type="monotone" dataKey="actual" stroke={CHART_COLORS.primary} strokeWidth={2} name="Actual" />
-              <Line type="monotone" dataKey="forecast" stroke={CHART_COLORS.warning} strokeWidth={2} name="Forecast" strokeDasharray="5 5" />
-            </LineChart>
-          </ResponsiveContainer>
+      )}
+
+      {activeTab === "forecasting" && forecasting && (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+            <StatsCard title="Forecast Accuracy" value={formatPercent(forecasting.metrics.accuracy / 100)} icon={Target} />
+            <StatsCard title="Projected Revenue (Next Q)" value={formatCurrency(forecasting.metrics.projectedNextQuarter)} icon={BarChart3} />
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Predictive Models Evaluation</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={forecasting.timeline}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" />
+                  <Tooltip formatter={(v) => formatCurrency(v)} />
+                  <Legend />
+                  <Line type="monotone" dataKey="actual" stroke={CHART_COLORS.primary} strokeWidth={2} name="Actual" />
+                  <Line type="monotone" dataKey="forecast" stroke={CHART_COLORS.warning} strokeWidth={2} name="Forecast" strokeDasharray="5 5" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Growth Trends</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={trends.revenueGrowth}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="year" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(0)}M`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Line type="monotone" dataKey="value" stroke={CHART_COLORS.primary} strokeWidth={2} name="Revenue" dot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">Scenario Analysis</h3>
-        <DataTable columns={scenarioColumns} data={scenarioAnalysis} />
-      </div>
+      )}
     </div>
   );
 }

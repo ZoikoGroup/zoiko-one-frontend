@@ -11,11 +11,14 @@ const productLinks = [
   { label: "Zoiko Billing", href: "/billing", desc: "Invoicing & collections", color: "#D97706" },
   { label: "Zoiko Comply", href: "/comply", desc: "Compliance & governance", color: "#DC2626" },
   { label: "Zoiko Insights", href: "/insights", desc: "Dashboards & analytics", color: "#7C3AED" },
+  { label: "Zoiko Spend", href: "/spend", desc: "Procurement & spend management", color: "#0EA5E9" },
+  { label: "Zoiko Projects", href: "/projects", desc: "Projects, tasks & delivery", color: "#6366F1" },
+  { label: "Zoiko Inventory", href: "/inventory", desc: "Stock & asset tracking", color: "#84CC16" },
+  { label: "Zoiko Docs Pro", href: "/zoiko-docs", desc: "Document management & collaboration", color: "#06B6D4" },
 ];
 
 export default function LandingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -27,10 +30,9 @@ export default function LandingHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full border-b border-gray-200 transition-all duration-300 ${
         scrolled ? "bg-white shadow-md" : "bg-white/95 backdrop-blur-md"
       }`}
-      style={{ borderBottom: "1px solid #e5e7eb" }}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
@@ -41,53 +43,32 @@ export default function LandingHeader() {
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-1">
           {/* Products dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setProductsOpen(true)}
-            onMouseLeave={() => setProductsOpen(false)}
-          >
+          <div className="relative group">
             <button
-              style={{
-                display: "flex", alignItems: "center", gap: "4px",
-                padding: "8px 14px", borderRadius: "8px",
-                fontSize: "14px", fontWeight: "500", color: "#374151",
-                background: "transparent", border: "none", cursor: "pointer",
-                transition: "background 0.2s"
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "#f3f4f6"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              className="flex items-center gap-1 px-3.5 py-2 text-sm font-medium text-gray-700 bg-transparent border-none rounded-lg cursor-pointer group-hover:bg-gray-100 transition-colors duration-200"
             >
-              Products <ChevronDown size={14} style={{ marginTop: "1px", transform: productsOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }} />
+              Products <ChevronDown size={14} className="mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
             </button>
-            {productsOpen && (
-              <div style={{
-                position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
-                width: "480px", background: "white", borderRadius: "16px",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.15)", border: "1px solid #e5e7eb",
-                padding: "16px", marginTop: "8px", zIndex: 100
-              }}>
-                <p style={{ fontSize: "11px", fontWeight: "600", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px", paddingLeft: "8px" }}>
-                  Zoiko One Products
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
-                  {productLinks.map((p) => (
-                    <Link
-                      key={p.href}
-                      to={p.href}
-                      style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "10px 12px", borderRadius: "10px", textDecoration: "none", transition: "background 0.15s" }}
-                      onMouseEnter={e => e.currentTarget.style.background = "#f9fafb"}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                    >
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: p.color, marginTop: "6px", flexShrink: 0 }} />
-                      <div>
-                        <p style={{ fontSize: "14px", fontWeight: "600", color: "#111827", margin: 0 }}>{p.label}</p>
-                        <p style={{ fontSize: "12px", color: "#6B7280", margin: "2px 0 0 0" }}>{p.desc}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-[480px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-200 p-4 mt-2 z-[100] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3 pl-2">
+                Zoiko One Products
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                {productLinks.map((p) => (
+                  <Link
+                    key={p.href}
+                    to={p.href}
+                    className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-gray-50 transition-colors duration-150 no-underline"
+                  >
+                    <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: p.color }} />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 m-0">{p.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 m-0">{p.desc}</p>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            )}
+            </div>
           </div>
 
           {[
@@ -98,13 +79,7 @@ export default function LandingHeader() {
             <a
               key={l.href}
               href={l.href}
-              style={{
-                padding: "8px 14px", borderRadius: "8px",
-                fontSize: "14px", fontWeight: "500", color: "#374151",
-                textDecoration: "none", transition: "background 0.2s"
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "#f3f4f6"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              className="px-3.5 py-2 text-sm font-medium text-gray-700 rounded-lg no-underline hover:bg-gray-100 transition-colors duration-200"
             >
               {l.label}
             </a>
@@ -115,27 +90,17 @@ export default function LandingHeader() {
         <div className="hidden lg:flex items-center gap-3">
           <Link
             to="/login"
-            style={{
-              padding: "8px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: "500",
-              color: "#374151", border: "1px solid #D1D5DB", textDecoration: "none",
-              background: "white", transition: "all 0.2s"
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF6B00"; e.currentTarget.style.color = "#FF6B00"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.color = "#374151"; }}
+            className="px-[18px] py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg bg-white no-underline hover:border-orange-500 hover:text-orange-500 transition-all duration-200"
           >
             {isAuthenticated ? "Dashboard" : "Sign In"}
           </Link>
           <Link
             to={isAuthenticated ? "/dashboard" : "/register"}
+            className="px-5 py-2 text-sm font-semibold text-white no-underline rounded-lg transition-all duration-200 hover:shadow-[0_6px_20px_rgba(255,107,0,0.5)]"
             style={{
-              padding: "8px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: "600",
-              color: "white", textDecoration: "none",
               background: "linear-gradient(135deg, #FF6B00, #FF8C38)",
               boxShadow: "0 4px 14px rgba(255,107,0,0.35)",
-              transition: "all 0.2s"
             }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = "0 6px 20px rgba(255,107,0,0.5)"}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = "0 4px 14px rgba(255,107,0,0.35)"}
           >
             {isAuthenticated ? "Go to Dashboard" : "Get Started Free"}
           </Link>
@@ -143,8 +108,7 @@ export default function LandingHeader() {
 
         {/* Mobile menu button */}
         <button
-          className="lg:hidden"
-          style={{ padding: "8px", borderRadius: "8px", border: "1px solid #E5E7EB", background: "white", cursor: "pointer" }}
+          className="lg:hidden p-2 rounded-lg border border-gray-200 bg-white cursor-pointer"
           onClick={() => setMobileOpen(v => !v)}
         >
           {mobileOpen ? <X size={20} color="#374151" /> : <Menu size={20} color="#374151" />}
@@ -153,25 +117,26 @@ export default function LandingHeader() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div style={{ background: "white", borderTop: "1px solid #E5E7EB", padding: "16px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <p style={{ fontSize: "11px", fontWeight: "600", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.08em" }}>Products</p>
+        <div className="bg-white border-t border-gray-200 p-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Products</p>
             {productLinks.map((p) => (
               <Link key={p.href} to={p.href} onClick={() => setMobileOpen(false)}
-                style={{ fontSize: "14px", color: "#374151", textDecoration: "none", padding: "6px 0" }}>{p.label}</Link>
+                className="text-sm text-gray-700 no-underline py-1.5">{p.label}</Link>
             ))}
-            <div style={{ height: "1px", background: "#E5E7EB", margin: "8px 0" }} />
+            <div className="h-px bg-gray-200 my-2" />
             {[{ label: "Platform", href: "/#platform" }, { label: "Pricing", href: "/#pricing" }, { label: "Trust Center", href: "/trust-center" }].map(l => (
               <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
-                style={{ fontSize: "14px", color: "#374151", textDecoration: "none", padding: "6px 0" }}>{l.label}</a>
+                className="text-sm text-gray-700 no-underline py-1.5">{l.label}</a>
             ))}
-            <div style={{ height: "1px", background: "#E5E7EB", margin: "8px 0" }} />
+            <div className="h-px bg-gray-200 my-2" />
             <Link to="/login" onClick={() => setMobileOpen(false)}
-              style={{ textAlign: "center", padding: "10px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "14px", fontWeight: "500", color: "#374151", textDecoration: "none" }}>
+              className="text-center py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 no-underline">
               Sign In
             </Link>
             <Link to="/register" onClick={() => setMobileOpen(false)}
-              style={{ textAlign: "center", padding: "10px", borderRadius: "8px", fontSize: "14px", fontWeight: "600", color: "white", textDecoration: "none", background: "linear-gradient(135deg, #FF6B00, #FF8C38)" }}>
+              className="text-center py-2.5 rounded-lg text-sm font-semibold text-white no-underline"
+              style={{ background: "linear-gradient(135deg, #FF6B00, #FF8C38)" }}>
               Get Started Free
             </Link>
           </div>

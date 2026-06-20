@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, API_BASE_URL } from "./api";
 
 // ── CORE GENERIC FETCHERS ──────────────────────────────────────────────────
 export async function fetchList(resource) {
@@ -6,6 +6,11 @@ export async function fetchList(resource) {
   // Directly returns the api call promise; no local mock fallbacks
   return api.get(url);
 }
+
+
+export const createRecord = (resource, payload) => api.post(`/hr/${resource}`, payload);
+export const updateRecord = (resource, id, payload) => api.put(`/hr/${resource}/${id}`, payload);
+export const deleteRecord = (resource, id) => api.delete(`/hr/${resource}/${id}`)
 
 export const getCurrentUser = () => api.get("/auth/me");
 export const getOverview = () => fetchList("overview");
@@ -68,11 +73,7 @@ export const deleteEmployeeBenefit = (id) => api.delete(`/hr/compensation/employ
 export const getPayrollSummary = () => fetchList("payrollSummary");
 export const getRecruitment = () => fetchList("recruitment");
 export const getLearning = () => fetchList("learning");
-export const getDocuments = () => api.get("/hr/documents");
 
-export const createRecord = (resource, payload) => api.post(`/hr/${resource}`, payload);
-export const updateRecord = (resource, id, payload) => api.put(`/hr/${resource}/${id}`, payload);
-export const deleteRecord = (resource, id) => api.delete(`/hr/${resource}/${id}`);
 
 export const createRecruitmentCandidate = (payload) => api.post("/hr/recruitment", payload);
 export const updateRecruitmentCandidate = (id, payload) => api.put(`/hr/recruitment/${id}`, payload);
@@ -239,9 +240,9 @@ export const getAssetSettings = () => api.get("/hr/assets/settings");
 export const updateAssetSetting = (key, payload) => api.put(`/hr/assets/settings/${key}`, payload);
 
 export async function exportAssetsCsv() {
-  const { getAccessToken, API_BASE_URL } = await import("./api");
+  const { getAccessToken, API_BASE_URL: DynamicBaseUrl } = await import("./api");
   const token = getAccessToken();
-  const res = await fetch(`${API_BASE_URL}/hr/assets/export/csv`, {
+  const res = await fetch(`${DynamicBaseUrl}/hr/assets/export/csv`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to export CSV");
@@ -255,9 +256,9 @@ export async function exportAssetsCsv() {
 }
 
 export async function exportAssetsExcel() {
-  const { getAccessToken, API_BASE_URL } = await import("./api");
+  const { getAccessToken, API_BASE_URL: DynamicBaseUrl } = await import("./api");
   const token = getAccessToken();
-  const res = await fetch(`${API_BASE_URL}/hr/assets/export/excel`, {
+  const res = await fetch(`${DynamicBaseUrl}/hr/assets/export/excel`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to export Excel");
@@ -270,9 +271,7 @@ export async function exportAssetsExcel() {
   URL.revokeObjectURL(url);
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// LEARNING
-// ════════════════════════════════════════════════════════════════════════════
+// ── TIMELINE/LEARNING ──────────────────────────────────────────────────────
 export const getLearningDashboard = () => api.get("/hr/learning/dashboard");
 
 export const getCourses = (params = {}) => api.get("/hr/learning/courses", { params });
@@ -434,7 +433,7 @@ export const getPeerFeedback = (employeeId, reviewerId) => {
   return api.get(url);
 };
 export const createPeerFeedback = (payload) => api.post("/hr/performance/feedback", payload);
-export const deletePeerFeedback = (id) => api.delete("/hr/performance/feedback/${id}");
+export const deletePeerFeedback = (id) => api.delete(`/hr/performance/feedback/${id}`);
 
 export const getImprovementPlans = (employeeId) => api.get(`/hr/performance/pips${employeeId ? `?employee_id=${employeeId}` : ''}`);
 export const getImprovementPlanById = (id) => api.get(`/hr/performance/pips/${id}`);
@@ -742,3 +741,25 @@ export const getCorrectiveActionById = (id) => api.get(`/hr/compliance/correctiv
 export const createCorrectiveAction = (payload) => api.post("/hr/compliance/corrective-actions", payload);
 export const updateCorrectiveAction = (id, payload) => api.put(`/hr/compliance/corrective-actions/${id}`, payload);
 export const deleteCorrectiveAction = (id) => api.delete(`/hr/compliance/corrective-actions/${id}`);
+
+// ── DOCUMENTS ──────────────────────────────────────────────────────────────
+
+// Get all documents
+export const getDocuments = () => api.get("/hr/documents");
+
+// Upload a new document (using FormData)
+// Upload a new document (using FormData)
+export const uploadDocument = (formData) => 
+  api.post("/hr/documents/upload", formData);
+
+// Delete a document
+export const deleteDocument = (documentId) => 
+  api.delete(`/hr/documents/${documentId}`);
+
+// Update document status (Approve, Reject, Expire)
+export const updateDocumentStatus = (documentId, newStatus) => 
+  api.patch(`/hr/documents/${documentId}/status`, { status: newStatus });
+
+// Edit/Update document metadata
+export const updateDocument = (documentId, updateData) => 
+  api.put(`/hr/documents/${documentId}`, updateData);

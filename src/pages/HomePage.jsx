@@ -1,18 +1,17 @@
-import LandingHeader from "../components/LandingHeader";
-import LandingFooter from "../components/LandingFooter";
+import LandingHeader from "../landing/LandingHeader";
 import Hero from "../landing/Hero";
 import WhatItIs from "../landing/WhatItIs";
 import WhyExists from "../landing/WhyExists";
 import ProductGrid from "../landing/ProductGrid";
-import PricingTiers from "../landing/PricingTiers";
-import GlobalReadiness from "../landing/GlobalReadiness";
-import TrustCenter from "../landing/TrustCenter";
-import BusinessCloud from "../landing/BusinessCloud";
-import ComparisonTable from "../landing/ComparisonTable";
 import WhoItsFor from "../landing/WhoItsFor";
 import Philosophy from "../landing/Philosophy";
+import TrustCenter from "../landing/TrustCenter";
+import BusinessCloud from "../landing/BusinessCloud";
+import PricingTiers from "../landing/PricingTiers";
+import ComparisonTable from "../landing/ComparisonTable";
 import FAQ from "../landing/FAQ";
 import FinalCTA from "../landing/FinalCTA";
+import Footer from "../landing/Footer";
 
 export default function HomePage() {
   return (
@@ -23,17 +22,16 @@ export default function HomePage() {
         <WhatItIs />
         <WhyExists />
         <ProductGrid />
-        <PricingTiers />
-        <GlobalReadiness />
-        <TrustCenter />
-        <BusinessCloud />
-        <ComparisonTable />
         <WhoItsFor />
         <Philosophy />
+        <TrustCenter />
+        <BusinessCloud />
+        <PricingTiers />
+        <ComparisonTable />
         <FAQ />
         <FinalCTA />
       </main>
-      <LandingFooter />
+      <Footer />
     </div>
   );
 }

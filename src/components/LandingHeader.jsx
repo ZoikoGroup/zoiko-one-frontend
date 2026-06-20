@@ -44,11 +44,12 @@ export default function LandingHeader() {
         <nav className="hidden lg:flex items-center gap-1">
           {/* Products dropdown */}
           <div className="relative group">
-            <button
-              className="flex items-center gap-1 px-3.5 py-2 text-sm font-medium text-gray-700 bg-transparent border-none rounded-lg cursor-pointer group-hover:bg-gray-100 transition-colors duration-200"
+            <Link
+              to="/products"
+              className="flex items-center gap-1 px-3.5 py-2 text-sm font-medium text-gray-700 rounded-lg no-underline hover:bg-gray-100 transition-colors duration-200"
             >
               Products <ChevronDown size={14} className="mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
-            </button>
+            </Link>
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-[480px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-200 p-4 mt-2 z-[100] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3 pl-2">
                 Zoiko One Products
@@ -119,7 +120,8 @@ export default function LandingHeader() {
       {mobileOpen && (
         <div className="bg-white border-t border-gray-200 p-4">
           <div className="flex flex-col gap-2">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Products</p>
+            <Link to="/products" onClick={() => setMobileOpen(false)}
+              className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest no-underline hover:text-gray-600">Products</Link>
             {productLinks.map((p) => (
               <Link key={p.href} to={p.href} onClick={() => setMobileOpen(false)}
                 className="text-sm text-gray-700 no-underline py-1.5">{p.label}</Link>

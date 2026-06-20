@@ -53,7 +53,8 @@ export default function LoginPage() {
           borderRadius: "50%"
         }} />
         <div style={{ position: "relative", zIndex: 1 }}>
-          <img src={logo} alt="Zoiko One" style={{ height: "48px", width: "auto", filter: "brightness(0) invert(1)", marginBottom: "48px" }} />
+          {/* Logo — no filter so full color shows on dark bg */}
+          <img src={logo} alt="Zoiko One" style={{ height: "48px", width: "auto", marginBottom: "48px" }} />
           <h2 style={{ fontSize: "32px", fontWeight: "800", color: "white", lineHeight: "1.2", margin: "0 0 16px 0" }}>
             One platform for your entire business operations
           </h2>
@@ -114,12 +115,8 @@ export default function LoginPage() {
                   Work email
                 </label>
                 <input
-                  id="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  id="email" type="email" required autoComplete="email"
+                  value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   style={{
                     width: "100%", padding: "11px 14px", borderRadius: "10px",
@@ -134,22 +131,14 @@ export default function LoginPage() {
 
               <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                  <label htmlFor="password" style={{ fontSize: "13px", fontWeight: "600", color: "#374151" }}>
-                    Password
-                  </label>
-                  <a href="#" style={{ fontSize: "12px", color: "#FF6B00", textDecoration: "none", fontWeight: "500" }}>
-                    Forgot password?
-                  </a>
+                  <label htmlFor="password" style={{ fontSize: "13px", fontWeight: "600", color: "#374151" }}>Password</label>
+                  <a href="#" style={{ fontSize: "12px", color: "#FF6B00", textDecoration: "none", fontWeight: "500" }}>Forgot password?</a>
                 </div>
                 <div style={{ position: "relative" }}>
                   <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    id="password" type={showPassword ? "text" : "password"} required
+                    autoComplete="current-password" value={password}
+                    onChange={e => setPassword(e.target.value)} placeholder="••••••••"
                     style={{
                       width: "100%", padding: "11px 44px 11px 14px", borderRadius: "10px",
                       border: "1.5px solid #E5E7EB", fontSize: "14px", color: "#111827",
@@ -159,23 +148,15 @@ export default function LoginPage() {
                     onFocus={e => e.target.style.borderColor = "#FF6B00"}
                     onBlur={e => e.target.style.borderColor = "#E5E7EB"}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    style={{
-                      position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
-                      background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", padding: 0
-                    }}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
+                  <button type="button" onClick={() => setShowPassword(v => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", padding: 0 }}
+                    aria-label={showPassword ? "Hide password" : "Show password"}>
                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
+              <button type="submit" disabled={submitting}
                 style={{
                   width: "100%", padding: "13px", borderRadius: "10px", border: "none",
                   fontSize: "15px", fontWeight: "700", color: "white", cursor: submitting ? "not-allowed" : "pointer",
@@ -183,8 +164,7 @@ export default function LoginPage() {
                   boxShadow: "0 6px 20px rgba(255,107,0,0.35)",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                   transition: "all 0.2s"
-                }}
-              >
+                }}>
                 {submitting && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
                 {submitting ? "Signing in…" : "Sign In"}
               </button>
@@ -192,24 +172,18 @@ export default function LoginPage() {
 
             <p style={{ textAlign: "center", fontSize: "13px", color: "#6B7280", marginTop: "20px" }}>
               Don't have an account?{" "}
-              <Link to="/register" style={{ color: "#FF6B00", fontWeight: "600", textDecoration: "none" }}>
-                Create one free
-              </Link>
+              <Link to="/register" style={{ color: "#FF6B00", fontWeight: "600", textDecoration: "none" }}>Create one free</Link>
             </p>
           </div>
 
           <p style={{ textAlign: "center", marginTop: "20px" }}>
-            <Link to="/" style={{ fontSize: "13px", color: "#9CA3AF", textDecoration: "none" }}>
-              ← Back to homepage
-            </Link>
+            <Link to="/" style={{ fontSize: "13px", color: "#9CA3AF", textDecoration: "none" }}>← Back to homepage</Link>
           </p>
         </div>
       </div>
 
       <style>{`
-        @media (min-width: 1024px) {
-          .lg-panel { display: flex !important; }
-        }
+        @media (min-width: 1024px) { .lg-panel { display: flex !important; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>

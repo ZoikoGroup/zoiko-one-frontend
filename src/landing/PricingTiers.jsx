@@ -1,64 +1,72 @@
-import { ArrowRight, Check, Zap } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
 const tiers = [
   {
-    num: "01",
     title: "Standalone",
-    desc: "Buy one product. Use it independently. Add more when you're ready.",
+    desc: "Start with the one product you need today.",
+    price: "$9",
+    priceNote: "/ user / mo",
+    sub: "Per product · billed annually",
     bullets: [
-      "Purchase any single product",
-      "Works independently or connected",
-      "Per-product pricing",
-      "No minimum commitment",
-      "Self-service onboarding",
+      "Any single Zoiko One product",
+      "Core workflow & approvals",
+      "Standard integrations",
+      "Email & help center support",
     ],
-    cta: "Explore Standalone",
+    cta: "View Standalone Pricing",
     variant: "outline",
   },
   {
-    num: "02",
     title: "Bundles",
-    desc: "Pre-configured product combinations that solve common operational patterns.",
+    desc: "Connected workflows across multiple products.",
+    price: "$29",
+    priceNote: "/ user / mo",
+    sub: "People · Revenue · Control · Business",
     bullets: [
-      "Curated product bundles",
-      "Discounted vs standalone",
-      "HR + Time + Payroll bundle",
-      "Billing + Spend bundle",
-      "Operations Suite bundle",
+      "Multiple connected products",
+      "Zoiko Hub & cross-product visibility",
+      "Advanced approvals & automation",
+      "Priority support",
+      "Best value per product",
     ],
     cta: "Compare Bundles",
     variant: "accent",
     popular: true,
   },
   {
-    num: "03",
     title: "Enterprise",
-    desc: "Full platform access with custom contracting, SLAs and dedicated support.",
+    desc: "Global deployment, security & procurement support.",
+    price: "Custom",
+    priceNote: "",
+    sub: "Multi-entity · regulated · global",
     bullets: [
-      "All products & shared layers",
-      "Custom contracting & SLAs",
-      "Multi-entity & global support",
+      "Full platform + advanced permissions",
+      "ZoikoPay & ZoikoCoreX",
+      "SSO, audit, data residency",
+      "Implementation & SLAs",
       "Dedicated customer success",
-      "Advanced governance & controls",
     ],
-    cta: "Talk to Sales",
+    cta: "Contact Sales",
     variant: "dark",
   },
 ];
 
 export default function PricingTiers() {
   return (
-    <section className="bg-white py-20 md:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section className="bg-[#F8F7FC] py-20 md:py-24">
+      <div className="px-4 sm:px-6 lg:px-20">
         <div className="text-center mb-14">
           <p className="text-xs font-bold text-[#F97316] tracking-[0.15em] uppercase mb-4">
-            How customers buy and grow
+            Pricing
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight tracking-tight mb-4">
-            How customers buy and grow.
+            Start with what you need.
+            <br />
+            Expand when you're ready.
           </h2>
           <p className="text-[#6B7280] max-w-xl mx-auto leading-relaxed">
-            Three commercial tiers that match the way businesses adopt, expand and scale operations.
+            Three clear routes — buy one product, connect a bundle, or scale to enterprise. No
+            one is forced into a single package.
           </p>
         </div>
 
@@ -66,8 +74,8 @@ export default function PricingTiers() {
           {tiers.map((t) => (
             <div
               key={t.title}
-              className={`relative rounded-2xl p-7 border shadow-sm transition-all duration-200 hover:shadow-md ${
-                t.popular ? "border-[#F97316] ring-1 ring-[#F97316]" : "border-gray-100"
+              className={`relative rounded-2xl p-7 bg-white shadow-sm transition-all duration-200 hover:shadow-md ${
+                t.popular ? "border-2 border-[#F97316]" : "border border-gray-100"
               }`}
             >
               {t.popular && (
@@ -76,42 +84,44 @@ export default function PricingTiers() {
                 </span>
               )}
 
-              <span className="text-2xl font-black text-[#F97316] mb-2 block">{t.num}</span>
-              <h3 className="text-xl font-bold text-[#111827] mb-2">{t.title}</h3>
-              <p className="text-sm text-[#6B7280] leading-relaxed mb-6">{t.desc}</p>
+              <h3 className="text-lg font-bold text-[#111827] mb-1">{t.title}</h3>
+              <p className="text-sm text-[#6B7280] leading-relaxed mb-5">{t.desc}</p>
 
-              <ul className="flex flex-col gap-2.5 mb-8">
+              <div className="mb-1">
+                <span className="text-3xl font-extrabold text-[#1E1B4B]">{t.price}</span>
+                {t.priceNote && (
+                  <span className="text-sm text-[#9CA3AF] ml-1">{t.priceNote}</span>
+                )}
+              </div>
+              <p className="text-xs text-[#9CA3AF] mb-5">{t.sub}</p>
+
+              <ul className="flex flex-col gap-2.5 mb-6">
                 {t.bullets.map((b) => (
                   <li key={b} className="flex items-start gap-2.5">
-                    <Check size={14} className="text-[#F97316] mt-0.5 shrink-0" />
+                    <Check size={14} className="text-[#4F46E5] mt-0.5 shrink-0" />
                     <span className="text-sm text-[#374151]">{b}</span>
                   </li>
                 ))}
               </ul>
 
               {t.variant === "outline" && (
-                <button className="w-full inline-flex items-center justify-center gap-2 bg-white text-[#374151] font-semibold px-5 py-3 rounded-full text-sm border-2 border-gray-200 hover:border-[#F97316] hover:text-[#F97316] transition-all duration-200">
-                  {t.cta} <ArrowRight size={15} />
+                <button className="w-full inline-flex items-center justify-center gap-2 bg-white text-[#374151] font-semibold px-5 py-3 rounded-full text-sm border border-gray-200 hover:border-[#1E1B4B] hover:text-[#1E1B4B] transition-all duration-200">
+                  {t.cta}
                 </button>
               )}
               {t.variant === "accent" && (
-                <button className="w-full inline-flex items-center justify-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-5 py-3 rounded-full text-sm shadow-lg shadow-orange-200 transition-all duration-200">
-                  {t.cta} <ArrowRight size={15} />
+                <button className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#F97316] to-[#FB923C] hover:from-[#EA580C] hover:to-[#F97316] text-white font-bold px-5 py-3 rounded-full text-sm shadow-lg shadow-orange-200 transition-all duration-200">
+                  {t.cta}
                 </button>
               )}
               {t.variant === "dark" && (
                 <button className="w-full inline-flex items-center justify-center gap-2 bg-[#1E1B4B] hover:bg-[#2D2A6B] text-white font-bold px-5 py-3 rounded-full text-sm transition-all duration-200">
-                  {t.cta} <ArrowRight size={15} />
+                  {t.cta}
                 </button>
               )}
             </div>
           ))}
         </div>
-
-        <p className="text-center text-sm font-bold text-[#111827] mt-10 flex items-center justify-center gap-2">
-          <Zap size={16} className="text-[#F97316]" />
-          Start with one. Connect more. Scale to enterprise.
-        </p>
       </div>
     </section>
   );

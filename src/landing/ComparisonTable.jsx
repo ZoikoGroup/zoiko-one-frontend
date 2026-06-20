@@ -1,94 +1,61 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Quote } from "lucide-react";
 
-const rows = [
-  {
-    traditional: "Disconnected tools that don't share data",
-    zoiko: "Single operating layer connecting every function in real time",
-  },
-  {
-    traditional: "Manual reconciliation across HR, payroll, billing and compliance",
-    zoiko: "Automated data flow between products — no manual syncs",
-  },
-  {
-    traditional: "Scaling means buying more disparate tools",
-    zoiko: "Modular architecture — add products without adding complexity",
-  },
-  {
-    traditional: "Compliance is an afterthought bolted onto existing systems",
-    zoiko: "Compliance built into every workflow from day one",
-  },
-  {
-    traditional: "Trust information hidden behind sales conversations",
-    zoiko: "Full Trust Center published publicly before advertising",
-  },
-  {
-    traditional: "Global operations requires separate instances per country",
-    zoiko: "Multi-jurisdiction, multi-entity, multi-currency by design",
-  },
-  {
-    traditional: "Pricing is opaque — hidden fees, annual lock-ins",
-    zoiko: "Transparent pricing — standalone, bundle or enterprise",
-  },
-  {
-    traditional: "Vendor lock-in makes switching nearly impossible",
-    zoiko: "Open architecture — start with one, connect more, leave when you need",
-  },
+const stats = [
+  { value: "-61%", label: "Less time spent on reconciliation", color: "#F97316" },
+  { value: "+18%", label: "Improvement in billable utilization", color: "#3B82F6" },
+  { value: "4→1", label: "Tools consolidated onto one platform", color: "#F97316" },
 ];
 
 export default function ComparisonTable() {
   return (
-    <section className="bg-[#F8F7FC] py-20 md:py-24">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14">
-          <p className="text-xs font-bold text-[#F97316] tracking-[0.15em] uppercase mb-4">
-            What makes Zoiko One different
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight tracking-tight mb-4">
-            What makes Zoiko One different.
-          </h2>
-          <p className="text-[#6B7280] max-w-xl mx-auto leading-relaxed">
-            Eight fundamental differences that separate Zoiko One from the traditional approach to
-            business operations software.
-          </p>
-        </div>
+    <section className="bg-white py-20 md:py-24">
+      <div className="px-4 sm:px-6 lg:px-20 text-center">
+        <p className="text-xs font-bold text-[#3B82F6] tracking-[0.15em] uppercase mb-4">Proof</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight tracking-tight mb-14">
+          See how connected operations
+          <br />
+          reduce friction.
+        </h2>
 
-        <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-          {/* Header row */}
-          <div className="grid grid-cols-2">
-            <div className="p-4 bg-gray-100 text-center">
-              <span className="text-xs font-bold text-[#6B7280] tracking-wider uppercase">
-                Traditional stack
-              </span>
+        <div className="grid md:grid-cols-2 gap-6 mb-10 text-left">
+          <div className="rounded-2xl p-7 bg-gradient-to-br from-[#312E81] to-[#4338CA] text-white flex flex-col justify-between">
+            <div>
+              <Quote size={24} className="text-[#FB923C] mb-3" />
+              <p className="text-base leading-relaxed mb-6">
+                We replaced four disconnected tools with one connected platform. Payroll,
+                billing, and project margin finally agree — and our month-end close is days
+                shorter.
+              </p>
             </div>
-            <div className="p-4 bg-gradient-to-r from-[#7C3AED] to-[#3B82F6] text-center">
-              <span className="text-xs font-bold text-white tracking-wider uppercase">
-                Zoiko One
+            <div className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-full bg-[#F97316] flex items-center justify-center text-xs font-bold">
+                RM
               </span>
+              <div>
+                <p className="text-sm font-bold">Rachel Morgan</p>
+                <p className="text-xs text-blue-200">CFO · Brightfield Professional Services</p>
+              </div>
             </div>
           </div>
 
-          {/* Rows */}
-          {rows.map((r, i) => (
-            <div key={i} className={`grid grid-cols-2 ${i % 2 === 0 ? "bg-white" : "bg-[#F8F7FC]"}`}>
-              <div className="p-4 border-r border-gray-100 flex items-center">
-                <p className="text-sm text-[#6B7280] leading-relaxed">{r.traditional}</p>
+          <div className="flex flex-col gap-4">
+            {stats.map((s) => (
+              <div
+                key={s.label}
+                className="rounded-2xl p-5 border border-gray-100 shadow-sm flex-1 flex flex-col justify-center transition-all duration-200 hover:shadow-md"
+              >
+                <p className="text-2xl font-extrabold" style={{ color: s.color }}>
+                  {s.value}
+                </p>
+                <p className="text-xs text-[#6B7280] mt-1">{s.label}</p>
               </div>
-              <div className="p-4 flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-[#F97316] mt-0.5 shrink-0" />
-                <p className="text-sm text-[#374151] leading-relaxed">{r.zoiko}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4 flex-wrap mt-10">
-          <button className="inline-flex items-center gap-2 bg-white text-[#374151] font-semibold px-7 py-3.5 rounded-full text-sm border-2 border-gray-200 hover:border-[#F97316] hover:text-[#F97316] transition-all duration-200">
-            Compare Products <ArrowRight size={16} />
-          </button>
-          <button className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-7 py-3.5 rounded-full text-sm shadow-lg shadow-orange-200 transition-all duration-200 hover:scale-[1.03]">
-            Get a Demo <ArrowRight size={16} />
-          </button>
-        </div>
+        <button className="inline-flex items-center gap-2 bg-white text-[#1E1B4B] font-semibold px-6 py-3 rounded-full text-sm border border-gray-200 shadow-sm transition-all duration-200 hover:border-[#3B82F6] hover:text-[#3B82F6]">
+          Read Customer Stories
+        </button>
       </div>
     </section>
   );

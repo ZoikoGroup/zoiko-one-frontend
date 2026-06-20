@@ -1,27 +1,16 @@
+import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
+import { Download, BarChart, PieChart, TrendingUp, Target, CheckCircle, Star, Users, FileText, Printer } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from "recharts";
+import { getPerformanceAnalytics } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/performance" },
   { label: "Goals & OKRs", href: "/zoiko-hr/performance/goals" },
   { label: "Performance Reviews", href: "/zoiko-hr/performance/reviews" },
   { label: "Appraisals", href: "/zoiko-hr/performance/appraisals" },
-  { label: "Feedback", href: "/zoiko-hr/performance/feedback" },
-  { label: "360 Reviews", href: "/zoiko-hr/performance/360-reviews" },
-  { label: "KPI Tracking", href: "/zoiko-hr/performance/kpis" },
-  { label: "Competencies", href: "/zoiko-hr/performance/competencies" },
-  { label: "Analytics", href: "/zoiko-hr/performance/analytics" },
-  { label: "Reports", href: "/zoiko-hr/performance/reports" },
-  { label: "Settings", href: "/zoiko-hr/performance/settings" },
-];
-
-const metrics = [
-  { metric: "Avg Performance Score", value: "87%", change: 3, trend: "up" },
-  { metric: "Goal Completion Rate", value: "71%", change: 8, trend: "up" },
-  { metric: "Review Completion", value: "64%", change: -5, trend: "down" },
-  { metric: "Avg Rating", value: "4.2/5", change: 0.2, trend: "up" },
-  { metric: "Feedback Frequency", value: "2.1/employee", change: 0.3, trend: "up" },
-  { metric: "High Performers", value: "34%", change: 2, trend: "up" },
+  { label: "Performance Analytics", href: "/zoiko-hr/performance/analytics" },
 ];
 
 function SubNav() {
@@ -39,80 +28,192 @@ function SubNav() {
   );
 }
 
-function StatsCard({ title, value, change, trend }) {
-  const trendColor = trend === "up" ? "text-green-600" : "text-red-600";
+function StatsCard({ title, value, icon: Icon, subtitle, color }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-      <p className="text-sm text-gray-500 font-medium">{title}</p>
+      <div className="flex items-start justify-between">
+        <p className="text-sm text-gray-500 font-medium">{title}</p>
+        {Icon && <div className={`p-2 ${color} rounded-lg`}><Icon className="w-5 h-5 text-white" /></div>}
+      </div>
       <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-      {change != null && (
-        <p className={`text-sm font-medium mt-2 ${trendColor}`}>{change > 0 ? "+" : ""}{change}% vs last month</p>
-      )}
+      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
     </div>
   );
 }
 
+function printPage() {
+  window.print();
+}
+
 export default function PerformanceAnalytics() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const analyticsRef = useRef();
+
+  useEffect(() => {
+    let mounted = true;
+    getPerformanceAnalytics()
+      .then((res) => { if (mounted) setData(res); })
+      .catch((err) => {
+        console.error("Analytics load error:", err);
+        if (mounted) setError("Failed to load analytics data. Please try again later.");
+      })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+
+  if (loading) return <HRPage title="Performance Analytics" subtitle="Key performance metrics and trends"><SubNav /><div className="p-6 text-center text-gray-400">Loading analytics...</div></HRPage>;
+
+  if (error) return <HRPage title="Performance Analytics" subtitle="Key performance metrics and trends"><SubNav /><div className="p-6 text-center text-red-500 bg-red-50 rounded-lg m-4">Error: {error}</div></HRPage>;
+
+  const d = data || {};
+
+  const scoreData = [
+    { name: "Avg Performance Score", value: d.avg_performance_score ?? 0, fill: "#3B82F6" },
+    { name: "Goal Completion Rate", value: d.goal_completion_rate ?? 0, fill: "#10B981" },
+    { name: "Review Completion Rate", value: d.review_completion_rate ?? 0, fill: "#F59E0B" },
+    { name: "Avg Rating", value: d.avg_rating ?? 0, fill: "#8B5CF6" },
+  ];
+
+  const pieData = [
+    { name: "Completed", value: d.completed_reviews ?? 0, color: "#10B981" },
+    { name: "Pending", value: d.pending_reviews ?? 0, color: "#F59E0B" },
+  ];n
   return (
-    <HRPage title="Performance Analytics" subtitle="Key performance metrics and trends">
-      <SubNav />
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Performance Analytics</h1>
-          <p className="text-sm text-gray-500 mt-1">Key performance metrics and trends</p>
-        </div>
+    <div ref={analyticsRef} className="min-h-screen bg-gray-50">
+      <HRPage title="Performance Analytics" subtitle="Key performance metrics and trends">
+        <SubNav />
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Performance Analytics</h1>
+              <p className="text-sm text-gray-500 mt-1">Key performance metrics and trends</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={printPage} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                <Printer className="w-4 h-4" /> Print
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                <Download className="w-4 h-4" /> Export CSV
+              </button>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {metrics.map((m) => (
-            <StatsCard key={m.metric} title={m.metric} value={m.value} change={m.change} trend={m.trend} />
-          ))}
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard title="Avg Performance Score" value={`${d.avg_performance_score ?? 0}%`} icon={TrendingUp} subtitle="Across all reviews" color="bg-blue-500" />
+            <StatsCard title="Goal Completion" value={`${d.goal_completion_rate ?? 0}%`} icon={Target} subtitle="Goals completed" color="bg-green-500" />
+            <StatsCard title="Review Completion" value={`${d.review_completion_rate ?? 0}%`} icon={CheckCircle} subtitle="Reviews completed" color="bg-orange-500" />
+            <StatsCard title="Avg Rating" value={d.avg_rating ? `${d.avg_rating}/5` : "0/5"} icon={Star} subtitle="Across all reviews" color="bg-purple-500" />
+            <StatsCard title="Total Reviews" value={d.total_reviews ?? 0} icon={FileText} subtitle={`${d.completed_reviews ?? 0} completed`} color="bg-indigo-500" />
+            <StatsCard title="Total Goals" value={d.total_goals ?? 0} icon={Target} subtitle={`${d.completed_goals ?? 0} completed`} color="bg-teal-500" />
+            <StatsCard title="Feedback Items" value={d.feedback_count ?? 0} icon={FileText} color="bg-cyan-500" />
+            <StatsCard title="Total Appraisals" value={d.total_appraisals ?? 0} icon={Users} color="bg-rose-500" />
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Distribution</h2>
-            <div className="space-y-3">
-              {[
-                { range: "4.5 - 5.0 (Excellent)", count: 12, pct: 24 },
-                { range: "4.0 - 4.4 (Good)", count: 18, pct: 36 },
-                { range: "3.0 - 3.9 (Satisfactory)", count: 14, pct: 28 },
-                { range: "Below 3.0 (Needs Improvement)", count: 6, pct: 12 },
-              ].map((r) => (
-                <div key={r.range}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">{r.range}</span>
-                    <span className="font-medium text-gray-900">{r.count} ({r.pct}%)</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5">
-                    <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${r.pct}%` }} />
-                  </div>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h2>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsBarChart data={scoreData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value}%`, "Value"]} />
+                    <Legend />
+                    <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  </RechartsBarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Review Status Distribution</h2>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Department Performance</h2>
-            <div className="space-y-4">
-              {[
-                { dept: "Engineering", score: 88, change: "+3%" },
-                { dept: "Product", score: 92, change: "+5%" },
-                { dept: "Design", score: 85, change: "+1%" },
-                { dept: "Marketing", score: 79, change: "-2%" },
-                { dept: "Sales", score: 82, change: "+4%" },
-              ].map((d) => (
-                <div key={d.dept} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{d.dept}</p>
-                    <p className="text-xs text-gray-400">{d.change} vs last quarter</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Summary</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Review Performance</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total Reviews</span>
+                    <span className="font-medium text-gray-900">{d.total_reviews ?? 0}</span>
                   </div>
-                  <div className="text-lg font-bold text-gray-900">{d.score}%</div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Completed</span>
+                    <span className="font-medium text-green-600">{d.completed_reviews ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Pending</span>
+                    <span className="font-medium text-yellow-600">{d.pending_reviews ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Completion Rate</span>
+                    <span className="font-medium text-gray-900">{(d.total_reviews ? Math.round((d.completed_reviews / d.total_reviews) * 100) : 0)}%</span>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Goal Performance</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total Goals</span>
+                    <span className="font-medium text-gray-900">{d.total_goals ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Completed</span>
+                    <span className="font-medium text-green-600">{d.completed_goals ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Completion Rate</span>
+                    <span className="font-medium text-gray-900">{(d.total_goals ? Math.round((d.completed_goals / d.total_goals) * 100) : 0)}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Appraisal Summary</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total Appraisals</span>
+                    <span className="font-medium text-gray-900">{d.total_appraisals ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Avg Score</span>
+                    <span className="font-medium text-gray-900">{d.avg_appraisal_score ? `${d.avg_appraisal_score}/5` : "-"}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </HRPage>
+      </HRPage>
+    </div>
   );
 }

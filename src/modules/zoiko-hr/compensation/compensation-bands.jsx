@@ -1,21 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import HRPage from "../../../components/HRPage";
+import {
+  getCompensationBands,
+  createCompensationBand,
+  updateCompensationBand,
+  deleteCompensationBand,
+} from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 8;
 
-const mockData = [
-  { id: 1, band: "A", min: 30000, max: 60000, level: "Entry" },
-  { id: 2, band: "B", min: 60001, max: 100000, level: "Junior" },
-  { id: 3, band: "C", min: 100001, max: 150000, level: "Mid" },
-  { id: 4, band: "D", min: 150001, max: 250000, level: "Senior" },
-  { id: 5, band: "E", min: 250001, max: 500000, level: "Executive" },
-];
-
 const initialForm = {
-  band: "",
-  min: "",
-  max: "",
+  band_name: "",
   level: "",
+  min_salary: "",
+  max_salary: "",
 };
 
 export default function CompensationBandsPage() {
@@ -32,17 +30,26 @@ export default function CompensationBandsPage() {
   const [formErrors, setFormErrors] = useState({});
   const [editForm, setEditForm] = useState({ ...initialForm });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setItems(mockData);
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getCompensationBands();
+      setItems(data);
+    } catch (err) {
+      setError(err.message || "Failed to load compensation bands");
+    } finally {
       setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const stats = useMemo(() => {
     const total = items.length;
-    const highestMax = items.reduce((max, i) => Math.max(max, i.max || 0), 0);
+    const highestMax = items.reduce((max, i) => Math.max(max, Number(i.max_salary) || 0), 0);
     return { total, highestMax };
   }, [items]);
 
@@ -52,8 +59,8 @@ export default function CompensationBandsPage() {
       const q = search.toLowerCase();
       result = result.filter(
         (i) =>
-          i.band?.toLowerCase().includes(q) ||
-          i.level?.toLowerCase().includes(q)
+          i.band_name?.toLowerCase().includes(q) ||
+          String(i.level).toLowerCase().includes(q)
       );
     }
     return result;
@@ -70,83 +77,85 @@ export default function CompensationBandsPage() {
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [totalPages, currentPage]);
 
-  let nextId = useMemo(() => Math.max(0, ...items.map((i) => i.id)) + 1, [items]);
-
   const resetForm = () => setFormData({ ...initialForm });
 
   const validateForm = (data) => {
     const errors = {};
-    if (!data.band?.trim()) errors.band = "Band is required";
-    if (!data.min || isNaN(parseFloat(data.min)) || parseFloat(data.min) < 0) errors.min = "Valid min is required";
-    if (!data.max || isNaN(parseFloat(data.max)) || parseFloat(data.max) < 0) errors.max = "Valid max is required";
-    if (parseFloat(data.min) > parseFloat(data.max)) errors.max = "Max must be greater than min";
-    if (!data.level?.trim()) errors.level = "Level is required";
+    if (!data.band_name?.trim()) errors.band_name = "Band name is required";
+    if (!data.level || isNaN(parseInt(data.level))) errors.level = "Valid level is required";
+    if (!data.min_salary || isNaN(parseFloat(data.min_salary)) || parseFloat(data.min_salary) < 0) errors.min_salary = "Valid min salary is required";
+    if (!data.max_salary || isNaN(parseFloat(data.max_salary)) || parseFloat(data.max_salary) < 0) errors.max_salary = "Valid max salary is required";
+    if (parseFloat(data.min_salary) > parseFloat(data.max_salary)) errors.max_salary = "Max must be greater than min";
     return errors;
   };
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     const errors = validateForm(formData);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-    setTimeout(() => {
-      const newItem = {
-        id: nextId,
-        band: formData.band.trim(),
-        min: parseFloat(formData.min),
-        max: parseFloat(formData.max),
-        level: formData.level.trim(),
-      };
-      setItems((prev) => [...prev, newItem]);
+    try {
+      await createCompensationBand({
+        band_name: formData.band_name.trim(),
+        level: parseInt(formData.level),
+        min_salary: parseFloat(formData.min_salary),
+        max_salary: parseFloat(formData.max_salary),
+      });
+      await fetchData();
       setShowCreateModal(false);
       resetForm();
+    } catch (err) {
+      setFormErrors({ submit: err.message || "Failed to create band" });
+    } finally {
       setSubmitting(false);
-    }, 200);
+    }
   };
 
   const openEditModal = (item) => {
     setEditItem(item);
     setEditForm({
-      band: item.band || "",
-      min: String(item.min || ""),
-      max: String(item.max || ""),
-      level: item.level || "",
+      band_name: item.band_name || "",
+      level: String(item.level || ""),
+      min_salary: String(Number(item.min_salary) || ""),
+      max_salary: String(Number(item.max_salary) || ""),
     });
     setFormErrors({});
     setShowEditModal(true);
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editItem) return;
     const errors = validateForm(editForm);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-    setTimeout(() => {
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === editItem.id
-            ? {
-                ...i,
-                band: editForm.band.trim(),
-                min: parseFloat(editForm.min),
-                max: parseFloat(editForm.max),
-                level: editForm.level.trim(),
-              }
-            : i
-        )
-      );
+    try {
+      await updateCompensationBand(editItem.id, {
+        band_name: editForm.band_name.trim(),
+        level: parseInt(editForm.level),
+        min_salary: parseFloat(editForm.min_salary),
+        max_salary: parseFloat(editForm.max_salary),
+      });
+      await fetchData();
       setShowEditModal(false);
       setEditItem(null);
+    } catch (err) {
+      setFormErrors({ submit: err.message || "Failed to update band" });
+    } finally {
       setSubmitting(false);
-    }, 200);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this compensation band?")) return;
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    try {
+      await deleteCompensationBand(id);
+      await fetchData();
+    } catch (err) {
+      setError(err.message || "Failed to delete band");
+    }
   };
 
   if (loading) {
@@ -197,7 +206,7 @@ export default function CompensationBandsPage() {
           <div className="flex flex-wrap gap-3">
             <input
               type="text"
-              placeholder="Search by band or level..."
+              placeholder="Search by band name or level..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -221,10 +230,10 @@ export default function CompensationBandsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Band</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Min</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Max</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Band Name</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Level</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Min Salary</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Max Salary</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Range Width</th>
                       <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                     </tr>
@@ -232,15 +241,15 @@ export default function CompensationBandsPage() {
                   <tbody className="divide-y divide-gray-50">
                     {paginated.map((i) => (
                       <tr key={i.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600">{i.band}</td>
-                        <td className="px-4 py-3 text-gray-700">${i.min.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-gray-700">${i.max.toLocaleString()}</td>
+                        <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600">{i.band_name}</td>
                         <td className="px-4 py-3">
                           <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             {i.level}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-700">${(i.max - i.min).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-gray-700">${Number(i.min_salary).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-gray-700">${Number(i.max_salary).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-gray-700">${(Number(i.max_salary) - Number(i.min_salary)).toLocaleString()}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
@@ -313,48 +322,48 @@ export default function CompensationBandsPage() {
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Band *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Band Name *</label>
                 <input
                   type="text"
-                  value={formData.band}
-                  onChange={(e) => setFormData({ ...formData, band: e.target.value })}
-                  className={`w-full border ${formErrors.band ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={formData.band_name}
+                  onChange={(e) => setFormData({ ...formData, band_name: e.target.value })}
+                  className={`w-full border ${formErrors.band_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
-                {formErrors.band && <p className="text-red-500 text-xs mt-1">{formErrors.band}</p>}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.min}
-                    onChange={(e) => setFormData({ ...formData, min: e.target.value })}
-                    className={`w-full border ${formErrors.min ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                  {formErrors.min && <p className="text-red-500 text-xs mt-1">{formErrors.min}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.max}
-                    onChange={(e) => setFormData({ ...formData, max: e.target.value })}
-                    className={`w-full border ${formErrors.max ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                  {formErrors.max && <p className="text-red-500 text-xs mt-1">{formErrors.max}</p>}
-                </div>
+                {formErrors.band_name && <p className="text-red-500 text-xs mt-1">{formErrors.band_name}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
                 <input
-                  type="text"
+                  type="number"
                   value={formData.level}
                   onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                   className={`w-full border ${formErrors.level ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 {formErrors.level && <p className="text-red-500 text-xs mt-1">{formErrors.level}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Salary *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.min_salary}
+                    onChange={(e) => setFormData({ ...formData, min_salary: e.target.value })}
+                    className={`w-full border ${formErrors.min_salary ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  />
+                  {formErrors.min_salary && <p className="text-red-500 text-xs mt-1">{formErrors.min_salary}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Salary *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.max_salary}
+                    onChange={(e) => setFormData({ ...formData, max_salary: e.target.value })}
+                    className={`w-full border ${formErrors.max_salary ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  />
+                  {formErrors.max_salary && <p className="text-red-500 text-xs mt-1">{formErrors.max_salary}</p>}
+                </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
@@ -376,51 +385,51 @@ export default function CompensationBandsPage() {
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               <div className="text-sm text-gray-500 mb-1">
-                Editing: <span className="font-medium text-gray-800">Band {editItem.band}</span> ({editItem.level})
+                Editing: <span className="font-medium text-gray-800">{editItem.band_name}</span> (Level {editItem.level})
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Band *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Band Name *</label>
                 <input
                   type="text"
-                  value={editForm.band}
-                  onChange={(e) => setEditForm({ ...editForm, band: e.target.value })}
-                  className={`w-full border ${formErrors.band ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={editForm.band_name}
+                  onChange={(e) => setEditForm({ ...editForm, band_name: e.target.value })}
+                  className={`w-full border ${formErrors.band_name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
-                {formErrors.band && <p className="text-red-500 text-xs mt-1">{formErrors.band}</p>}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editForm.min}
-                    onChange={(e) => setEditForm({ ...editForm, min: e.target.value })}
-                    className={`w-full border ${formErrors.min ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                  {formErrors.min && <p className="text-red-500 text-xs mt-1">{formErrors.min}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editForm.max}
-                    onChange={(e) => setEditForm({ ...editForm, max: e.target.value })}
-                    className={`w-full border ${formErrors.max ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                  {formErrors.max && <p className="text-red-500 text-xs mt-1">{formErrors.max}</p>}
-                </div>
+                {formErrors.band_name && <p className="text-red-500 text-xs mt-1">{formErrors.band_name}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
                 <input
-                  type="text"
+                  type="number"
                   value={editForm.level}
                   onChange={(e) => setEditForm({ ...editForm, level: e.target.value })}
                   className={`w-full border ${formErrors.level ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 {formErrors.level && <p className="text-red-500 text-xs mt-1">{formErrors.level}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Salary *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editForm.min_salary}
+                    onChange={(e) => setEditForm({ ...editForm, min_salary: e.target.value })}
+                    className={`w-full border ${formErrors.min_salary ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  />
+                  {formErrors.min_salary && <p className="text-red-500 text-xs mt-1">{formErrors.min_salary}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Salary *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editForm.max_salary}
+                    onChange={(e) => setEditForm({ ...editForm, max_salary: e.target.value })}
+                    className={`w-full border ${formErrors.max_salary ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  />
+                  {formErrors.max_salary && <p className="text-red-500 text-xs mt-1">{formErrors.max_salary}</p>}
+                </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowEditModal(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>

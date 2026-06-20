@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { Calendar, Clock, CheckCircle, XCircle, CalendarDays, TrendingUp, Users, Briefcase, Home, Minus, TrendingDown } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeave } from "../../../service/hrService";
+import { getLeaveDashboard, getLeaveBalances, getLeaveRequests } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -71,7 +71,10 @@ function formatDate(dateStr) {
 }
 
 export default function LeaveDashboard() {
-  const [records, setRecords] = useState([]);
+  const [dbStats, setDbStats] = useState(null);
+  const [balances, setBalances] = useState([]);
+  const [upcoming, setUpcoming] = useState([]);
+  const [employeeCount, setEmployeeCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -81,8 +84,20 @@ export default function LeaveDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const data = await getLeave();
-        if (mounted) setRecords(Array.isArray(data) ? data : []);
+        const [statsData, balanceData, upcomingData] = await Promise.all([
+          getLeaveDashboard(),
+          getLeaveBalances(),
+          getLeaveRequests(null, { status: "approved" }),
+        ]);
+        if (!mounted) return;
+        setDbStats(statsData);
+        setBalances(Array.isArray(balanceData) ? balanceData : []);
+        const now = new Date().toISOString().split("T")[0];
+        const upcoming = (Array.isArray(upcomingData) ? upcomingData : [])
+          .filter((r) => r.end_date >= now)
+          .slice(0, 5);
+        setUpcoming(upcoming);
+        setEmployeeCount(statsData?.employee_count || 0);
       } catch (err) {
         if (mounted) setError(err.message || "Failed to load dashboard");
       } finally {
@@ -93,63 +108,27 @@ export default function LeaveDashboard() {
     return () => { mounted = false; };
   }, []);
 
-  const stats = useMemo(() => {
-    const total = records.length;
-    const pending = records.filter((r) => r.status === "pending").length;
-    const approved = records.filter((r) => r.status === "approved").length;
-    const rejected = records.filter((r) => r.status === "rejected").length;
-    const totalDays = records.reduce((sum, r) => sum + (r.days || 0), 0);
-    return { total, pending, approved, rejected, totalDays };
-  }, [records]);
+  const stats = dbStats || {
+    total_requests: 0, pending_requests: 0, approved_requests: 0, rejected_requests: 0,
+    total_days_taken: 0, on_leave_today: 0,
+  };
+  const approvalRate = stats.total_requests > 0
+    ? Math.round((stats.approved_requests / stats.total_requests) * 100) : 0;
 
-  const approvalRate = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
-
-  const balances = useMemo(() => {
-    const typeMap = {};
-    records.forEach((r) => {
-      const t = r.leave_type || "other";
-      if (!typeMap[t]) typeMap[t] = 0;
-      typeMap[t] += r.days || 1;
-    });
-    const defaults = {
-      annual: 20, sick: 12, casual: 10, earned: 15,
-      maternity: 90, paternity: 10, unpaid: 30, study: 10, emergency: 5,
-    };
-    return Object.entries(defaults).map(([type, total]) => ({
-      type, total,
-      used: typeMap[type] || Math.floor(Math.random() * total),
-      remaining: total - (typeMap[type] || 0),
-    }));
-  }, [records]);
-
-  const upcomingLeave = useMemo(() => {
-    const now = new Date().toISOString().split("T")[0];
-    return records
-      .filter((r) => r.start_date >= now && (r.status === "approved" || r.status === "pending"))
-      .slice(0, 5)
-      .map((r) => ({
-        employee: r.employee_name || r.employee,
-        type: r.leave_type || r.type,
-        start: r.start_date,
-        end: r.end_date,
-        days: r.days || 1,
-        status: r.status,
-      }));
-  }, [records]);
-
-  const teamOverview = useMemo(() => {
-    const total = 50;
-    const onLeave = records.filter((r) => r.status === "approved").length;
-    return { working: total - onLeave - 5, onLeave, wfh: 5, pending: stats.pending, total };
-  }, [records, stats.pending]);
+  const teamOverview = {
+    working: Math.max(0, employeeCount - (stats.on_leave_today || 0)),
+    onLeave: stats.on_leave_today || 0,
+    pending: stats.pending_requests || 0,
+    total: employeeCount || 50,
+  };
 
   const statCards = [
-    { title: "Total Requests", value: stats.total, icon: Calendar, change: 12, trend: "up" },
-    { title: "Pending", value: stats.pending, icon: Clock, change: -5, trend: "down" },
-    { title: "Approved", value: stats.approved, icon: CheckCircle, change: 8, trend: "up" },
-    { title: "Rejected", value: stats.rejected, icon: XCircle, change: 2, trend: "up" },
-    { title: "Total Days", value: stats.totalDays, icon: CalendarDays, change: null, trend: null },
-    { title: "Approval Rate", value: `${approvalRate}%`, icon: TrendingUp, change: 3, trend: "up" },
+    { title: "Total Requests", value: stats.total_requests, icon: Calendar, change: null, trend: null },
+    { title: "Pending", value: stats.pending_requests, icon: Clock, change: null, trend: null },
+    { title: "Approved", value: stats.approved_requests, icon: CheckCircle, change: null, trend: null },
+    { title: "Rejected", value: stats.rejected_requests, icon: XCircle, change: null, trend: null },
+    { title: "Total Days", value: stats.total_days_taken, icon: CalendarDays, change: null, trend: null },
+    { title: "Approval Rate", value: `${approvalRate}%`, icon: TrendingUp, change: null, trend: null },
   ];
 
   if (loading) {
@@ -200,26 +179,33 @@ export default function LeaveDashboard() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Leave Balances</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {balances.map((b) => {
-              const Icon = typeIcons[b.type] || Calendar;
-              const pct = b.total > 0 ? Math.round((b.used / b.total) * 100) : 0;
+              const t = b.leave_type || "other";
+              const Icon = typeIcons[t] || Calendar;
+              const used = b.used_days || 0;
+              const total = b.total_days || 0;
+              const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+              const remaining = total - used;
               return (
-                <div key={b.type} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                <div key={`${b.employee_id}-${t}`} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className={`p-1.5 rounded ${typeColors[b.type]} bg-opacity-20`}>
-                        <Icon className={`w-4 h-4 ${typeColors[b.type].replace("bg-", "text-")}`} />
+                      <div className={`p-1.5 rounded ${typeColors[t] || "bg-gray-500"} bg-opacity-20`}>
+                        <Icon className={`w-4 h-4 ${(typeColors[t] || "bg-gray-500").replace("bg-", "text-")}`} />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 capitalize">{b.type}</span>
+                      <span className="text-sm font-medium text-gray-900 capitalize">{t}</span>
                     </div>
-                    <span className="text-xs text-gray-400">{b.used}/{b.total} used</span>
+                    <span className="text-xs text-gray-400">{used}/{total} used</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className={`${typeColors[b.type]} h-2 rounded-full`} style={{ width: `${pct}%` }} />
+                    <div className={`${typeColors[t] || "bg-gray-500"} h-2 rounded-full`} style={{ width: `${pct}%` }} />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{b.remaining} days remaining</p>
+                  <p className="text-xs text-gray-500 mt-1">{remaining} days remaining</p>
                 </div>
               );
             })}
+            {balances.length === 0 && (
+              <div className="col-span-full text-center py-8 text-gray-400 text-sm">No leave balances found</div>
+            )}
           </div>
         </div>
 
@@ -239,17 +225,17 @@ export default function LeaveDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
-                  {upcomingLeave.map((l, i) => (
-                    <tr key={i} className="hover:bg-teal-50/50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{l.employee}</td>
-                      <td className="px-4 py-3 text-sm capitalize text-gray-700">{l.type}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(l.start)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(l.end)}</td>
+                  {upcoming.map((l, i) => (
+                    <tr key={l.id || i} className="hover:bg-teal-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{l.employee_name || `Employee #${l.employee_id}`}</td>
+                      <td className="px-4 py-3 text-sm capitalize text-gray-700">{l.leave_type}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(l.start_date)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(l.end_date)}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{l.days}</td>
                       <td className="px-4 py-3 text-sm"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${l.status === "approved" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>{l.status}</span></td>
                     </tr>
                   ))}
-                  {upcomingLeave.length === 0 && (
+                  {upcoming.length === 0 && (
                     <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400 text-sm">No upcoming leave</td></tr>
                   )}
                 </tbody>

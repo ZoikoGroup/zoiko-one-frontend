@@ -55,7 +55,43 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { getHrDashboardStats, getEmployees, getDepartments, getAttendance, getLeave, getEngagementDashboard, getCompensationDashboard, getPerformanceDashboard } from "../../service/hrService";
+import { getHrDashboardStats, getEmployees, getDepartments, getAttendanceDashboard, getLeaveDashboard, getEngagementDashboard, getCompensationDashboard, getPerformanceDashboard } from "../../service/hrService";
+
+class ChartErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Chart Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg border border-red-200">
+          <div className="text-red-500 text-lg font-medium mb-2">⚠️ Chart Error</div>
+          <div className="text-red-400 text-sm">Unable to render chart data</div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const extractArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+};
 
 const HrDashBoard = () => {
   const [activeTab, setActiveTab] = useState("executive");
@@ -82,6 +118,7 @@ const HrDashBoard = () => {
     engagement: null,
     compensation: null,
     performance: null,
+    operational: null,
   });
 
   const fetchDashboardData = async () => {
@@ -100,22 +137,30 @@ const HrDashBoard = () => {
         getHrDashboardStats(),
         getEmployees(),
         getDepartments(),
-        getAttendance(),
-        getLeave(),
+        getAttendanceDashboard(),
+        getLeaveDashboard(),
         getEngagementDashboard(),
         getCompensationDashboard(),
         getPerformanceDashboard(),
       ]);
 
+      const extractArray = (data) => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        if (Array.isArray(data.items)) return data.items;
+        if (Array.isArray(data.data)) return data.data;
+        return [];
+      };
+
       setDashboardData({
-        hrDashboard: hrStats,
-        employees: employeesData,
-        departments: departmentsData,
-        attendance: attendanceData,
-        leave: leaveData,
-        engagement: engagementData,
-        compensation: compensationData,
-        performance: performanceData,
+        hrDashboard: hrStats || {},
+        employees: extractArray(employeesData),
+        departments: extractArray(departmentsData),
+        attendance: extractArray(attendanceData),
+        leave: extractArray(leaveData),
+        engagement: engagementData || {},
+        compensation: compensationData || {},
+        performance: performanceData || {},
       });
 
       setLastUpdated(new Date());
@@ -179,15 +224,36 @@ const HrDashBoard = () => {
       compliance_status: 94,
     };
 
+    const mockAttendanceData = [
+      { date: "2024-01-15", present: 120, absent: 5, late: 3, remote: 2 },
+      { date: "2024-01-16", present: 118, absent: 7, late: 2, remote: 3 },
+      { date: "2024-01-17", present: 122, absent: 3, late: 1, remote: 4 },
+      { date: "2024-01-18", present: 119, absent: 6, late: 4, remote: 1 },
+      { date: "2024-01-19", present: 121, absent: 4, late: 2, remote: 3 },
+    ];
+
+    const mockLeaveData = [
+      { type: "annual", count: 45 },
+      { type: "sick", count: 12 },
+      { type: "casual", count: 8 },
+      { type: "maternity", count: 3 },
+    ];
+
     return {
       hrDashboard: mockHrStats,
       employees: [],
       departments: mockDepartmentStats,
-      attendance: [],
-      leave: [],
+      attendance: mockAttendanceData,
+      leave: mockLeaveData,
       engagement: { overall_score: 87, department_scores: [] },
       compensation: { average_salary: 85000, salary_range: { min: 45000, max: 150000 } },
       performance: mockPerformanceStats,
+      operational: {
+        attendance_rate: 94.2,
+        leave_processing_time: 2.3,
+        recruitment_pipeline: { applications: 245, interviews: 48, offers: 12, hired: 8 },
+        onboarding_completion: 96.5,
+      },
     };
   };
 
@@ -331,65 +397,85 @@ const HrDashBoard = () => {
 
       <div className="grid xl:grid-cols-3 gap-6">
         <ChartCard title="Department Comparison" className="xl:col-span-2">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={filteredData.departments || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="department" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="employee_count" fill="#FF6B00" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            {filteredData.departments && filteredData.departments.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={extractArray(filteredData.departments)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="department" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="employee_count" fill="#FF6B00" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-lg mb-2">📊 No department data available</div>
+                <div className="text-gray-300 text-sm">Data will appear here when available</div>
+              </div>
+            )}
+          </ChartErrorBoundary>
         </ChartCard>
 
         <ChartCard title="Compliance Score">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={[
-                  { name: "Compliant", value: filteredData.hrDashboard?.compliance_score || 0, fill: "#10b981" },
-                  { name: "Non-Compliant", value: 100 - (filteredData.hrDashboard?.compliance_score || 0), fill: "#ef4444" },
-                ]}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                <Tooltip />
-              </Pie>
-              <text x={50} y={50} textAnchor="middle" dominantBaseline="middle" className="fill-slate-800 text-2xl font-bold">
-                {`${filteredData.hrDashboard?.compliance_score || 0}%`}
-              </text>
-              <text x={50} y={70} textAnchor="middle" dominantBaseline="middle" className="fill-slate-500 text-sm">
-                Compliance
-              </text>
-            </PieChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "Compliant", value: filteredData.hrDashboard?.compliance_score || 0, fill: "#10b981" },
+                    { name: "Non-Compliant", value: 100 - (filteredData.hrDashboard?.compliance_score || 0), fill: "#ef4444" },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  <Tooltip />
+                </Pie>
+                <text x={50} y={50} textAnchor="middle" dominantBaseline="middle" className="fill-slate-800 text-2xl font-bold">
+                  {`${filteredData.hrDashboard?.compliance_score || 0}%`}
+                </text>
+                <text x={50} y={70} textAnchor="middle" dominantBaseline="middle" className="fill-slate-500 text-sm">
+                  Compliance
+                </text>
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartErrorBoundary>
         </ChartCard>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <ChartCard title="Engagement Trend">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={filteredData.performance?.compensation_trend || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#FF6B00"
-                strokeWidth={3}
-                dot={{ fill: "#FF6B00", strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            {filteredData.performance?.compensation_trend && filteredData.performance.compensation_trend.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={extractArray(filteredData.performance.compensation_trend)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#FF6B00"
+                    strokeWidth={3}
+                    dot={{ fill: "#FF6B00", strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-lg mb-2">📈 No trend data available</div>
+                <div className="text-gray-300 text-sm">Performance trends will appear here when available</div>
+              </div>
+            )}
+          </ChartErrorBoundary>
         </ChartCard>
 
         <ChartCard title="Quick Actions">

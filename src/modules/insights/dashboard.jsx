@@ -3,6 +3,42 @@ import { getExecutiveDashboard } from "../../service/insightsService";
 import { DollarSign, Users, Briefcase, TrendingUp, ShieldCheck, Activity, PieChart, TrendingDown, Minus } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, PieChart as RPieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
+class ChartErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Chart Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg border border-red-200">
+          <div className="text-red-500 text-lg font-medium mb-2">⚠️ Chart Error</div>
+          <div className="text-red-400 text-sm">Unable to render chart data</div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const extractArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+};
+
 const CHART_COLORS = {
   primary: "#6366f1",
   secondary: "#8b5cf6",
@@ -95,87 +131,132 @@ export default function InsightsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue vs Cost Trend</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={revenueTrend}>
-              <defs>
-                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}/></linearGradient>
-                <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.danger} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.danger} stopOpacity={0}/></linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Area type="monotone" dataKey="revenue" stroke={CHART_COLORS.primary} fill="url(#revGrad)" strokeWidth={2} name="Revenue" />
-              <Area type="monotone" dataKey="cost" stroke={CHART_COLORS.danger} fill="url(#costGrad)" strokeWidth={2} name="Cost" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            {revenueTrend && revenueTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={extractArray(revenueTrend)}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}/></linearGradient>
+                    <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS.danger} stopOpacity={0.2}/><stop offset="95%" stopColor={CHART_COLORS.danger} stopOpacity={0}/></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`} />
+                  <Tooltip formatter={(v) => formatCurrency(v)} />
+                  <Area type="monotone" dataKey="revenue" stroke={CHART_COLORS.primary} fill="url(#revGrad)" strokeWidth={2} name="Revenue" />
+                  <Area type="monotone" dataKey="cost" stroke={CHART_COLORS.danger} fill="url(#costGrad)" strokeWidth={2} name="Cost" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-lg mb-2">📊 No revenue trend data available</div>
+                <div className="text-gray-300 text-sm">Revenue trend data will appear here when available</div>
+              </div>
+            )}
+          </ChartErrorBoundary>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue by Department</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <RPieChart>
-              <Pie data={departmentRevenue} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={3} dataKey="value">
-                {departmentRevenue.map((e, i) => (
-                  <Cell key={e.name} fill={[CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.danger, CHART_COLORS.info, CHART_COLORS.gray][i % 6]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Legend />
-            </RPieChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            {departmentRevenue && departmentRevenue.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <RPieChart>
+                  <Pie data={extractArray(departmentRevenue)} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={3} dataKey="value">
+                    {extractArray(departmentRevenue).map((e, i) => (
+                      <Cell key={e.name} fill={[CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.danger, CHART_COLORS.info, CHART_COLORS.gray][i % 6]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(v) => formatCurrency(v)} />
+                  <Legend />
+                </RPieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-lg mb-2">📊 No department revenue data available</div>
+                <div className="text-gray-300 text-sm">Department revenue data will appear here when available</div>
+              </div>
+            )}
+          </ChartErrorBoundary>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Cost Breakdown</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={costTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e3).toFixed(0)}K`} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
-              <Legend />
-              <Bar dataKey="payroll" fill={CHART_COLORS.primary} name="Payroll" stackId="a" />
-              <Bar dataKey="operations" fill={CHART_COLORS.warning} name="Operations" stackId="a" />
-              <Bar dataKey="infrastructure" fill={CHART_COLORS.info} name="Infrastructure" stackId="a" />
-              <Bar dataKey="marketing" fill={CHART_COLORS.success} name="Marketing" stackId="a" />
-              <Bar dataKey="other" fill={CHART_COLORS.gray} name="Other" stackId="a" />
-            </BarChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            {costTrend && costTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={extractArray(costTrend)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `$${(v / 1e3).toFixed(0)}K`} />
+                  <Tooltip formatter={(v) => formatCurrency(v)} />
+                  <Legend />
+                  <Bar dataKey="payroll" fill={CHART_COLORS.primary} name="Payroll" stackId="a" />
+                  <Bar dataKey="operations" fill={CHART_COLORS.warning} name="Operations" stackId="a" />
+                  <Bar dataKey="infrastructure" fill={CHART_COLORS.info} name="Infrastructure" stackId="a" />
+                  <Bar dataKey="marketing" fill={CHART_COLORS.success} name="Marketing" stackId="a" />
+                  <Bar dataKey="other" fill={CHART_COLORS.gray} name="Other" stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-lg mb-2">📊 No cost breakdown data available</div>
+                <div className="text-gray-300 text-sm">Cost breakdown data will appear here when available</div>
+              </div>
+            )}
+          </ChartErrorBoundary>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Workforce Growth</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={workforceGrowth}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="headcount" stroke={CHART_COLORS.primary} strokeWidth={2} name="Headcount" dot={false} />
-              <Line type="monotone" dataKey="hires" stroke={CHART_COLORS.success} strokeWidth={2} name="Hires" dot={false} />
-              <Line type="monotone" dataKey="departures" stroke={CHART_COLORS.danger} strokeWidth={2} name="Departures" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <ChartErrorBoundary>
+            {workforceGrowth && workforceGrowth.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={extractArray(workforceGrowth)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="headcount" stroke={CHART_COLORS.primary} strokeWidth={2} name="Headcount" dot={false} />
+                  <Line type="monotone" dataKey="hires" stroke={CHART_COLORS.success} strokeWidth={2} name="Hires" dot={false} />
+                  <Line type="monotone" dataKey="departures" stroke={CHART_COLORS.danger} strokeWidth={2} name="Departures" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-lg mb-2">📊 No workforce growth data available</div>
+                <div className="text-gray-300 text-sm">Workforce growth data will appear here when available</div>
+              </div>
+            )}
+          </ChartErrorBoundary>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Performance vs Target</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={performanceOverview} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis type="number" tick={{ fontSize: 12 }} stroke="#9ca3af" domain={[0, 100]} />
-            <YAxis type="category" dataKey="metric" tick={{ fontSize: 12 }} stroke="#9ca3af" width={140} />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill={CHART_COLORS.primary} name="Actual" barSize={16} />
-            <Bar dataKey="target" fill={CHART_COLORS.warning} name="Target" barSize={16} />
-          </BarChart>
-        </ResponsiveContainer>
+        <ChartErrorBoundary>
+          {performanceOverview && performanceOverview.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={extractArray(performanceOverview)} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis type="number" tick={{ fontSize: 12 }} stroke="#9ca3af" domain={[0, 100]} />
+                <YAxis type="category" dataKey="metric" tick={{ fontSize: 12 }} stroke="#9ca3af" width={140} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill={CHART_COLORS.primary} name="Actual" barSize={16} />
+                <Bar dataKey="target" fill={CHART_COLORS.warning} name="Target" barSize={16} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-gray-400 text-lg mb-2">📊 No performance data available</div>
+              <div className="text-gray-300 text-sm">Performance data will appear here when available</div>
+            </div>
+          )}
+        </ChartErrorBoundary>
       </div>
     </div>
   );

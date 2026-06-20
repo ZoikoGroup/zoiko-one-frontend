@@ -5,6 +5,42 @@ import HRPage from "../../../components/HRPage";
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from "recharts";
 import { getPerformanceAnalytics } from "../../../service/hrService";
 
+class ChartErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Chart Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg border border-red-200">
+          <div className="text-red-500 text-lg font-medium mb-2">⚠️ Chart Error</div>
+          <div className="text-red-400 text-sm">Unable to render chart data</div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const extractArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+};
+
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/performance" },
   { label: "Goals & OKRs", href: "/zoiko-hr/performance/goals" },
@@ -112,46 +148,64 @@ export default function PerformanceAnalytics() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h2>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsBarChart data={scoreData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`${value}%`, "Value"]} />
-                    <Legend />
-                    <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  </RechartsBarChart>
-                </ResponsiveContainer>
-              </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h2>
+            <div className="h-80">
+              <ChartErrorBoundary>
+                {scoreData && scoreData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart data={extractArray(scoreData)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`${value}%`, "Value"]} />
+                      <Legend />
+                      <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-gray-400 text-lg mb-2">📊 No performance metrics available</div>
+                    <div className="text-gray-300 text-sm">Performance data will appear here when available</div>
+                  </div>
+                )}
+              </ChartErrorBoundary>
             </div>
+          </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Review Status Distribution</h2>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsPieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-              </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Review Status Distribution</h2>
+            <div className="h-80">
+              <ChartErrorBoundary>
+                {pieData && pieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPieChart>
+                      <Pie
+                        data={extractArray(pieData)}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {extractArray(pieData).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-gray-400 text-lg mb-2">📊 No review status data available</div>
+                    <div className="text-gray-300 text-sm">Review status data will appear here when available</div>
+                  </div>
+                )}
+              </ChartErrorBoundary>
             </div>
+          </div>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-5">

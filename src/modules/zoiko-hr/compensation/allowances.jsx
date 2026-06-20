@@ -13,8 +13,7 @@ const initialForm = {
   employee_id: "",
   allowance_type: "",
   amount: "",
-  frequency: "monthly",
-  is_taxable: true,
+  effective_date: "",
 };
 
 export default function ZoikoHRAllowances() {
@@ -51,10 +50,8 @@ export default function ZoikoHRAllowances() {
 
   const stats = useMemo(() => {
     const total = items.length;
-    const monthlyTotal = items
-      .filter((i) => i.frequency === "monthly")
-      .reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
-    return { total, monthlyTotal };
+    const totalAmount = items.reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+    return { total, totalAmount };
   }, [items]);
 
   const filtered = useMemo(() => {
@@ -64,8 +61,7 @@ export default function ZoikoHRAllowances() {
       result = result.filter(
         (i) =>
           String(i.employee_id).includes(q) ||
-          (i.allowance_type && i.allowance_type.toLowerCase().includes(q)) ||
-          (i.frequency && i.frequency.toLowerCase().includes(q))
+          (i.allowance_type && i.allowance_type.toLowerCase().includes(q))
       );
     }
     return result;
@@ -89,6 +85,7 @@ export default function ZoikoHRAllowances() {
     if (!data.employee_id) errors.employee_id = "Employee ID is required";
     if (!data.allowance_type) errors.allowance_type = "Allowance type is required";
     if (!data.amount || isNaN(parseFloat(data.amount))) errors.amount = "Valid amount is required";
+    if (!data.effective_date) errors.effective_date = "Effective date is required";
     return errors;
   };
 
@@ -103,8 +100,7 @@ export default function ZoikoHRAllowances() {
         employee_id: formData.employee_id ? parseInt(formData.employee_id) : null,
         allowance_type: formData.allowance_type.trim() || null,
         amount: formData.amount ? parseFloat(formData.amount) : null,
-        frequency: formData.frequency || "monthly",
-        is_taxable: formData.is_taxable,
+        effective_date: formData.effective_date,
       });
       setShowCreateModal(false);
       resetForm();
@@ -122,8 +118,7 @@ export default function ZoikoHRAllowances() {
       employee_id: item.employee_id || "",
       allowance_type: item.allowance_type || "",
       amount: item.amount || "",
-      frequency: item.frequency || "monthly",
-      is_taxable: item.is_taxable !== undefined ? item.is_taxable : true,
+      effective_date: item.effective_date || "",
     });
     setFormErrors({});
     setShowEditModal(true);
@@ -146,9 +141,6 @@ export default function ZoikoHRAllowances() {
         } else if (key === "amount") {
           val = editForm[key] ? parseFloat(editForm[key]) : null;
           orig = editItem[key] ? parseFloat(editItem[key]) : null;
-        } else if (key === "is_taxable") {
-          val = editForm[key];
-          orig = editItem[key];
         } else {
           val = editForm[key] || null;
           orig = editItem[key] || null;
@@ -180,7 +172,7 @@ export default function ZoikoHRAllowances() {
 
   if (loading && items.length === 0) {
     return (
-      <HRPage title="Allowances" subtitle="Manage employee allowances and benefits.">
+      <HRPage title="Allowances" subtitle="Manage employee allowances.">
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-500">Loading allowances...</span>
@@ -190,7 +182,7 @@ export default function ZoikoHRAllowances() {
   }
 
   return (
-    <HRPage title="Allowances" subtitle="Manage employee allowances and benefits.">
+    <HRPage title="Allowances" subtitle="Manage employee allowances.">
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
           <span>{error}</span>
@@ -210,8 +202,8 @@ export default function ZoikoHRAllowances() {
               <span className="font-bold text-gray-800">{stats.total}</span>
             </div>
             <div className="bg-white px-4 py-2 border border-blue-100 rounded-lg shadow-sm text-sm">
-              <span className="text-gray-400">Monthly Total: </span>
-              <span className="font-bold text-blue-600">${stats.monthlyTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              <span className="text-gray-400">Total Amount: </span>
+              <span className="font-bold text-blue-600">${stats.totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
             </div>
           </div>
           <button
@@ -226,7 +218,7 @@ export default function ZoikoHRAllowances() {
           <div className="flex flex-wrap gap-3">
             <input
               type="text"
-              placeholder="Search by Employee, Type, or Frequency..."
+              placeholder="Search by Employee or Type..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -253,8 +245,7 @@ export default function ZoikoHRAllowances() {
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Employee</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Amount</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Frequency</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Taxable</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Effective Date</th>
                       <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                     </tr>
                   </thead>
@@ -264,12 +255,7 @@ export default function ZoikoHRAllowances() {
                         <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-600">{item.employee_id}</td>
                         <td className="px-4 py-3 text-gray-700">{item.allowance_type || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3 text-gray-700">${(parseFloat(item.amount) || 0).toLocaleString()}</td>
-                        <td className="px-4 py-3 text-gray-700">{item.frequency || "monthly"}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${item.is_taxable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
-                            {item.is_taxable ? "Taxable" : "Non-Taxable"}
-                          </span>
-                        </td>
+                        <td className="px-4 py-3 text-gray-700">{item.effective_date || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
@@ -373,27 +359,14 @@ export default function ZoikoHRAllowances() {
                 {formErrors.amount && <p className="text-red-500 text-xs mt-1">{formErrors.amount}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-                <select
-                  value={formData.frequency}
-                  onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="one-time">One Time</option>
-                </select>
-              </div>
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_taxable}
-                    onChange={(e) => setFormData({ ...formData, is_taxable: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  Taxable
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Effective Date *</label>
+                <input
+                  type="date"
+                  value={formData.effective_date}
+                  onChange={(e) => setFormData({ ...formData, effective_date: e.target.value })}
+                  className={`w-full border ${formErrors.effective_date ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                />
+                {formErrors.effective_date && <p className="text-red-500 text-xs mt-1">{formErrors.effective_date}</p>}
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
@@ -446,27 +419,14 @@ export default function ZoikoHRAllowances() {
                 {formErrors.amount && <p className="text-red-500 text-xs mt-1">{formErrors.amount}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-                <select
-                  value={editForm.frequency}
-                  onChange={(e) => setEditForm({ ...editForm, frequency: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="one-time">One Time</option>
-                </select>
-              </div>
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={editForm.is_taxable}
-                    onChange={(e) => setEditForm({ ...editForm, is_taxable: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  Taxable
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Effective Date *</label>
+                <input
+                  type="date"
+                  value={editForm.effective_date}
+                  onChange={(e) => setEditForm({ ...editForm, effective_date: e.target.value })}
+                  className={`w-full border ${formErrors.effective_date ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                />
+                {formErrors.effective_date && <p className="text-red-500 text-xs mt-1">{formErrors.effective_date}</p>}
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => { setShowEditModal(false); setEditItem(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>

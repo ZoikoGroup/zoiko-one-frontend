@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, X } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getMyLeave, createLeaveRequest } from "../../../service/hrService";
+import { getCurrentUser, getMyLeave, getLeaveBalances, createLeaveRequest } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -28,20 +28,13 @@ const typeColors = {
 
 const leaveTypeOptions = [
   { value: "annual", label: "Annual Leave" }, { value: "sick", label: "Sick Leave" },
-  { value: "casual", label: "Casual Leave" }, { value: "earned", label: "Earned Leave" },
-  { value: "maternity", label: "Maternity Leave" }, { value: "paternity", label: "Paternity Leave" },
-  { value: "unpaid", label: "Unpaid Leave" }, { value: "study", label: "Study Leave" },
-  { value: "emergency", label: "Emergency Leave" },
+  { value: "casual", label: "Casual Leave" }, { value: "maternity", label: "Maternity Leave" },
+  { value: "paternity", label: "Paternity Leave" },
+  { value: "unpaid", label: "Unpaid Leave" },
+  { value: "other", label: "Other Leave" },
 ];
 
 const initialForm = { leave_type: "annual", start_date: "", end_date: "", reason: "" };
-
-const balances = [
-  { type: "annual", total: 20, used: 12 }, { type: "sick", total: 12, used: 4 },
-  { type: "casual", total: 10, used: 6 }, { type: "earned", total: 15, used: 5 },
-  { type: "unpaid", total: 30, used: 2 }, { type: "study", total: 10, used: 1 },
-  { type: "emergency", total: 5, used: 2 },
-];
 
 function SubNav() {
   return (
@@ -84,6 +77,8 @@ function daysBetween(start, end) {
 
 export default function MyLeave() {
   const [records, setRecords] = useState([]);
+  const [balances, setBalances] = useState([]);
+  const [employeeId, setEmployeeId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ ...initialForm });
@@ -93,10 +88,26 @@ export default function MyLeave() {
 
   useEffect(() => {
     let mounted = true;
-    getMyLeave()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false); });
+    const fetch = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (!mounted) return;
+        const eid = user.id;
+        setEmployeeId(eid);
+        const [leaveData, balanceData] = await Promise.all([
+          getMyLeave(eid),
+          getLeaveBalances(eid),
+        ]);
+        if (!mounted) return;
+        setRecords(Array.isArray(leaveData) ? leaveData : []);
+        setBalances(Array.isArray(balanceData) ? balanceData : []);
+      } catch {
+        // ignore
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetch();
     return () => { mounted = false; };
   }, []);
 
@@ -118,11 +129,11 @@ export default function MyLeave() {
     setSubmitting(true);
     setMessage(null);
     try {
-      await createLeaveRequest(form);
+      await createLeaveRequest({ ...form, employee_id: employeeId });
       setMessage("Leave request submitted successfully!");
       setShowModal(false);
       setForm({ ...initialForm });
-      const data = await getMyLeave();
+      const data = await getMyLeave(employeeId);
       setRecords(Array.isArray(data) ? data : []);
     } catch (err) {
       setMessage("Failed to submit leave request");
@@ -168,20 +179,26 @@ export default function MyLeave() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Leave Balances</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {balances.map((b) => {
-              const pct = b.total > 0 ? Math.round((b.used / b.total) * 100) : 0;
+              const t = b.leave_type || "other";
+              const used = b.used_days || 0;
+              const total = b.total_days || 0;
+              const pct = total > 0 ? Math.round((used / total) * 100) : 0;
               return (
-                <div key={b.type} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                <div key={`${b.employee_id}-${t}`} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-900 capitalize">{b.type}</span>
-                    <span className="text-xs text-gray-400">{b.used}/{b.total}</span>
+                    <span className="text-sm font-medium text-gray-900 capitalize">{t}</span>
+                    <span className="text-xs text-gray-400">{used}/{total}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className={`${typeColors[b.type]} h-2 rounded-full`} style={{ width: `${pct}%` }} />
+                    <div className={`${typeColors[t] || "bg-gray-500"} h-2 rounded-full`} style={{ width: `${pct}%` }} />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{b.total - b.used} remaining</p>
+                  <p className="text-xs text-gray-500 mt-1">{total - used} remaining</p>
                 </div>
               );
             })}
+            {balances.length === 0 && (
+              <div className="col-span-full text-center py-8 text-gray-400 text-sm">No balances loaded. Contact HR to initialize.</div>
+            )}
           </div>
         </div>
 

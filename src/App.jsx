@@ -36,13 +36,7 @@ import PerformanceDashboard from "./modules/zoiko-hr/performance/dashboard.jsx";
 import GoalsOKRs from "./modules/zoiko-hr/performance/goals.jsx";
 import PerformanceReviews from "./modules/zoiko-hr/performance/reviews.jsx";
 import Appraisals from "./modules/zoiko-hr/performance/appraisals.jsx";
-import Feedback from "./modules/zoiko-hr/performance/feedback.jsx";
-import FortySixtyReviews from "./modules/zoiko-hr/performance/forty-sixty-reviews.jsx";
-import KpiTracking from "./modules/zoiko-hr/performance/kpi-tracking.jsx";
-import Competencies from "./modules/zoiko-hr/performance/competencies.jsx";
 import PerformanceAnalytics from "./modules/zoiko-hr/performance/analytics.jsx";
-import PerformanceReports from "./modules/zoiko-hr/performance/reports.jsx";
-import PerformanceSettings from "./modules/zoiko-hr/performance/settings.jsx";
 import RecruitmentDashboard from "./modules/zoiko-hr/recruitment/dashboard.jsx";
 import JobRequisitions from "./modules/zoiko-hr/recruitment/job-requisitions.jsx";
 import OpenPositions from "./modules/zoiko-hr/recruitment/open-positions.jsx";
@@ -68,7 +62,6 @@ import ZoikoHROnboardingProgress from "./modules/zoiko-hr/onboarding/progress.js
 import ZoikoHROnboardingReports from "./modules/zoiko-hr/onboarding/reports.jsx";
 import ZoikoHROnboardingSettings from "./modules/zoiko-hr/onboarding/settings.jsx";
 import ZoikoHRLearning from "./modules/zoiko-hr/learning/learning.jsx";
-import ZoikoHRCompensation from "./modules/zoiko-hr/compensation/compensation.jsx";
 import EngagementDashboard from "./modules/zoiko-hr/engagement/engagement-dashboard.jsx";
 import EngagementWellness from "./modules/zoiko-hr/engagement/engagement-wellness.jsx";
 import EngagementCSR from "./modules/zoiko-hr/engagement/engagement-csr.jsx";
@@ -157,20 +150,8 @@ import ZoikoHRCompPayGrades from "./modules/zoiko-hr/compensation/pay-grades.jsx
 import ZoikoHRCompSalaryComponents from "./modules/zoiko-hr/compensation/salary-components.jsx";
 import ZoikoHRCompBands from "./modules/zoiko-hr/compensation/compensation-bands.jsx";
 import ZoikoHRCompRevisions from "./modules/zoiko-hr/compensation/salary-revisions.jsx";
-import ZoikoHRCompIncrements from "./modules/zoiko-hr/compensation/increments.jsx";
-import ZoikoHRCompBonuses from "./modules/zoiko-hr/compensation/bonuses.jsx";
-import ZoikoHRCompIncentives from "./modules/zoiko-hr/compensation/incentives.jsx";
 import ZoikoHRCompAllowances from "./modules/zoiko-hr/compensation/allowances.jsx";
-import ZoikoHRCompDeductions from "./modules/zoiko-hr/compensation/deductions.jsx";
 import ZoikoHRCompBenefits from "./modules/zoiko-hr/compensation/benefits.jsx";
-import ZoikoHRCompMedical from "./modules/zoiko-hr/compensation/medical-benefits.jsx";
-import ZoikoHRCompInsurance from "./modules/zoiko-hr/compensation/insurance-benefits.jsx";
-import ZoikoHRCompRetirement from "./modules/zoiko-hr/compensation/retirement-benefits.jsx";
-import ZoikoHRCompReimbursements from "./modules/zoiko-hr/compensation/reimbursements.jsx";
-import ZoikoHRCompPayroll from "./modules/zoiko-hr/compensation/payroll.jsx";
-import ZoikoHRCompReports from "./modules/zoiko-hr/compensation/reports.jsx";
-import ZoikoHRCompAnalytics from "./modules/zoiko-hr/compensation/analytics.jsx";
-import ZoikoHRCompSettings from "./modules/zoiko-hr/compensation/settings.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
@@ -344,29 +325,14 @@ const routeOverrides = {
   "/zoiko-hr/learning/progress": <ZoikoHRLearning />,
   "/zoiko-hr/learning/reports": <ZoikoHRLearning />,
   "/zoiko-hr/learning/enrollments": <ZoikoHRLearning />,
-
-
-
-  "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
-  "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
-  "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
-  "/zoiko-hr/compensation/salary-components": <ZoikoHRCompSalaryComponents />,
-  "/zoiko-hr/compensation/bands": <ZoikoHRCompBands />,
-  "/zoiko-hr/compensation/revisions": <ZoikoHRCompRevisions />,
-  "/zoiko-hr/compensation/increments": <ZoikoHRCompIncrements />,
-  "/zoiko-hr/compensation/bonuses": <ZoikoHRCompBonuses />,
-  "/zoiko-hr/compensation/incentives": <ZoikoHRCompIncentives />,
-  "/zoiko-hr/compensation/allowances": <ZoikoHRCompAllowances />,
-  "/zoiko-hr/compensation/deductions": <ZoikoHRCompDeductions />,
-  "/zoiko-hr/compensation/benefits": <ZoikoHRCompBenefits />,
-  "/zoiko-hr/compensation/medical": <ZoikoHRCompMedical />,
-  "/zoiko-hr/compensation/insurance": <ZoikoHRCompInsurance />,
-  "/zoiko-hr/compensation/retirement": <ZoikoHRCompRetirement />,
-  "/zoiko-hr/compensation/reimbursements": <ZoikoHRCompReimbursements />,
-  "/zoiko-hr/compensation/payroll": <ZoikoHRCompPayroll />,
-  "/zoiko-hr/compensation/reports": <ZoikoHRCompReports />,
-  "/zoiko-hr/compensation/analytics": <ZoikoHRCompAnalytics />,
-  "/zoiko-hr/compensation/settings": <ZoikoHRCompSettings />,
+"/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
+"/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
+"/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
+"/zoiko-hr/compensation/salary-components": <ZoikoHRCompSalaryComponents />,
+"/zoiko-hr/compensation/bands": <ZoikoHRCompBands />,
+"/zoiko-hr/compensation/revisions": <ZoikoHRCompRevisions />,
+"/zoiko-hr/compensation/allowances": <ZoikoHRCompAllowances />,
+"/zoiko-hr/compensation/benefits": <ZoikoHRCompBenefits />,
   // ESS submodule routes
   "/zoiko-hr/ess": <EssDashboard />,
   "/zoiko-hr/ess/profile": <EssProfile />,
@@ -419,13 +385,7 @@ const routeOverrides = {
   "/zoiko-hr/performance/goals": <GoalsOKRs />,
   "/zoiko-hr/performance/reviews": <PerformanceReviews />,
   "/zoiko-hr/performance/appraisals": <Appraisals />,
-  "/zoiko-hr/performance/feedback": <Feedback />,
-  "/zoiko-hr/performance/360-reviews": <FortySixtyReviews />,
-  "/zoiko-hr/performance/kpis": <KpiTracking />,
-  "/zoiko-hr/performance/competencies": <Competencies />,
   "/zoiko-hr/performance/analytics": <PerformanceAnalytics />,
-  "/zoiko-hr/performance/reports": <PerformanceReports />,
-  "/zoiko-hr/performance/settings": <PerformanceSettings />,
 
   // Documents submodule routes
   "/zoiko-hr/documents/employee-documents": <EmployeeDocuments />,

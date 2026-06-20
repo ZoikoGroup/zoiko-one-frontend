@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Save, Settings2, Calendar, Users, Bell } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { getLeaveSettings, updateLeaveSettings } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -35,55 +36,103 @@ function SubNav() {
 
 export default function LeaveSettings() {
   const [activeTab, setActiveTab] = useState("general");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
 
   const [general, setGeneral] = useState({
-    workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    leaveYearStart: "2025-01-01",
-    maxConsecutiveDays: 30,
-    carryForwardLimit: 10,
-  });
-
-  const [entitlements, setEntitlements] = useState({
-    Annual: 20, Sick: 12, Casual: 10, Earned: 15,
-    Maternity: 90, Paternity: 10, Unpaid: 30, Study: 10, Emergency: 5,
+    working_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    leave_year_start: "",
+    max_consecutive_days: 30,
+    carry_forward_limit: 10,
   });
 
   const [approvals, setApprovals] = useState({
-    workflow: "manager",
-    escalationDays: 3,
-    autoApproveDays: 1,
+    approval_workflow: "manager",
+    escalation_days: 3,
+    auto_approve_days: 1,
   });
 
   const [notifications, setNotifications] = useState({
-    requestSubmitted: true,
-    requestApproved: true,
-    requestRejected: true,
-    pendingReminder: true,
-    teamCalendar: false,
-    balanceLow: true,
+    notification_on_submit: true,
+    notification_on_approve: true,
+    notification_on_reject: true,
   });
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  useEffect(() => {
+    let mounted = true;
+    getLeaveSettings()
+      .then((data) => {
+        if (!mounted || !data) return;
+        setGeneral({
+          working_days: data.working_days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          leave_year_start: data.leave_year_start || "",
+          max_consecutive_days: data.max_consecutive_days || 30,
+          carry_forward_limit: data.carry_forward_limit || 10,
+        });
+        setApprovals({
+          approval_workflow: data.approval_workflow || "manager",
+          escalation_days: data.escalation_days || 3,
+          auto_approve_days: data.auto_approve_days || 1,
+        });
+        setNotifications({
+          notification_on_submit: data.notification_on_submit !== false,
+          notification_on_approve: data.notification_on_approve !== false,
+          notification_on_reject: data.notification_on_reject !== false,
+        });
+      })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const payload = {
+        ...general,
+        ...approvals,
+        ...notifications,
+      };
+      if (payload.leave_year_start === "") payload.leave_year_start = null;
+      await updateLeaveSettings(payload);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err.message || "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleWorkingDay = (day) => {
     setGeneral((prev) => ({
       ...prev,
-      workingDays: prev.workingDays.includes(day)
-        ? prev.workingDays.filter((d) => d !== day)
-        : [...prev.workingDays, day],
+      working_days: prev.working_days.includes(day)
+        ? prev.working_days.filter((d) => d !== day)
+        : [...prev.working_days, day],
     }));
   };
 
   const tabs = [
     { key: "general", label: "General", icon: Settings2 },
-    { key: "leaveTypes", label: "Leave Types", icon: Calendar },
     { key: "approvals", label: "Approvals", icon: Users },
     { key: "notifications", label: "Notifications", icon: Bell },
   ];
+
+  if (loading) {
+    return (
+      <HRPage title="Leave Settings" subtitle="Configure leave policies and preferences">
+        <SubNav />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+          <span className="ml-3 text-gray-500">Loading settings...</span>
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
     <HRPage title="Leave Settings" subtitle="Configure leave policies and preferences">
@@ -94,12 +143,15 @@ export default function LeaveSettings() {
             <h1 className="text-2xl font-bold text-gray-900">Leave Settings</h1>
             <p className="text-sm text-gray-500 mt-1">Configure leave policies and preferences</p>
           </div>
-          <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
-            <Save className="w-4 h-4" /> {saved ? "Saved!" : "Save Settings"}
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium disabled:opacity-50">
+            <Save className="w-4 h-4" /> {saving ? "Saving..." : saved ? "Saved!" : "Save Settings"}
           </button>
         </div>
 
-        {saved && (
+        {error && (
+          <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
+        )}
+        {saved && !error && (
           <div className="px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">Settings saved successfully!</div>
         )}
 
@@ -126,7 +178,7 @@ export default function LeaveSettings() {
                   {workingDays.map((day) => (
                     <button key={day} onClick={() => toggleWorkingDay(day)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                        general.workingDays.includes(day) ? "bg-teal-50 border-teal-300 text-teal-700" : "bg-gray-50 border-gray-200 text-gray-500"
+                        general.working_days.includes(day) ? "bg-teal-50 border-teal-300 text-teal-700" : "bg-gray-50 border-gray-200 text-gray-500"
                       }`}>
                       {day.slice(0, 3)}
                     </button>
@@ -135,34 +187,21 @@ export default function LeaveSettings() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Leave Year Start</label>
-                <input type="date" value={general.leaveYearStart} onChange={(e) => setGeneral({ ...general, leaveYearStart: e.target.value })}
+                <input type="date" value={general.leave_year_start} onChange={(e) => setGeneral({ ...general, leave_year_start: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Max Consecutive Days</label>
-                  <input type="number" min="1" value={general.maxConsecutiveDays} onChange={(e) => setGeneral({ ...general, maxConsecutiveDays: parseInt(e.target.value) || 1 })}
+                  <input type="number" min="1" value={general.max_consecutive_days} onChange={(e) => setGeneral({ ...general, max_consecutive_days: parseInt(e.target.value) || 1 })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Carry Forward Limit</label>
-                  <input type="number" min="0" value={general.carryForwardLimit} onChange={(e) => setGeneral({ ...general, carryForwardLimit: parseInt(e.target.value) || 0 })}
+                  <input type="number" min="0" value={general.carry_forward_limit} onChange={(e) => setGeneral({ ...general, carry_forward_limit: parseInt(e.target.value) || 0 })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
                 </div>
               </div>
-            </div>
-          )}
-
-          {activeTab === "leaveTypes" && (
-            <div className="space-y-4 max-w-lg">
-              <p className="text-sm text-gray-500 mb-4">Set default entitlements for each leave type</p>
-              {leaveTypes.map((type) => (
-                <div key={type} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">{type}</span>
-                  <input type="number" min="0" value={entitlements[type]} onChange={(e) => setEntitlements({ ...entitlements, [type]: parseInt(e.target.value) || 0 })}
-                    className="w-24 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
-                </div>
-              ))}
             </div>
           )}
 
@@ -174,11 +213,11 @@ export default function LeaveSettings() {
                   {[
                     { value: "manager", label: "Manager Only" },
                     { value: "hr", label: "HR Only" },
-                    { value: "both", label: "Manager & HR" },
+                    { value: "auto", label: "Auto-Approve" },
                   ].map((opt) => (
-                    <button key={opt.value} onClick={() => setApprovals({ ...approvals, workflow: opt.value })}
+                    <button key={opt.value} onClick={() => setApprovals({ ...approvals, approval_workflow: opt.value })}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                        approvals.workflow === opt.value ? "bg-teal-50 border-teal-300 text-teal-700" : "bg-gray-50 border-gray-200 text-gray-600"
+                        approvals.approval_workflow === opt.value ? "bg-teal-50 border-teal-300 text-teal-700" : "bg-gray-50 border-gray-200 text-gray-600"
                       }`}>
                       {opt.label}
                     </button>
@@ -188,12 +227,12 @@ export default function LeaveSettings() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Escalation After (days)</label>
-                  <input type="number" min="1" value={approvals.escalationDays} onChange={(e) => setApprovals({ ...approvals, escalationDays: parseInt(e.target.value) || 1 })}
+                  <input type="number" min="1" value={approvals.escalation_days} onChange={(e) => setApprovals({ ...approvals, escalation_days: parseInt(e.target.value) || 1 })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Auto-Approve for ≤ (days)</label>
-                  <input type="number" min="0" value={approvals.autoApproveDays} onChange={(e) => setApprovals({ ...approvals, autoApproveDays: parseInt(e.target.value) || 0 })}
+                  <input type="number" min="0" value={approvals.auto_approve_days} onChange={(e) => setApprovals({ ...approvals, auto_approve_days: parseInt(e.target.value) || 0 })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
                 </div>
               </div>
@@ -205,7 +244,7 @@ export default function LeaveSettings() {
               <p className="text-sm text-gray-500 mb-2">Configure notification preferences</p>
               {Object.entries(notifications).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 capitalize">{key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}</span>
+                  <span className="text-sm text-gray-700 capitalize">{key.replace(/_/g, " ").replace(/^./, (s) => s.toUpperCase())}</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" checked={value} onChange={(e) => setNotifications({ ...notifications, [key]: e.target.checked })} className="sr-only peer" />
                     <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600" />

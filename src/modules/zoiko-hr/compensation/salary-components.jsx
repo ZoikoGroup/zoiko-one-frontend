@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import HRPage from "../../../components/HRPage";
+import {
+  getSalaryComponents,
+  createSalaryComponent,
+  updateSalaryComponent,
+  deleteSalaryComponent,
+} from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 8;
 
-const mockData = [
-  { id: 1, component: "Basic", amount: 50000, period: "monthly", description: "Basic salary component" },
-  { id: 2, component: "HRA", amount: 20000, period: "monthly", description: "House rent allowance" },
-  { id: 3, component: "Special Allowance", amount: 15000, period: "monthly", description: "Special allowance" },
-  { id: 4, component: "Bonus", amount: 100000, period: "yearly", description: "Annual bonus payout" },
-];
-
 const initialForm = {
-  component: "",
-  amount: "",
-  period: "monthly",
+  name: "",
+  component_type: "earning",
+  is_taxable: true,
+  default_amount: "",
   description: "",
 };
 
@@ -31,27 +31,35 @@ export default function SalaryComponentsPage() {
   const [formErrors, setFormErrors] = useState({});
   const [editForm, setEditForm] = useState({ ...initialForm });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setItems(mockData);
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getSalaryComponents();
+      setItems(data);
+    } catch (err) {
+      setError(err.message || "Failed to load salary components");
+    } finally {
       setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const stats = useMemo(() => {
     const total = items.length;
-    const monthly = items.filter((i) => i.period === "monthly").reduce((sum, i) => sum + (i.amount || 0), 0);
-    const yearly = items.filter((i) => i.period === "yearly").reduce((sum, i) => sum + (i.amount || 0), 0);
-    const oneTime = items.filter((i) => i.period === "one-time").reduce((sum, i) => sum + (i.amount || 0), 0);
-    return { total, monthly, yearly, oneTime };
+    const earning = items.filter((i) => i.component_type === "earning").length;
+    const deduction = items.filter((i) => i.component_type === "deduction").length;
+    return { total, earning, deduction };
   }, [items]);
 
   const filtered = useMemo(() => {
     let result = items;
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter((i) => i.component?.toLowerCase().includes(q));
+      result = result.filter((i) => i.name?.toLowerCase().includes(q));
     }
     return result;
   }, [items, search]);
@@ -67,80 +75,85 @@ export default function SalaryComponentsPage() {
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [totalPages, currentPage]);
 
-  let nextId = useMemo(() => Math.max(0, ...items.map((i) => i.id)) + 1, [items]);
-
   const resetForm = () => setFormData({ ...initialForm });
 
   const validateForm = (data) => {
     const errors = {};
-    if (!data.component?.trim()) errors.component = "Component name is required";
-    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) errors.amount = "Valid amount is required";
+    if (!data.name?.trim()) errors.name = "Component name is required";
+    if (!data.component_type) errors.component_type = "Type is required";
     return errors;
   };
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     const errors = validateForm(formData);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-    setTimeout(() => {
-      const newItem = {
-        id: nextId,
-        component: formData.component.trim(),
-        amount: parseFloat(formData.amount),
-        period: formData.period,
-        description: formData.description.trim() || "",
-      };
-      setItems((prev) => [...prev, newItem]);
+    try {
+      await createSalaryComponent({
+        name: formData.name.trim(),
+        component_type: formData.component_type,
+        is_taxable: formData.is_taxable,
+        default_amount: formData.default_amount ? parseFloat(formData.default_amount) : null,
+        description: formData.description.trim() || null,
+      });
+      await fetchData();
       setShowCreateModal(false);
       resetForm();
+    } catch (err) {
+      setFormErrors({ submit: err.message || "Failed to create component" });
+    } finally {
       setSubmitting(false);
-    }, 200);
+    }
   };
 
   const openEditModal = (item) => {
     setEditItem(item);
     setEditForm({
-      component: item.component || "",
-      amount: String(item.amount || ""),
-      period: item.period || "monthly",
+      name: item.name || "",
+      component_type: item.component_type || "earning",
+      is_taxable: item.is_taxable ?? true,
+      default_amount: item.default_amount ? String(Number(item.default_amount)) : "",
       description: item.description || "",
     });
     setFormErrors({});
     setShowEditModal(true);
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editItem) return;
     const errors = validateForm(editForm);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-    setTimeout(() => {
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === editItem.id
-            ? {
-                ...i,
-                component: editForm.component.trim(),
-                amount: parseFloat(editForm.amount),
-                period: editForm.period,
-                description: editForm.description.trim() || "",
-              }
-            : i
-        )
-      );
+    try {
+      await updateSalaryComponent(editItem.id, {
+        name: editForm.name.trim(),
+        component_type: editForm.component_type,
+        is_taxable: editForm.is_taxable,
+        default_amount: editForm.default_amount ? parseFloat(editForm.default_amount) : null,
+        description: editForm.description.trim() || null,
+      });
+      await fetchData();
       setShowEditModal(false);
       setEditItem(null);
+    } catch (err) {
+      setFormErrors({ submit: err.message || "Failed to update component" });
+    } finally {
       setSubmitting(false);
-    }, 200);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this salary component?")) return;
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    try {
+      await deleteSalaryComponent(id);
+      await fetchData();
+    } catch (err) {
+      setError(err.message || "Failed to delete component");
+    }
   };
 
   if (loading) {
@@ -175,12 +188,12 @@ export default function SalaryComponentsPage() {
               <span className="font-bold text-gray-800">{stats.total}</span>
             </div>
             <div className="bg-white px-4 py-2 border border-green-100 rounded-lg shadow-sm text-sm">
-              <span className="text-gray-400">Monthly: </span>
-              <span className="font-bold text-green-600">${stats.monthly.toLocaleString()}</span>
+              <span className="text-gray-400">Earnings: </span>
+              <span className="font-bold text-green-600">{stats.earning}</span>
             </div>
-            <div className="bg-white px-4 py-2 border border-blue-100 rounded-lg shadow-sm text-sm">
-              <span className="text-gray-400">Yearly: </span>
-              <span className="font-bold text-blue-600">${stats.yearly.toLocaleString()}</span>
+            <div className="bg-white px-4 py-2 border border-red-100 rounded-lg shadow-sm text-sm">
+              <span className="text-gray-400">Deductions: </span>
+              <span className="font-bold text-red-600">{stats.deduction}</span>
             </div>
           </div>
           <button
@@ -219,9 +232,10 @@ export default function SalaryComponentsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Component</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Amount</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Period</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Taxable</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Default Amount</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Description</th>
                       <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                     </tr>
@@ -229,16 +243,21 @@ export default function SalaryComponentsPage() {
                   <tbody className="divide-y divide-gray-50">
                     {paginated.map((i) => (
                       <tr key={i.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">{i.component}</td>
-                        <td className="px-4 py-3 text-gray-700">${i.amount.toLocaleString()}</td>
+                        <td className="px-4 py-3 font-medium text-gray-800">{i.name}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                            i.period === "monthly" ? "bg-green-100 text-green-800" :
-                            i.period === "yearly" ? "bg-blue-100 text-blue-800" :
-                            "bg-purple-100 text-purple-800"
+                            i.component_type === "earning" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                           }`}>
-                            {i.period}
+                            {i.component_type}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={i.is_taxable ? "text-orange-600" : "text-gray-400"}>
+                            {i.is_taxable ? "Taxable" : "Non-taxable"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {i.default_amount ? `$${Number(i.default_amount).toLocaleString()}` : <span className="text-gray-300">-</span>}
                         </td>
                         <td className="px-4 py-3 text-gray-700">{i.description || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3 text-right">
@@ -316,34 +335,42 @@ export default function SalaryComponentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Component Name *</label>
                 <input
                   type="text"
-                  value={formData.component}
-                  onChange={(e) => setFormData({ ...formData, component: e.target.value })}
-                  className={`w-full border ${formErrors.component ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={`w-full border ${formErrors.name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
-                {formErrors.component && <p className="text-red-500 text-xs mt-1">{formErrors.component}</p>}
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                <select
+                  value={formData.component_type}
+                  onChange={(e) => setFormData({ ...formData, component_type: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="earning">Earning</option>
+                  <option value="deduction">Deduction</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_taxable"
+                  checked={formData.is_taxable}
+                  onChange={(e) => setFormData({ ...formData, is_taxable: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="is_taxable" className="text-sm font-medium text-gray-700">Taxable</label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Default Amount</label>
                 <input
                   type="number"
                   step="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className={`w-full border ${formErrors.amount ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.amount && <p className="text-red-500 text-xs mt-1">{formErrors.amount}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Period</label>
-                <select
-                  value={formData.period}
-                  onChange={(e) => setFormData({ ...formData, period: e.target.value })}
+                  value={formData.default_amount}
+                  onChange={(e) => setFormData({ ...formData, default_amount: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="one-time">One Time</option>
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -374,40 +401,48 @@ export default function SalaryComponentsPage() {
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               <div className="text-sm text-gray-500 mb-1">
-                Editing: <span className="font-medium text-gray-800">{editItem.component}</span>
+                Editing: <span className="font-medium text-gray-800">{editItem.name}</span>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Component Name *</label>
                 <input
                   type="text"
-                  value={editForm.component}
-                  onChange={(e) => setEditForm({ ...editForm, component: e.target.value })}
-                  className={`w-full border ${formErrors.component ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className={`w-full border ${formErrors.name ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
-                {formErrors.component && <p className="text-red-500 text-xs mt-1">{formErrors.component}</p>}
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                <select
+                  value={editForm.component_type}
+                  onChange={(e) => setEditForm({ ...editForm, component_type: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="earning">Earning</option>
+                  <option value="deduction">Deduction</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="edit_is_taxable"
+                  checked={editForm.is_taxable}
+                  onChange={(e) => setEditForm({ ...editForm, is_taxable: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="edit_is_taxable" className="text-sm font-medium text-gray-700">Taxable</label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Default Amount</label>
                 <input
                   type="number"
                   step="0.01"
-                  value={editForm.amount}
-                  onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
-                  className={`w-full border ${formErrors.amount ? "border-red-300" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                {formErrors.amount && <p className="text-red-500 text-xs mt-1">{formErrors.amount}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Period</label>
-                <select
-                  value={editForm.period}
-                  onChange={(e) => setEditForm({ ...editForm, period: e.target.value })}
+                  value={editForm.default_amount}
+                  onChange={(e) => setEditForm({ ...editForm, default_amount: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="one-time">One Time</option>
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>

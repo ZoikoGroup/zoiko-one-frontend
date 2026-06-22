@@ -34,8 +34,15 @@ export function clearSession() {
  * Automatically attaches the bearer token (if present) and JSON headers,
  * and attempts a single silent refresh on a 401 response.
  */
-export async function apiRequest(path, { method = "GET", body, headers = {}, auth = true, retry = true } = {}) {
-  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+export async function apiRequest(path, { method = "GET", body, headers = {}, auth = true, retry = true, params } = {}) {
+  let url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  if (params) {
+    const query = Object.entries(params)
+      .filter(([, v]) => v !== undefined && v !== null && v !== "")
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join("&");
+    if (query) url += `${url.includes("?") ? "&" : "?"}${query}`;
+  }
   console.log(`API Request: ${method} ${url}`);
 
   const finalHeaders = { ...headers };

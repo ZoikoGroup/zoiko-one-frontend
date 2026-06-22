@@ -1,11 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { NavLink } from "react-router-dom";
 import { Users, UserCheck, UserX, AlertTriangle, Luggage, Home, Clock, TrendingUp, TrendingDown, Minus, Download, Calendar, Filter } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getAttendanceDashboard, exportAttendanceCsv, exportAttendanceExcel } from "../../../service/hrService";
 
+const NAV_ITEMS = [
+  { label: "Dashboard", href: "/zoiko-hr/attendance" },
+  { label: "Attendance Records", href: "/zoiko-hr/attendance/daily" },
+  { label: "Leave Management", href: "/zoiko-hr/attendance/leaves" },
+  { label: "Shift Management", href: "/zoiko-hr/attendance/shifts" },
+  { label: "Holiday Calendar", href: "/zoiko-hr/attendance/holidays" },
+  { label: "Attendance Analytics", href: "/zoiko-hr/attendance/analytics" },
+];
 
-
-
+function SubNav() {
+  return (
+    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
+      {NAV_ITEMS.map((item) => (
+        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/attendance"}
+          className={({ isActive }) =>
+            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`
+          }>
+          {item.label}
+        </NavLink>
+      ))}
+    </div>
+  );
+}
 
 function StatCard({ title, value, icon: Icon, change, trend }) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
@@ -17,8 +38,8 @@ function StatCard({ title, value, icon: Icon, change, trend }) {
           <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">{title}</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
         </div>
-        <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
-          <Icon size={20} className="text-indigo-600" />
+        <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
+          <Icon size={20} className="text-orange-600" />
         </div>
       </div>
       {change != null && (
@@ -53,29 +74,23 @@ export default function AttendanceDashboard() {
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-    const fetch = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getAttendanceDashboard({ date_range: dateRange, department: departmentFilter, location: locationFilter });
-        if (mounted) setDashboard(data);
-      } catch (err) {
-        if (mounted) setError(err.message || "Failed to load dashboard");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetch();
-    return () => { mounted = false; };
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    getAttendanceDashboard({ date_range: dateRange, department: departmentFilter, location: locationFilter })
+      .then((d) => setDashboard(d))
+      .catch((err) => setError(err?.message || "Failed to load dashboard"))
+      .finally(() => setLoading(false));
   }, [dateRange, departmentFilter, locationFilter]);
+
+  useEffect(() => { load(); }, [load]);
 
   if (loading) {
     return (
       <HRPage title="Attendance Dashboard" subtitle="Live attendance overview and statistics">
-                <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <SubNav />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
           <span className="ml-3 text-gray-500">Loading dashboard...</span>
         </div>
       </HRPage>
@@ -85,7 +100,8 @@ export default function AttendanceDashboard() {
   if (error || !dashboard) {
     return (
       <HRPage title="Attendance Dashboard" subtitle="Live attendance overview and statistics">
-                <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error || "No data returned"}</div>
+        <SubNav />
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error || "No data returned"}</div>
       </HRPage>
     );
   }
@@ -120,11 +136,12 @@ export default function AttendanceDashboard() {
 
   return (
     <HRPage title="Attendance Dashboard" subtitle="Live attendance overview and statistics">
-            <div className="space-y-6">
+      <SubNav />
+      <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
               <option value="today">Today</option>
               <option value="this_week">This Week</option>
               <option value="this_month">This Month</option>
@@ -132,12 +149,12 @@ export default function AttendanceDashboard() {
               <option value="custom">Custom Range</option>
             </select>
             <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
               <option value="">All Departments</option>
               {deptOptions.map((d) => (<option key={d} value={d}>{d}</option>))}
             </select>
             <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
               <option value="">All Locations</option>
               <option value="office">Office</option>
               <option value="remote">Remote</option>
@@ -197,7 +214,7 @@ export default function AttendanceDashboard() {
                   <div key={d.department || d.name} className="flex items-center gap-3">
                     <span className="text-xs font-medium text-gray-700 w-24 shrink-0 truncate">{d.department || d.name}</span>
                     <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 rounded-full h-2 transition-all" style={{ width: `${(d.count / maxDeptAttendance) * 100}%` }} />
+                      <div className="bg-orange-500 rounded-full h-2 transition-all" style={{ width: `${(d.count / maxDeptAttendance) * 100}%` }} />
                     </div>
                     <span className="text-xs text-gray-500 w-6 text-right">{d.count}</span>
                   </div>
@@ -229,4 +246,3 @@ export default function AttendanceDashboard() {
     </HRPage>
   );
 }
-

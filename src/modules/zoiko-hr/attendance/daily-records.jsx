@@ -1,9 +1,32 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { NavLink } from "react-router-dom";
 import { Search, Download, Plus, Pencil, Trash2 } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getAttendanceRecords, createAttendanceRecord, updateAttendanceRecord, deleteAttendanceRecord, exportAttendanceCsv, exportAttendanceExcel, getEmployees } from "../../../service/hrService";
 
+const NAV_ITEMS = [
+  { label: "Dashboard", href: "/zoiko-hr/attendance" },
+  { label: "Attendance Records", href: "/zoiko-hr/attendance/daily" },
+  { label: "Leave Management", href: "/zoiko-hr/attendance/leaves" },
+  { label: "Shift Management", href: "/zoiko-hr/attendance/shifts" },
+  { label: "Holiday Calendar", href: "/zoiko-hr/attendance/holidays" },
+  { label: "Attendance Analytics", href: "/zoiko-hr/attendance/analytics" },
+];
 
+function SubNav() {
+  return (
+    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
+      {NAV_ITEMS.map((item) => (
+        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/attendance"}
+          className={({ isActive }) =>
+            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`
+          }>
+          {item.label}
+        </NavLink>
+      ))}
+    </div>
+  );
+}
 
 const ITEMS_PER_PAGE = 15;
 
@@ -23,8 +46,6 @@ const STATUS_OPTIONS = ["present", "absent", "late", "on_leave", "remote", "half
 const initialForm = {
   employee_id: "", date: "", status: "present", check_in: "", check_out: "", notes: "",
 };
-
-
 
 function StatusBadge({ status }) {
   const colorClass = STATUS_COLORS[status] || "bg-gray-100 text-gray-800";
@@ -59,7 +80,7 @@ export default function DailyRecords() {
   const [submitting, setSubmitting] = useState(false);
   const [employees, setEmployees] = useState([]);
 
-  const fetchData = async (params = {}) => {
+  const fetchData = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -71,19 +92,20 @@ export default function DailyRecords() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
-      const data = await getEmployees({ per_page: 500 });
+      const data = await getEmployees({ per_page: 100 });
       const list = data?.items || (Array.isArray(data) ? data : []);
       setEmployees(list);
     } catch {
       setEmployees([]);
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchData(); fetchEmployees(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
   const departments = useMemo(() => {
     const depts = new Set(records.map((r) => r.department || r.department_name).filter(Boolean));
@@ -180,8 +202,9 @@ export default function DailyRecords() {
   if (loading && records.length === 0) {
     return (
       <HRPage title="Daily Records" subtitle="View and manage daily attendance logs">
-                <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <SubNav />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
           <span className="ml-3 text-gray-500">Loading records...</span>
         </div>
       </HRPage>
@@ -190,7 +213,8 @@ export default function DailyRecords() {
 
   return (
     <HRPage title="Daily Records" subtitle="View and manage daily attendance logs">
-            <div className="space-y-6">
+      <SubNav />
+      <div className="space-y-6">
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
             <span>{error}</span>
@@ -212,7 +236,7 @@ export default function DailyRecords() {
               className="flex items-center gap-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors" title="Export Excel">
               <Download className="w-4 h-4" /> Excel
             </button>
-            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">
+            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-medium transition-colors">
               <Plus className="w-4 h-4" /> Create Record
             </button>
           </div>
@@ -223,20 +247,20 @@ export default function DailyRecords() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Search by employee or department..." value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
           </div>
           <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setCurrentPage(1); }}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
             <option value="">All Statuses</option>
             {STATUS_OPTIONS.map((v) => (<option key={v} value={v}>{v.replace(/_/g, " ")}</option>))}
           </select>
           <select value={filters.department} onChange={(e) => { setFilters({ ...filters, department: e.target.value }); setCurrentPage(1); }}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
             <option value="">All Departments</option>
             {departments.map((d) => (<option key={d} value={d}>{d}</option>))}
           </select>
           <input type="date" value={filters.date} onChange={(e) => { setFilters({ ...filters, date: e.target.value }); setCurrentPage(1); }}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
         </div>
 
         {filtered.length === 0 && !loading ? (
@@ -262,7 +286,7 @@ export default function DailyRecords() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {paginated.map((r) => (
-                    <tr key={r.id} className="hover:bg-indigo-50/50 transition-colors">
+                    <tr key={r.id} className="hover:bg-orange-50/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.employee_name || r.employee || "Employee #" + r.id}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{r.department || r.department_name || "-"}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{formatDate(r.date)}</td>
@@ -271,7 +295,7 @@ export default function DailyRecords() {
                       <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openEdit(r)} className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors rounded hover:bg-indigo-50" title="Edit">
+                          <button onClick={() => openEdit(r)} className="p-1.5 text-gray-400 hover:text-orange-600 transition-colors rounded hover:bg-orange-50" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDelete(r.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded hover:bg-red-50" title="Delete">
@@ -297,7 +321,7 @@ export default function DailyRecords() {
                 className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">Prev</button>
               {Array.from({ length: Math.ceil(filtered.length / ITEMS_PER_PAGE) }, (_, i) => i + 1).map((p) => (
                 <button key={p} onClick={() => setCurrentPage(p)}
-                  className={"px-3 py-1 text-sm border rounded-lg " + (p === currentPage ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-200 hover:bg-gray-50")}>{p}</button>
+                  className={"px-3 py-1 text-sm border rounded-lg " + (p === currentPage ? "bg-orange-600 text-white border-orange-600" : "border-gray-200 hover:bg-gray-50")}>{p}</button>
               ))}
               <button onClick={() => setCurrentPage((p) => Math.min(Math.ceil(filtered.length / ITEMS_PER_PAGE), p + 1))}
                 disabled={currentPage >= Math.ceil(filtered.length / ITEMS_PER_PAGE)}
@@ -318,7 +342,7 @@ export default function DailyRecords() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Employee *</label>
                   <select value={form.employee_id} onChange={(e) => setForm({ ...form, employee_id: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
                     <option value="">Select employee</option>
                     {employees.map((emp) => (
                       <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} ({emp.email})</option>
@@ -329,13 +353,13 @@ export default function DailyRecords() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                   <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
                   {formErrors.date && <p className="text-red-500 text-xs mt-1">{formErrors.date}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                   <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
                     {STATUS_OPTIONS.map((v) => (<option key={v} value={v}>{v.replace(/_/g, " ")}</option>))}
                   </select>
                 </div>
@@ -343,22 +367,22 @@ export default function DailyRecords() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Check In</label>
                     <input type="datetime-local" value={form.check_in} onChange={(e) => setForm({ ...form, check_in: e.target.value })}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Check Out</label>
                     <input type="datetime-local" value={form.check_out} onChange={(e) => setForm({ ...form, check_out: e.target.value })}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                   <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
                   <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                  <button type="submit" disabled={submitting} className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-lg font-medium transition-colors">
+                  <button type="submit" disabled={submitting} className="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white rounded-lg font-medium transition-colors">
                     {submitting ? "Saving..." : editRecord ? "Update Record" : "Create Record"}
                   </button>
                 </div>
@@ -370,4 +394,3 @@ export default function DailyRecords() {
     </HRPage>
   );
 }
-

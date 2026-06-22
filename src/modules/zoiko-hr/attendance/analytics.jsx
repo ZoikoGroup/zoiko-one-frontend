@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { NavLink } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, Minus, BarChart3, Users,
   Clock, Sun, Download, Calendar, Search,
@@ -13,9 +14,29 @@ import {
   getShiftEfficiency,
 } from "../../../service/hrService";
 
+const NAV_ITEMS = [
+  { label: "Dashboard", href: "/zoiko-hr/attendance" },
+  { label: "Attendance Records", href: "/zoiko-hr/attendance/daily" },
+  { label: "Leave Management", href: "/zoiko-hr/attendance/leaves" },
+  { label: "Shift Management", href: "/zoiko-hr/attendance/shifts" },
+  { label: "Holiday Calendar", href: "/zoiko-hr/attendance/holidays" },
+  { label: "Attendance Analytics", href: "/zoiko-hr/attendance/analytics" },
+];
 
-
-
+function SubNav() {
+  return (
+    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
+      {NAV_ITEMS.map((item) => (
+        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/attendance"}
+          className={({ isActive }) =>
+            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${isActive ? "text-orange-600 border-b-2 border-orange-600 bg-orange-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`
+          }>
+          {item.label}
+        </NavLink>
+      ))}
+    </div>
+  );
+}
 
 function KpiCard({ title, value, icon: Icon, change, trend, suffix }) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
@@ -30,7 +51,7 @@ function KpiCard({ title, value, icon: Icon, change, trend, suffix }) {
             {value}{suffix}
           </p>
         </div>
-        {Icon && <div className="p-2 bg-indigo-50 rounded-lg"><Icon className="w-5 h-5 text-indigo-600" /></div>}
+        {Icon && <div className="p-2 bg-orange-50 rounded-lg"><Icon className="w-5 h-5 text-orange-600" /></div>}
       </div>
       {change != null && (
         <div className="flex items-center gap-1 mt-3">
@@ -58,34 +79,28 @@ export default function AttendanceAnalytics() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
 
-  useEffect(() => {
-    let mounted = true;
+  const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    const fetchAnalytics = async () => {
-      try {
-        const [attData, trendsData, deptData, otData, shiftData] = await Promise.all([
-          getAttendance(),
-          getAttendanceTrends({ date: dateRange || undefined }),
-          getDepartmentAnalysis({ date: dateRange || undefined }),
-          getOvertimeAnalytics({ date: dateRange || undefined }),
-          getShiftEfficiency({ date: dateRange || undefined }),
-        ]);
-        if (!mounted) return;
+    Promise.all([
+      getAttendance(),
+      getAttendanceTrends({ date: dateRange || undefined }),
+      getDepartmentAnalysis({ date: dateRange || undefined }),
+      getOvertimeAnalytics({ date: dateRange || undefined }),
+      getShiftEfficiency({ date: dateRange || undefined }),
+    ])
+      .then(([attData, trendsData, deptData, otData, shiftData]) => {
         setRecords(Array.isArray(attData) ? attData : []);
         setTrends(trendsData);
         setDeptAnalysis(deptData);
         setOvertimeData(otData);
         setShiftEff(shiftData);
-      } catch (err) {
-        if (mounted) setError(err.message || "Failed to load analytics");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchAnalytics();
-    return () => { mounted = false; };
+      })
+      .catch((err) => setError(err?.message || "Failed to load analytics"))
+      .finally(() => setLoading(false));
   }, [dateRange]);
+
+  useEffect(() => { load(); }, [load]);
 
   const refreshAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
@@ -214,8 +229,9 @@ export default function AttendanceAnalytics() {
   if (loading) {
     return (
       <HRPage title="Attendance Analytics" subtitle="Data-driven insights and attendance metrics">
-                <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <SubNav />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
           <span className="ml-3 text-gray-500">Loading analytics...</span>
         </div>
       </HRPage>
@@ -225,14 +241,16 @@ export default function AttendanceAnalytics() {
   if (error) {
     return (
       <HRPage title="Attendance Analytics" subtitle="Data-driven insights and attendance metrics">
-                <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error}</div>
+        <SubNav />
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error}</div>
       </HRPage>
     );
   }
 
   return (
     <HRPage title="Attendance Analytics" subtitle="Data-driven insights and attendance metrics">
-            <div className="space-y-6">
+      <SubNav />
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Attendance Analytics</h1>
@@ -240,9 +258,9 @@ export default function AttendanceAnalytics() {
           </div>
           <div className="flex items-center gap-2">
             <input type="month" value={dateRange} onChange={(e) => setDateRange(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500" />
             <button onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium">
               <Download className="w-4 h-4" /> Export
             </button>
           </div>
@@ -257,7 +275,7 @@ export default function AttendanceAnalytics() {
 
         {analyticsLoading && (
           <div className="flex justify-center items-center py-4">
-            <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+            <Loader2 className="w-5 h-5 animate-spin text-orange-600" />
             <span className="ml-2 text-sm text-gray-400">Refreshing...</span>
           </div>
         )}
@@ -423,7 +441,7 @@ export default function AttendanceAnalytics() {
                   {departmentStats.map((d, i) => {
                     const rateColor = d.attendanceRate >= 80 ? "text-green-600" : d.attendanceRate >= 60 ? "text-orange-600" : "text-red-600";
                     return (
-                      <tr key={d.department + i} className="hover:bg-indigo-50/50 transition-colors">
+                      <tr key={d.department + i} className="hover:bg-orange-50/50 transition-colors">
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">{d.department}</td>
                         <td className="px-4 py-3 text-sm text-gray-700">{d.total || 0}</td>
                         <td className="px-4 py-3 text-sm text-green-600 font-medium">{d.present}</td>
@@ -442,4 +460,3 @@ export default function AttendanceAnalytics() {
     </HRPage>
   );
 }
-

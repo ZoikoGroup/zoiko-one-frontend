@@ -105,17 +105,19 @@ export default function PerformanceAnalytics() {
 
   const d = data || {};
 
-  const scoreData = [
+  const hasData = d.avg_performance_score != null || d.total_reviews > 0;
+
+  const scoreData = hasData ? [
     { name: "Avg Performance Score", value: d.avg_performance_score ?? 0, fill: "#3B82F6" },
     { name: "Goal Completion Rate", value: d.goal_completion_rate ?? 0, fill: "#10B981" },
     { name: "Review Completion Rate", value: d.review_completion_rate ?? 0, fill: "#F59E0B" },
     { name: "Avg Rating", value: d.avg_rating ?? 0, fill: "#8B5CF6" },
-  ];
+  ] : [];
 
-  const pieData = [
+  const pieData = hasData ? [
     { name: "Completed", value: d.completed_reviews ?? 0, color: "#10B981" },
     { name: "Pending", value: d.pending_reviews ?? 0, color: "#F59E0B" },
-  ];
+  ] : [];
   return (
     <div ref={analyticsRef} className="min-h-screen bg-gray-50">
       <HRPage title="Performance Analytics" subtitle="Key performance metrics and trends">
@@ -150,10 +152,10 @@ export default function PerformanceAnalytics() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h2>
-            <div className="h-80">
+            <div className="w-full h-[350px] min-h-[350px]">
               <ChartErrorBoundary>
                 {scoreData && scoreData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={320}>
                     <RechartsBarChart data={extractArray(scoreData)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
@@ -164,7 +166,7 @@ export default function PerformanceAnalytics() {
                     </RechartsBarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex flex-col items-center justify-center h-full min-h-[320px] bg-gray-50 rounded-lg border border-gray-200">
                     <div className="text-gray-400 text-lg mb-2">📊 No performance metrics available</div>
                     <div className="text-gray-300 text-sm">Performance data will appear here when available</div>
                   </div>
@@ -175,10 +177,10 @@ export default function PerformanceAnalytics() {
 
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Review Status Distribution</h2>
-            <div className="h-80">
+            <div className="w-full h-[350px] min-h-[350px]">
               <ChartErrorBoundary>
                 {pieData && pieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={320}>
                     <RechartsPieChart>
                       <Pie
                         data={extractArray(pieData)}
@@ -198,7 +200,7 @@ export default function PerformanceAnalytics() {
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex flex-col items-center justify-center h-full min-h-[320px] bg-gray-50 rounded-lg border border-gray-200">
                     <div className="text-gray-400 text-lg mb-2">📊 No review status data available</div>
                     <div className="text-gray-300 text-sm">Review status data will appear here when available</div>
                   </div>

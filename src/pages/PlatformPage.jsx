@@ -1,104 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
 
-const colors = {
-  navy: "#0B1C3F",
-  blue: "#1A3A8C",
-  orange: "#E8850A",
-  lightBlue: "#3B82F6",
-  white: "#FFFFFF",
-  offWhite: "#f8fafc",
-  gray: "#6B7280",
-  lightGray: "#E5E7EB",
-  darkText: "#111827",
-  subtleText: "#4B5563",
+// ─── Color tokens ─────────────────────────────────────────────────────────────
+const NAVY = "#0B1C3F";
+const BLUE = "#1A3A8C";
+const ORANGE = "#E8850A";
+const WHITE = "#FFFFFF";
+const OFF_WHITE = "#f8fafc";
+const GRAY = "#6B7280";
+const LIGHT_GRAY = "#E5E7EB";
+const DARK_TEXT = "#111827";
+const SUBTLE_TEXT = "#4B5563";
+
+const FF = "'Inter', system-ui, -apple-system, sans-serif";
+
+const wrap = {
+  padding: "80px 6vw",
+  background: WHITE,
+  fontFamily: FF,
 };
 
-const styles = {
-  page: {
-    fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-    color: colors.darkText,
-    background: colors.white,
-    overflowX: "hidden",
-  },
-  section: { padding: "80px 5%" },
-  eyebrow: {
-    display: "inline-block",
-    fontSize: "11px",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: colors.orange,
-    marginBottom: "16px",
-  },
-  h1: { fontSize: "clamp(32px,5vw,56px)", fontWeight: 800, lineHeight: 1.1, color: colors.navy },
-  h2: { fontSize: "clamp(26px,4vw,44px)", fontWeight: 800, lineHeight: 1.15, color: colors.navy },
-  body: { fontSize: "16px", lineHeight: 1.7, color: colors.subtleText },
-  btnPrimary: {
-    background: colors.orange,
-    color: colors.white,
-    border: "none",
-    borderRadius: "50px",
-    padding: "14px 28px",
-    fontWeight: 700,
-    fontSize: "15px",
-    cursor: "pointer",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-  },
-  btnSecondary: {
-    background: "transparent",
-    color: colors.navy,
-    border: `2px solid ${colors.lightGray}`,
-    borderRadius: "50px",
-    padding: "12px 24px",
-    fontWeight: 600,
-    fontSize: "15px",
-    cursor: "pointer",
-  },
-  btnDark: {
-    background: colors.navy,
-    color: colors.white,
-    border: "none",
-    borderRadius: "50px",
-    padding: "14px 28px",
-    fontWeight: 700,
-    fontSize: "15px",
-    cursor: "pointer",
-  },
-  card: {
-    background: colors.white,
-    borderRadius: "16px",
-    padding: "24px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-    border: `1px solid ${colors.lightGray}`,
-  },
-  tag: {
-    display: "inline-block",
-    background: colors.offWhite,
-    borderRadius: "50px",
-    padding: "4px 12px",
-    fontSize: "12px",
-    fontWeight: 600,
-    color: colors.navy,
-    margin: "3px",
-  },
-  iconBox: (bg) => ({
-    width: "44px",
-    height: "44px",
-    borderRadius: "12px",
-    background: bg,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: "12px",
-    fontSize: "20px",
-  }),
+const eyebrow = (color = ORANGE) => ({
+  fontSize: "11px", fontWeight: "700", letterSpacing: "0.14em",
+  textTransform: "uppercase", color, margin: "0 0 14px 0",
+  display: "block",
+});
+
+const h2 = {
+  fontSize: "clamp(26px, 4vw, 44px)", fontWeight: "800",
+  color: NAVY, lineHeight: "1.15", margin: "0 0 16px 0",
 };
 
-function Badge({ label, tag = "Platform" }) {
+const bodyText = {
+  fontSize: "15px", color: SUBTLE_TEXT, lineHeight: "1.7", margin: 0,
+};
+
+const pillTag = {
+  display: "inline-block", padding: "3px 10px", borderRadius: "20px",
+  background: "rgba(232,133,10,0.08)", color: ORANGE,
+  fontSize: "11px", fontWeight: "600",
+  border: "1px solid rgba(232,133,10,0.18)",
+};
+
+const whiteCard = {
+  background: WHITE, borderRadius: "16px",
+  border: `1px solid ${LIGHT_GRAY}`, padding: "28px",
+};
+
+const iconBox = (bg = BLUE) => ({
+  width: "44px", height: "44px", borderRadius: "12px",
+  background: bg, display: "flex", alignItems: "center",
+  justifyContent: "center", fontSize: "20px", flexShrink: 0,
+});
+
+const outlineBtn = {
+  padding: "12px 22px", borderRadius: "50px",
+  border: `1.5px solid ${LIGHT_GRAY}`, background: WHITE,
+  fontSize: "13px", fontWeight: "600", color: NAVY,
+  cursor: "pointer", fontFamily: FF,
+};
+
+const ghostBtnWhite = {
+  padding: "13px 24px", borderRadius: "50px",
+  border: "1.5px solid rgba(255,255,255,0.35)",
+  background: "rgba(255,255,255,0.12)",
+  color: "white", fontSize: "14px", fontWeight: "600",
+  cursor: "pointer", fontFamily: FF,
+};
+
+// ─── 1. HERO ──────────────────────────────────────────────────────────────────
+function PlatformBadge({ label, tag = "Platform" }) {
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.92)", borderRadius: 999, padding: "6px 16px", marginBottom: 28, fontSize: 14, fontWeight: 500, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
       <span style={{ background: "#3B5BDB", color: "#fff", borderRadius: 999, padding: "2px 10px", fontSize: 12, fontWeight: 700 }}>{tag}</span>
@@ -107,7 +79,7 @@ function Badge({ label, tag = "Platform" }) {
   );
 }
 
-function HeroSection() {
+function Hero() {
   const navigate = useNavigate();
   return (
     <section style={{
@@ -123,22 +95,24 @@ function HeroSection() {
       backgroundColor: "#f5f4f2",
       background: "linear-gradient(120deg, rgba(255,195,130,0.45) 0%, rgba(250,248,245,0.98) 38%, rgba(250,248,245,0.98) 62%, rgba(170,205,240,0.45) 100%)",
     }}>
-      {/* center brightening + edge color pools */}
       <div style={{
         position: "absolute", inset: 0,
         background: "radial-gradient(ellipse at 12% 55%, rgba(255,175,90,0.25) 0%, transparent 42%), radial-gradient(ellipse at 88% 45%, rgba(140,190,235,0.28) 0%, transparent 42%), radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.7) 0%, transparent 55%)",
         pointerEvents: "none",
       }} />
       <div style={{ position: "relative", zIndex: 1, maxWidth: 900 }}>
-        <Badge label="Nine core products + Docs Pro" />
-        <h1 style={{ ...styles.h1, margin: "0 0 20px" }}>
+        <PlatformBadge label="Nine core products + Docs Pro" />
+        <h1 style={{
+          fontSize: "clamp(32px,5vw,56px)", fontWeight: 800, lineHeight: 1.1,
+          color: "#0B1C3F", margin: "0 0 20px",
+        }}>
           One platform to run people, money, work, supply and{" "}
-          <span style={{ color: colors.orange }}>control.</span>
+          <span style={{ color: "#E8850A" }}>control.</span>
         </h1>
-        <p style={{ ...styles.body, margin: "0 0 12px" }}>
+        <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#4B5563", margin: "0 0 12px" }}>
           Zoiko One connects the core operations of a modern business through one governed business-operations platform — HR, time, payroll, billing, spend, projects, inventory, compliance, documents, approvals, workflows, insights and AI assistance in one shared operating system.
         </p>
-        <p style={{ fontSize: "13px", color: colors.subtleText, marginBottom: "28px", fontStyle: "italic" }}>
+        <p style={{ fontSize: "13px", color: "#4B5563", marginBottom: "28px", fontStyle: "italic" }}>
           Start with one product, activate a pillar or scale into the full platform.
         </p>
         <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -159,28 +133,33 @@ function HeroSection() {
   );
 }
 
-function ProblemSection() {
+// ─── 2. THE PLATFORM PROBLEM ──────────────────────────────────────────────────
+function Problem() {
   return (
-    <section style={{ ...styles.section, background: colors.white }}>
+    <section style={{ ...wrap, paddingTop: "20px" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "center" }}>
         <div>
-          <span style={styles.eyebrow}>The Platform Problem</span>
-          <h2 style={{ ...styles.h2, marginBottom: "20px" }}>Disconnected tools slow down growing businesses.</h2>
-          <p style={styles.body}>
+          <span style={eyebrow(ORANGE)}>The Platform Problem</span>
+          <h2 style={h2}>Disconnected tools slow down growing businesses.</h2>
+          <p style={bodyText}>
             Most businesses don't suffer from too little software — they suffer from too many disconnected systems. Zoiko One fixes the operating gap between departments by connecting data, approvals, documents, workflows and evidence.
           </p>
-          <button style={{ ...styles.btnDark, marginTop: "28px" }}>See the Platform Difference →</button>
+          <button style={{
+            padding: "14px 28px", borderRadius: "50px", border: "none",
+            background: NAVY, color: WHITE, fontSize: "15px",
+            fontWeight: "700", cursor: "pointer", fontFamily: FF, marginTop: "28px",
+          }}>See the Platform Difference →</button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          <div style={{ ...styles.card, border: `1px solid ${colors.lightGray}` }}>
-            <p style={{ fontWeight: 700, marginBottom: "12px", color: colors.darkText }}>Disconnected stack</p>
+          <div style={{ ...whiteCard }}>
+            <p style={{ fontWeight: 700, marginBottom: "12px", color: DARK_TEXT }}>Disconnected stack</p>
             {["Manual exports between tools", "Approvals lost in email", "Re-keyed data & errors", "Reporting after the fact", "No shared evidence trail"].map(t => (
-              <div key={t} style={{ display: "flex", gap: "8px", marginBottom: "8px", fontSize: "13px", color: colors.subtleText }}>
+              <div key={t} style={{ display: "flex", gap: "8px", marginBottom: "8px", fontSize: "13px", color: SUBTLE_TEXT }}>
                 <span style={{ color: "#EF4444", fontWeight: 700 }}>✕</span> {t}
               </div>
             ))}
           </div>
-          <div style={{ ...styles.card, background: colors.blue, border: "none" }}>
+          <div style={{ ...whiteCard, background: BLUE, border: "none" }}>
             <p style={{ fontWeight: 700, marginBottom: "12px", color: "#fff" }}>Zoiko One</p>
             {["One shared data spine", "Structured approval routing", "Clean cross-product handoffs", "Live operating visibility", "Audit-ready evidence"].map(t => (
               <div key={t} style={{ display: "flex", gap: "8px", marginBottom: "8px", fontSize: "13px", color: "#CBD5E1" }}>
@@ -194,38 +173,44 @@ function ProblemSection() {
   );
 }
 
+// ─── 3. FIVE-PILLAR OPERATING MODEL ───────────────────────────────────────────
 const pillars = [
-  { color: colors.blue, icon: "👥", label: "PEOPLE", title: "People", desc: "Manage, track and pay the people who run the business.", tags: ["HR", "Time", "Payroll"] },
-  { color: colors.orange, icon: "$", label: "MONEY", title: "Money", desc: "Control money in, money out, billing and vendor spend.", tags: ["Billing", "Spend"] },
-  { color: "#3B82F6", icon: "⊞", label: "WORK", title: "Work", desc: "Plan, deliver and monitor projects, budgets, margins and milestones.", tags: ["Projects"] },
-  { color: "#6366F1", icon: "◈", label: "SUPPLY", title: "Supply", desc: "Manage stock, locations, goods movement, receiving and valuation.", tags: ["Inventory"] },
-  { color: colors.navy, icon: "✓", label: "CONTROL", title: "Control", desc: "Govern compliance, evidence, risk, dashboards and intelligence.", tags: ["Comply", "Insights"] },
+  { bg: BLUE, icon: "👥", label: "PEOPLE", title: "People", desc: "Manage, track and pay the people who run the business.", tags: ["HR", "Time", "Payroll"] },
+  { bg: ORANGE, icon: "$", label: "MONEY", title: "Money", desc: "Control money in, money out, billing and vendor spend.", tags: ["Billing", "Spend"] },
+  { bg: "#3B82F6", icon: "⊞", label: "WORK", title: "Work", desc: "Plan, deliver and monitor projects, budgets, margins and milestones.", tags: ["Projects"] },
+  { bg: "#6366F1", icon: "◈", label: "SUPPLY", title: "Supply", desc: "Manage stock, locations, goods movement, receiving and valuation.", tags: ["Inventory"] },
+  { bg: NAVY, icon: "✓", label: "CONTROL", title: "Control", desc: "Govern compliance, evidence, risk, dashboards and intelligence.", tags: ["Comply", "Insights"] },
 ];
 
-function PillarsSection() {
+function Pillars() {
   return (
-    <section style={{ ...styles.section, background: colors.offWhite, textAlign: "center" }}>
-      <span style={styles.eyebrow}>Five-Pillar Operating Model</span>
-      <h2 style={{ ...styles.h2, marginBottom: "8px" }}>Built around how businesses actually operate.</h2>
-      <p style={{ ...styles.body, marginBottom: "40px" }}>Every product belongs to a pillar and shares the same platform spine.</p>
+    <section style={{ ...wrap, background: OFF_WHITE, textAlign: "center" }}>
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <span style={eyebrow(BLUE)}>Five-Pillar Operating Model</span>
+        <h2 style={h2}>Built around how businesses actually operate.</h2>
+        <p style={{ ...bodyText, maxWidth: "520px", margin: "0 auto" }}>Every product belongs to a pillar and shares the same platform spine.</p>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px", maxWidth: "1100px", margin: "0 auto 36px" }}>
         {pillars.map(p => (
-          <div key={p.title} style={{ ...styles.card, textAlign: "left" }}>
-            <div style={styles.iconBox(p.color)}>
+          <div key={p.title} style={{ ...whiteCard, textAlign: "left", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={iconBox(p.bg)}>
               <span style={{ color: "#fff", fontWeight: 800, fontSize: "18px" }}>{p.icon}</span>
             </div>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: p.color, letterSpacing: "0.1em", marginBottom: "4px" }}>{p.label}</div>
-            <div style={{ fontWeight: 800, fontSize: "20px", marginBottom: "8px", color: colors.navy }}>{p.title}</div>
-            <p style={{ fontSize: "13px", color: colors.subtleText, marginBottom: "12px" }}>{p.desc}</p>
-            <div>{p.tags.map(t => <span key={t} style={styles.tag}>{t}</span>)}</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: p.bg, letterSpacing: "0.1em" }}>{p.label}</div>
+            <h3 style={{ fontSize: "20px", fontWeight: 800, color: NAVY, margin: 0 }}>{p.title}</h3>
+            <p style={{ fontSize: "13px", color: SUBTLE_TEXT, margin: 0, lineHeight: "1.6" }}>{p.desc}</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              {p.tags.map(t => <span key={t} style={pillTag}>{t}</span>)}
+            </div>
           </div>
         ))}
       </div>
-      <button style={styles.btnSecondary}>Explore the Five Pillars</button>
+      <button style={outlineBtn}>Explore the Five Pillars</button>
     </section>
   );
 }
 
+// ─── 4. THE CONNECTED SPINE ───────────────────────────────────────────────────
 const spineItems = [
   { icon: "🪪", title: "ZoikoID", sub: "Identity, roles, permissions, entities" },
   { icon: "⇄", title: "Zoiko Workflow", sub: "Routing, approvals, escalations, policy" },
@@ -235,19 +220,23 @@ const spineItems = [
   { icon: "✦", title: "AI Assistance", sub: "Governed, inside policy & approvals" },
 ];
 
-function SpineSection() {
+function Spine() {
   return (
-    <section style={{ ...styles.section, background: colors.white }}>
+    <section style={{ ...wrap, paddingTop: "20px" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "center" }}>
         <div>
-          <span style={styles.eyebrow}>The Connected Spine</span>
-          <h2 style={{ ...styles.h2, marginBottom: "20px" }}>One connected spine beneath every product.</h2>
-          <p style={styles.body}>
+          <span style={eyebrow(ORANGE)}>The Connected Spine</span>
+          <h2 style={h2}>One connected spine beneath every product.</h2>
+          <p style={bodyText}>
             ZoikoID, Workflow, Hub, Connect, Documents, Approvals, Expenses and AI Assistance create the common operating foundation across the platform. These are shared layers — not separate pillar products.
           </p>
-          <button style={{ ...styles.btnDark, marginTop: "28px" }}>See Connected Workflows →</button>
+          <button style={{
+            padding: "14px 28px", borderRadius: "50px", border: "none",
+            background: NAVY, color: WHITE, fontSize: "15px",
+            fontWeight: "700", cursor: "pointer", fontFamily: FF, marginTop: "28px",
+          }}>See Connected Workflows →</button>
         </div>
-        <div style={{ background: colors.blue, borderRadius: "20px", padding: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ background: BLUE, borderRadius: "20px", padding: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
           {spineItems.map(item => (
             <div key={item.title} style={{ background: "rgba(255,255,255,0.1)", borderRadius: "12px", padding: "14px 18px", display: "flex", gap: "14px", alignItems: "center" }}>
               <span style={{ fontSize: "20px" }}>{item.icon}</span>
@@ -263,6 +252,7 @@ function SpineSection() {
   );
 }
 
+// ─── 5. HOW ZOIKO ONE WORKS ───────────────────────────────────────────────────
 const workflows = [
   {
     n: 1, title: "New employee to payroll",
@@ -282,29 +272,29 @@ const workflows = [
   },
 ];
 
-function WorkflowSection() {
+function Workflows() {
   return (
-    <section style={{ ...styles.section, background: colors.offWhite }}>
+    <section style={{ ...wrap, background: OFF_WHITE }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <span style={styles.eyebrow}>How Zoiko One Works</span>
-          <h2 style={{ ...styles.h2, marginBottom: "12px" }}>From business event to approved action.</h2>
-          <p style={{ ...styles.body, maxWidth: "560px", margin: "0 auto" }}>
+          <span style={eyebrow(BLUE)}>How Zoiko One Works</span>
+          <h2 style={h2}>From business event to approved action.</h2>
+          <p style={{ ...bodyText, maxWidth: "560px", margin: "0 auto" }}>
             Business events trigger structured workflows, approvals, record updates and evidence capture across the relevant products and platform layers.
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {workflows.map(w => (
-            <div key={w.n} style={{ ...styles.card }}>
+            <div key={w.n} style={{ ...whiteCard }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                <span style={{ background: colors.orange, color: "#fff", borderRadius: "8px", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "14px" }}>{w.n}</span>
-                <span style={{ fontWeight: 700, color: colors.navy }}>{w.title}</span>
+                <span style={{ background: ORANGE, color: "#fff", borderRadius: "8px", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "14px" }}>{w.n}</span>
+                <span style={{ fontWeight: 700, color: NAVY }}>{w.title}</span>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
                 {w.steps.map((s, i) => (
                   <span key={s} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={styles.tag}>{s}</span>
-                    {i < w.steps.length - 1 && <span style={{ color: colors.gray, fontSize: "12px" }}>→</span>}
+                    <span style={pillTag}>{s}</span>
+                    {i < w.steps.length - 1 && <span style={{ color: GRAY, fontSize: "12px" }}>→</span>}
                   </span>
                 ))}
               </div>
@@ -316,6 +306,7 @@ function WorkflowSection() {
   );
 }
 
+// ─── 6. GOVERNANCE & AI ────────────────────────────────────────────────────────
 const govCards = [
   { icon: "🪪", title: "Identity & permissions", desc: "Role boundaries across teams, departments and entities." },
   { icon: "✓", title: "Approval routing", desc: "Structured, standardized approvals across products." },
@@ -323,14 +314,16 @@ const govCards = [
   { icon: "✦", title: "Governed AI", desc: "Summaries, drafting, routing and exception analysis — in-bounds." },
 ];
 
-function GovernanceSection() {
+function Governance() {
   return (
-    <section style={{ ...styles.section, background: colors.navy, textAlign: "center" }}>
-      <span style={{ ...styles.eyebrow, color: colors.orange }}>Governance & AI</span>
-      <h2 style={{ ...styles.h2, color: "#fff", marginBottom: "16px" }}>Control is built into the platform, not added at the end.</h2>
-      <p style={{ ...styles.body, color: "#94A3B8", maxWidth: "600px", margin: "0 auto 40px" }}>
-        Governance is embedded through identity, permissions, approvals, evidence trails and document controls. AI assistance helps users act faster — inside permission, policy and approval boundaries.
-      </p>
+    <section style={{ ...wrap, background: NAVY, textAlign: "center" }}>
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <span style={eyebrow(ORANGE)}>Governance & AI</span>
+        <h2 style={{ ...h2, color: "#fff" }}>Control is built into the platform, not added at the end.</h2>
+        <p style={{ ...bodyText, color: "#94A3B8", maxWidth: "600px", margin: "0 auto" }}>
+          Governance is embedded through identity, permissions, approvals, evidence trails and document controls. AI assistance helps users act faster — inside permission, policy and approval boundaries.
+        </p>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", maxWidth: "1000px", margin: "0 auto 36px" }}>
         {govCards.map(c => (
           <div key={c.title} style={{ background: "rgba(255,255,255,0.08)", borderRadius: "16px", padding: "24px", textAlign: "left" }}>
@@ -340,52 +333,57 @@ function GovernanceSection() {
           </div>
         ))}
       </div>
-      <button style={{ ...styles.btnPrimary }}>See AI Assistance in Action →</button>
+      <button style={{
+        padding: "14px 28px", borderRadius: "50px", border: "none",
+        background: ORANGE, color: WHITE, fontSize: "15px",
+        fontWeight: "700", cursor: "pointer", fontFamily: FF,
+      }}>See AI Assistance in Action →</button>
     </section>
   );
 }
 
+// ─── 7. MONEY ARCHITECTURE ────────────────────────────────────────────────────
 const moneyItems = [
-  { icon: "⊟", title: "Billing → money in", desc: "Invoices, subscriptions and revenue records.", color: "#E8850A" },
-  { icon: "$", title: "Payroll → money to people", desc: "Approved pay runs from HR and time data.", color: "#3B82F6" },
-  { icon: "⇄", title: "Spend → money to vendors", desc: "Requests, POs, supplier invoices and AP.", color: "#E8850A" },
-  { icon: "◈", title: "Inventory → money in goods", desc: "Stock value, receiving and movement.", color: "#1A3A8C" },
-  { icon: "→", title: "ZoikoPay → moves money", desc: "Settlement and money movement support.", color: "#3B82F6" },
-  { icon: "◆", title: "ZoikoCoreX → financial truth", desc: "Ledger-grade governed traceability.", color: "#1A3A8C" },
+  { icon: "⊟", title: "Billing → money in", desc: "Invoices, subscriptions and revenue records.", bg: ORANGE },
+  { icon: "$", title: "Payroll → money to people", desc: "Approved pay runs from HR and time data.", bg: "#3B82F6" },
+  { icon: "⇄", title: "Spend → money to vendors", desc: "Requests, POs, supplier invoices and AP.", bg: ORANGE },
+  { icon: "◈", title: "Inventory → money in goods", desc: "Stock value, receiving and movement.", bg: BLUE },
+  { icon: "→", title: "ZoikoPay → moves money", desc: "Settlement and money movement support.", bg: "#3B82F6" },
+  { icon: "◆", title: "ZoikoCoreX → financial truth", desc: "Ledger-grade governed traceability.", bg: BLUE },
 ];
 
-function MoneySection() {
+function MoneyArchitecture() {
   return (
-    <section style={{ ...styles.section, background: colors.white }}>
+    <section style={{ ...wrap, paddingTop: "20px" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <span style={styles.eyebrow}>Money Architecture</span>
-          <h2 style={{ ...styles.h2 }}>Money flows through the platform with clear boundaries.</h2>
+          <span style={eyebrow(ORANGE)}>Money Architecture</span>
+          <h2 style={h2}>Money flows through the platform with clear boundaries.</h2>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "48px" }}>
           {moneyItems.map(m => (
-            <div key={m.title} style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "20px", borderRadius: "14px", border: `1px solid ${colors.lightGray}` }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: m.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "16px", flexShrink: 0 }}>{m.icon}</div>
+            <div key={m.title} style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "20px", borderRadius: "14px", border: `1px solid ${LIGHT_GRAY}` }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: m.bg, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "16px", flexShrink: 0 }}>{m.icon}</div>
               <div>
-                <div style={{ fontWeight: 700, color: colors.navy, marginBottom: "4px" }}>{m.title}</div>
-                <div style={{ fontSize: "13px", color: colors.subtleText }}>{m.desc}</div>
+                <div style={{ fontWeight: 700, color: NAVY, marginBottom: "4px" }}>{m.title}</div>
+                <div style={{ fontSize: "13px", color: SUBTLE_TEXT }}>{m.desc}</div>
               </div>
             </div>
           ))}
         </div>
-        <p style={{ textAlign: "center", fontSize: "13px", color: colors.subtleText, marginBottom: "48px" }}>ZoikoSuite keeps the books — outside Zoiko One, as an ecosystem sibling.</p>
+        <p style={{ textAlign: "center", fontSize: "13px", color: SUBTLE_TEXT, marginBottom: "48px" }}>ZoikoSuite keeps the books — outside Zoiko One, as an ecosystem sibling.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
-          <div style={{ ...styles.card }}>
-            <div style={styles.iconBox(colors.blue)}><span style={{ color: "#fff" }}>⊡</span></div>
-            <div style={{ fontWeight: 800, fontSize: "18px", marginBottom: "8px", color: colors.navy }}>Connect what you already use.</div>
-            <p style={{ fontSize: "14px", color: colors.subtleText, marginBottom: "12px" }}>Zoiko Connect supports APIs, connectors, data imports, exports, workflow triggers and secure third-party links.</p>
-            <a href="#" style={{ color: colors.blue, fontWeight: 600, fontSize: "14px" }}>Explore Zoiko Connect →</a>
+          <div style={{ ...whiteCard }}>
+            <div style={iconBox(BLUE)}><span style={{ color: "#fff", fontWeight: 800 }}>⊡</span></div>
+            <h3 style={{ fontSize: "18px", fontWeight: 800, color: NAVY, margin: "12px 0 8px" }}>Connect what you already use.</h3>
+            <p style={{ fontSize: "14px", color: SUBTLE_TEXT, marginBottom: "12px" }}>Zoiko Connect supports APIs, connectors, data imports, exports, workflow triggers and secure third-party links.</p>
+            <a href="#" style={{ color: BLUE, fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Explore Zoiko Connect →</a>
           </div>
-          <div style={{ ...styles.card }}>
-            <div style={styles.iconBox(colors.orange)}><span style={{ color: "#fff" }}>⤢</span></div>
-            <div style={{ fontWeight: 800, fontSize: "18px", marginBottom: "8px", color: colors.navy }}>Start small. Expand with control.</div>
-            <p style={{ fontSize: "14px", color: colors.subtleText, marginBottom: "12px" }}>Begin with one product, one pillar or one urgent workflow, then activate more products on the same shared spine.</p>
-            <a href="#" style={{ color: colors.blue, fontWeight: 600, fontSize: "14px" }}>Plan Your Rollout →</a>
+          <div style={{ ...whiteCard }}>
+            <div style={iconBox(ORANGE)}><span style={{ color: "#fff", fontWeight: 800 }}>⤢</span></div>
+            <h3 style={{ fontSize: "18px", fontWeight: 800, color: NAVY, margin: "12px 0 8px" }}>Start small. Expand with control.</h3>
+            <p style={{ fontSize: "14px", color: SUBTLE_TEXT, marginBottom: "12px" }}>Begin with one product, one pillar or one urgent workflow, then activate more products on the same shared spine.</p>
+            <a href="#" style={{ color: BLUE, fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Plan Your Rollout →</a>
           </div>
         </div>
       </div>
@@ -393,27 +391,46 @@ function MoneySection() {
   );
 }
 
+// ─── 8. PLATFORM FAQS ─────────────────────────────────────────────────────────
 const faqs = [
-  { q: "How many products does Zoiko One have?" },
-  { q: "What is the platform spine?" },
-  { q: "Is Docs Pro legal advice?" },
-  { q: "Can I start with one product?" },
-  { q: "How does Zoiko One handle accounting?" },
+  { q: "How many products does Zoiko One have?", a: "Zoiko One covers nine core operational products across five pillars — HR, Time, Payroll, Billing, Spend, Projects, Inventory, Comply and Insights — plus the Docs Pro premium layer, all connected by the platform spine." },
+  { q: "What is the platform spine?", a: "The platform spine consists of shared layers — ZoikoID, Workflow, Hub, Connect, Documents, Approvals, Expenses and AI Assistance — that run beneath every product and provide identity, routing, tasks, integrations and governance across the platform." },
+  { q: "Is Docs Pro legal advice?", a: "No. Zoiko Docs Pro is a premium document automation capability that works from approved templates and guided workflows. It is not legal advice and does not replace qualified professional review." },
+  { q: "Can I start with one product?", a: "Yes. You can activate any single core product first — HR, Time, Payroll, Billing, Spend, Projects, Inventory, Comply or Insights — and expand into a pillar workflow or full platform as your needs grow." },
+  { q: "How does Zoiko One handle accounting?", a: "Zoiko One manages operational transactions and money movement through ZoikoPay and ZoikoCoreX. ZoikoSuite — an ecosystem sibling — keeps the formal books outside the platform." },
 ];
 
-function FAQSection() {
+function PlatformFAQ() {
   const [open, setOpen] = useState(null);
   return (
-    <section style={{ ...styles.section, background: colors.offWhite }}>
-      <div style={{ maxWidth: "760px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <span style={styles.eyebrow}>Platform FAQs</span>
-          <h2 style={styles.h2}>Questions about the platform.</h2>
-        </div>
-        {faqs.map((f, i) => (
-          <div key={f.q} onClick={() => setOpen(open === i ? null : i)} style={{ background: colors.white, borderRadius: "12px", padding: "18px 20px", marginBottom: "10px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", border: `1px solid ${colors.lightGray}` }}>
-            <span style={{ fontWeight: 600, color: colors.navy, fontSize: "15px" }}>{f.q}</span>
-            <span style={{ color: colors.gray, transition: "transform 0.2s", transform: open === i ? "rotate(180deg)" : "none" }}>⌄</span>
+    <section style={{ ...wrap, background: OFF_WHITE }}>
+      <div style={{ textAlign: "center", marginBottom: "48px" }}>
+        <span style={eyebrow(BLUE)}>Platform FAQs</span>
+        <h2 style={h2}>Questions about the platform.</h2>
+      </div>
+      <div style={{ maxWidth: "760px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px" }}>
+        {faqs.map(({ q, a }, i) => (
+          <div key={i} style={{
+            background: WHITE, borderRadius: "12px",
+            border: `1px solid ${LIGHT_GRAY}`, overflow: "hidden",
+          }}>
+            <button onClick={() => setOpen(open === i ? null : i)}
+              style={{
+                width: "100%", padding: "20px 24px",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                background: "none", border: "none", cursor: "pointer",
+                fontFamily: FF, textAlign: "left",
+              }}>
+              <span style={{ fontSize: "15px", fontWeight: "600", color: NAVY }}>{q}</span>
+              <span style={{ fontSize: "18px", color: GRAY, flexShrink: 0, marginLeft: "16px" }}>
+                {open === i ? "∧" : "∨"}
+              </span>
+            </button>
+            {open === i && (
+              <div style={{ padding: "0 24px 20px", fontSize: "14px", color: SUBTLE_TEXT, lineHeight: "1.7" }}>
+                {a}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -421,38 +438,72 @@ function FAQSection() {
   );
 }
 
-function CTASection() {
+// ─── 9. BOTTOM CTA BANNER ──────────────────────────────────────────────────────
+function BottomCTA() {
   const navigate = useNavigate();
   return (
-    <section style={{ padding: "60px 5%", background: colors.white }}>
-      <div style={{ background: `linear-gradient(135deg, ${colors.blue} 0%, #1e40af 100%)`, borderRadius: "24px", padding: "60px 40px", textAlign: "center", maxWidth: "1100px", margin: "0 auto" }}>
-        <h2 style={{ ...styles.h2, color: "#fff", marginBottom: "16px" }}>Run your business from one connected platform.</h2>
-        <p style={{ color: "#CBD5E1", fontSize: "16px", maxWidth: "520px", margin: "0 auto 36px" }}>
-          Bring people, money, work, supply, control, documents, approvals, workflows, insights and AI assistance into one governed operating system.
-        </p>
-        <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => navigate("/get-demo")} style={styles.btnPrimary}>Get a Demo →</button>
-          <button style={{ ...styles.btnSecondary, border: "2px solid rgba(255,255,255,0.3)", color: "#fff" }}>Explore Products</button>
-          <button style={{ ...styles.btnSecondary, border: "2px solid rgba(255,255,255,0.3)", color: "#fff" }}>Request Pricing</button>
+    <section style={{ ...wrap, paddingBottom: "80px" }}>
+      <div style={{
+        background: `linear-gradient(135deg, ${BLUE} 0%, #1e40af 100%)`,
+        borderRadius: "24px", padding: "64px 48px",
+        textAlign: "center",
+        boxShadow: "0 16px 48px rgba(26,58,140,0.35)",
+        position: "relative", overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", top: "-60px", left: "-60px",
+          width: "240px", height: "240px", borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)",
+        }} />
+        <div style={{
+          position: "absolute", bottom: "-40px", right: "-40px",
+          width: "200px", height: "200px", borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)",
+        }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <h2 style={{
+            fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: "800",
+            color: "white", margin: "0 0 14px 0", letterSpacing: "-0.5px",
+          }}>
+            Run your business from one connected platform.
+          </h2>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.8)", margin: "0 0 36px 0", lineHeight: "1.7" }}>
+            Bring people, money, work, supply, control, documents, approvals, workflows, insights and AI assistance into one governed operating system.
+          </p>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={() => navigate("/get-demo")} style={{
+              padding: "14px 28px", borderRadius: "50px", border: "none",
+              background: ORANGE, color: "white", fontSize: "15px",
+              fontWeight: "700", cursor: "pointer", fontFamily: FF,
+              boxShadow: "0 6px 20px rgba(232,133,10,0.5)",
+            }}>Get a Demo →</button>
+            <button style={ghostBtnWhite}>Explore Products</button>
+            <button style={ghostBtnWhite}>Request Pricing</button>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
+// ─── ROOT ──────────────────────────────────────────────────────────────────────
 export default function PlatformPage() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div style={styles.page}>
+    <div style={{ background: WHITE, fontFamily: FF, minHeight: "100vh", overflowX: "hidden" }}>
       <LandingHeader />
-      <HeroSection />
-      <ProblemSection />
-      <PillarsSection />
-      <SpineSection />
-      <WorkflowSection />
-      <GovernanceSection />
-      <MoneySection />
-      <FAQSection />
-      <CTASection />
+      <Hero />
+      <Problem />
+      <Pillars />
+      <Spine />
+      <Workflows />
+      <Governance />
+      <MoneyArchitecture />
+      <PlatformFAQ />
+      <BottomCTA />
     </div>
   );
 }

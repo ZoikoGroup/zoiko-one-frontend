@@ -368,6 +368,7 @@ const plans = [
 ];
 
 function PlanComparison() {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
   return (
     <section style={{ ...wrap, paddingTop: "20px" }}>
       <div style={{ textAlign: "center", marginBottom: "48px" }}>
@@ -379,12 +380,18 @@ function PlanComparison() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", alignItems: "start" }}>
-        {plans.map(({ name, popular, sub, features, cta, ctaStyle, cardBg, textColor }) => (
-          <div key={name} style={{
+        {plans.map(({ name, popular, sub, features, cta, ctaStyle, cardBg, textColor }, idx) => (
+          <div key={name}
+            onMouseEnter={() => setHoveredIdx(idx)}
+            onMouseLeave={() => setHoveredIdx(null)}
+            style={{
             background: cardBg, borderRadius: "16px",
-            border: popular ? `2px solid ${ORANGE}` : `1px solid ${BORDER}`,
+            border: hoveredIdx === idx ? `2px solid ${ORANGE}` : `1px solid ${BORDER}`,
             padding: "24px", display: "flex", flexDirection: "column", gap: "14px",
             position: "relative",
+            transform: hoveredIdx === idx ? "scale(1.03)" : "scale(1)",
+            transition: "transform 0.2s ease, border 0.2s ease",
+            boxShadow: hoveredIdx === idx ? "0 8px 24px rgba(0,0,0,0.1)" : "none",
           }}>
             {popular && (
               <div style={{

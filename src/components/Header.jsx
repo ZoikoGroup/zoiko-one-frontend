@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Menu, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
 import logo from "../assets/logo.png";
 
@@ -37,7 +38,7 @@ export default function Header({ onMenuClick, onSearch }) {
 
         {/* Branding */}
         <div className="flex items-center space-x-2">
-          <img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain" />
+          <Link to="/"><img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain" /></Link>
           <span className="ml-2 rounded-full bg-[#FF7A00]/10 border border-[#FF7A00]/25 px-2.5 py-0.5 text-xs font-semibold text-[#FF7A00]">
             Super Admin
           </span>

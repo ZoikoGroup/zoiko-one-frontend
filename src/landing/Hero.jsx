@@ -75,7 +75,7 @@ export default function Hero() {
             color: "#fff", border: "none", borderRadius: 999,
             padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
           }}>Get a Demo →</button>
-          <button style={{
+          <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} style={{
             background: "rgba(255,255,255,0.75)", color: "#1a1a2e",
             border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 999,
             padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",

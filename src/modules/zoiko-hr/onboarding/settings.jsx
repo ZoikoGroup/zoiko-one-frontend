@@ -8,12 +8,7 @@ const NAV_ITEMS = [
   { label: "Pre-Onboarding", href: "/zoiko-hr/onboarding/pre-onboarding" },
   { label: "Documents", href: "/zoiko-hr/onboarding/documents" },
   { label: "Checklists", href: "/zoiko-hr/onboarding/checklists" },
-  { label: "Dept Assignment", href: "/zoiko-hr/onboarding/department-assignment" },
-  { label: "Manager Assignment", href: "/zoiko-hr/onboarding/manager-assignment" },
-  { label: "Assets & Access", href: "/zoiko-hr/onboarding/assets-access" },
   { label: "Orientation", href: "/zoiko-hr/onboarding/orientation" },
-  { label: "Training", href: "/zoiko-hr/onboarding/training" },
-  { label: "Progress", href: "/zoiko-hr/onboarding/progress" },
   { label: "Reports", href: "/zoiko-hr/onboarding/reports" },
   { label: "Settings", href: "/zoiko-hr/onboarding/settings" },
 ];

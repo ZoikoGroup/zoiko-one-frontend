@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
+import Footer from "../landing/Footer";
 
 // ─── Color tokens ─────────────────────────────────────────────────────────────
 const BG          = "#E8E9EE";   // warm silver-grey page bg
@@ -442,6 +443,7 @@ export default function AboutPage() {
       <Ecosystem />
       <TrustGovernance />
       <BottomCTA />
+      <Footer />
     </div>
   );
 }

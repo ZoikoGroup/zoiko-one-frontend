@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
+import Footer from "../landing/Footer";
 
 const PILLARS = [
   {
@@ -510,6 +511,7 @@ export default function ZoikoProductsPage() {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 }

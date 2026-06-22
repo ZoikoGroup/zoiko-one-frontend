@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
+import Footer from "../landing/Footer";
 
 // ─── Color tokens (precisely extracted from screenshots) ──────────────────────
 const BG = "#E8E9EE";           // warm silver-grey page background
@@ -724,6 +725,7 @@ export default function PricingPage() {
       <QuoteBuilder />
       <PricingFAQ />
       <BottomCTA />
+      <Footer />
     </div>
   );
 }

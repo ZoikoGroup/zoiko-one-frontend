@@ -99,7 +99,7 @@ export default function ProductGrid() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <p className="text-xs font-bold text-[#F97316] tracking-[0.15em] uppercase mb-4">
-            Seven Core Products
+            10 Core Products
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight tracking-tight mb-4">
             Start with one product. Expand
@@ -107,27 +107,36 @@ export default function ProductGrid() {
             into the platform when you're ready.
           </h2>
           <p className="text-[#6B7280] max-w-xl mx-auto leading-relaxed">
-            Seven high-demand business operations products on one connected spine — buy one,
+            10 high-demand business operations products on one connected spine — buy one,
             several, or the full enterprise deployment.
           </p>
         </div>
 
-        {/* Row 1 — original 7 + "All connected" = 4+4 */}
+        {/* Row 1 */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {products.slice(0, 4).map((p) => (
             <ProductCard key={p.name} p={p} />
           ))}
         </div>
+
+        {/* Row 2 */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {products.slice(4, 7).map((p) => (
+          {products.slice(4, 8).map((p) => (
             <ProductCard key={p.name} p={p} />
           ))}
-          {/* All seven, connected */}
+        </div>
+
+        {/* Row 3 — products 9-10 + blue box */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {products.slice(8, 10).map((p) => (
+            <ProductCard key={p.name} p={p} />
+          ))}
+          {/* All 10, connected */}
           <div className="rounded-2xl p-6 bg-gradient-to-br from-[#4F46E5] to-[#3B82F6] text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5">
             <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center mb-4">
               <Sparkles size={20} className="text-white" strokeWidth={2.25} />
             </div>
-            <h3 className="text-sm font-bold mb-0.5">All seven, connected</h3>
+            <h3 className="text-sm font-bold mb-0.5">All 10, connected</h3>
             <p className="text-[10px] font-semibold text-blue-200 tracking-wide mb-3">
               ZOIKO ONE BUSINESS
             </p>
@@ -139,13 +148,6 @@ export default function ProductGrid() {
               See bundles <ArrowRight size={13} />
             </button>
           </div>
-        </div>
-
-        {/* Row 3 — 3 new products */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {products.slice(7).map((p) => (
-            <ProductCard key={p.name} p={p} />
-          ))}
         </div>
 
         <div className="flex items-center justify-center gap-4">

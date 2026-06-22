@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
 
 const PILLARS = [
@@ -192,6 +193,7 @@ const FAQS = [
 ];
 
 export default function ZoikoProductsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("people");
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -244,7 +246,7 @@ export default function ZoikoProductsPage() {
           </p>
 
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-            <button style={{
+            <button onClick={() => navigate("/get-demo")} style={{
               background: "linear-gradient(135deg, #E07B2A, #c9651a)",
               color: "#fff", border: "none", borderRadius: 999,
               padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
@@ -466,7 +468,7 @@ export default function ZoikoProductsPage() {
             ))}
           </div>
           <div style={{ textAlign: "center", marginTop: 36 }}>
-            <button style={{
+            <button onClick={() => navigate("/get-demo")} style={{
               background: "linear-gradient(135deg, #E07B2A, #c9651a)",
               color: "#fff", border: "none", borderRadius: 999,
               padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer",
@@ -490,7 +492,7 @@ export default function ZoikoProductsPage() {
               Choose the product your business needs today, then expand into connected workflows across all five pillars.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <button style={{
+              <button onClick={() => navigate("/get-demo")} style={{
                 background: "#E07B2A", color: "#fff", border: "none",
                 borderRadius: 999, padding: "12px 26px", fontSize: 15, fontWeight: 600, cursor: "pointer",
               }}>Get a Demo</button>

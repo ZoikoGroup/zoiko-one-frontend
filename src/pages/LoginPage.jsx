@@ -287,6 +287,19 @@ export default function LoginPage() {
             You don't need an account to explore. See how Zoiko One connects people, money, work, supply and control.
           </p>
 
+          {/* Sign Up Link */}
+          <Link to="/register"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "14px 24px", borderRadius: "50px",
+              background: "linear-gradient(135deg, #FF8C00, #FFA500)",
+              color: "white", fontSize: "15px", fontWeight: "700",
+              textDecoration: "none", marginBottom: "24px",
+              boxShadow: "0 4px 16px rgba(255,140,0,0.35)",
+            }}>
+            Create your account →
+          </Link>
+
           {/* CTA cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {[
@@ -307,6 +320,7 @@ export default function LoginPage() {
               },
             ].map(({ icon, title, sub }) => (
               <button key={title} type="button"
+                onClick={() => title === "Get a Demo" && navigate("/get-demo")}
                 style={{
                   display: "flex", alignItems: "center", gap: "14px",
                   padding: "16px 20px", borderRadius: "12px",

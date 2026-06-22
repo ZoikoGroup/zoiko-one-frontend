@@ -1,35 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NavLink } from "react-router-dom";
-import { Trophy, Target, MessageSquare, Star, Users, Briefcase, Calendar, FileCheck2, UserPlus, Clock } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Calendar, FileCheck2, TrendingUp, Target, CheckCircle, Clock, RefreshCw, AlertCircle, UserPlus, BarChart3, FileText, SlidersHorizontal } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { getRecruitmentDashboard, getCandidates, getRequisitions, getOffers } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/recruitment" },
   { label: "Job Requisitions", href: "/zoiko-hr/recruitment/job-requisitions" },
-  { label: "Open Positions", href: "/zoiko-hr/recruitment/open-positions" },
   { label: "Candidates", href: "/zoiko-hr/recruitment/candidates" },
-  { label: "Interview Pipeline", href: "/zoiko-hr/recruitment/interview-pipeline" },
+  { label: "Interviews", href: "/zoiko-hr/recruitment/interviews" },
   { label: "Offer Management", href: "/zoiko-hr/recruitment/offers" },
-  { label: "Hiring Schedule", href: "/zoiko-hr/recruitment/hiring-schedule" },
-  { label: "Analytics", href: "/zoiko-hr/recruitment/analytics" },
-  { label: "Reports", href: "/zoiko-hr/recruitment/reports" },
-  { label: "Settings", href: "/zoiko-hr/recruitment/settings" },
-];
-
-const stats = { totalOpenPositions: 12, activeCandidates: 48, interviewsScheduled: 18, offersPending: 4, hiredThisMonth: 7, timeToHire: 23, sourceBreakdown: [{ source: "LinkedIn", count: 45 }, { source: "Indeed", count: 32 }, { source: "Referral", count: 28 }, { source: "Company Site", count: 22 }, { source: "Other", count: 15 }] };
-
-const recentJobs = [
-  { id: 1, title: "Senior Frontend Developer", department: "Engineering", location: "San Francisco, CA", openings: 2, filled: 1, status: "open", priority: "high" },
-  { id: 2, title: "Backend Engineer", department: "Engineering", location: "Remote", openings: 3, filled: 0, status: "open", priority: "urgent" },
-  { id: 3, title: "Product Designer", department: "Design", location: "New York, NY", openings: 1, filled: 0, status: "open", priority: "medium" },
-  { id: 4, title: "DevOps Engineer", department: "Engineering", location: "Remote", openings: 2, filled: 1, status: "open", priority: "high" },
-];
-
-const upcomingInterviews = [
-  { id: 1, candidate: "Alice Johnson", position: "Senior Frontend Dev", date: "2025-04-01", time: "10:00 AM", type: "Technical", status: "confirmed" },
-  { id: 2, candidate: "Bob Smith", position: "Backend Engineer", date: "2025-04-01", time: "2:00 PM", type: "Phone Screen", status: "confirmed" },
-  { id: 3, candidate: "Carol Davis", position: "Product Designer", date: "2025-04-02", time: "11:00 AM", type: "Portfolio Review", status: "pending" },
-  { id: 4, candidate: "David Lee", position: "DevOps Engineer", date: "2025-04-02", time: "3:30 PM", type: "Technical", status: "confirmed" },
 ];
 
 function SubNav() {
@@ -47,26 +27,37 @@ function SubNav() {
   );
 }
 
-function StatsCard({ title, value, icon: Icon, change, trend }) {
+
+function StatsCard({ title, value, icon: Icon, subtitle, color }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <p className="text-sm text-gray-500 font-medium">{title}</p>
-        {Icon && <div className="p-2 bg-orange-50 rounded-lg"><Icon className="w-5 h-5 text-orange-600" /></div>}
+        {Icon && <div className={`p-2 ${color} rounded-lg`}><Icon className="w-5 h-5 text-white" /></div>}
       </div>
       <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-      {change != null && (
-        <p className={`text-sm font-medium mt-2 ${trend === "up" ? "text-green-600" : "text-red-600"}`}>
-          {change > 0 ? "+" : ""}{change}% vs last month
-        </p>
-      )}
+      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
     </div>
   );
 }
 
-function StatusBadge({ status }) {
-  const m = { open: "bg-green-100 text-green-800", closed: "bg-gray-100 text-gray-800", draft: "bg-gray-100 text-gray-800", on_hold: "bg-yellow-100 text-yellow-800", high: "bg-red-100 text-red-800", urgent: "bg-red-100 text-red-800", medium: "bg-yellow-100 text-yellow-800", low: "bg-green-100 text-green-800", confirmed: "bg-green-100 text-green-800", pending: "bg-yellow-100 text-yellow-800", completed: "bg-blue-100 text-blue-800" };
-  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${m[status] || "bg-gray-100 text-gray-800"}`}>{status?.replace(/_/g, " ")}</span>;
+function PipelineStage({ label, count, total, color }) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+      <div className="flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${color}`} />
+        <span className="text-sm text-gray-600">{label}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-900">{count}</span>
+        <div className="w-24 bg-gray-100 rounded-full h-2">
+          <div className={`h-2 rounded-full ${color}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+      </div>
+    </div>
+  );
 }
 
 function formatDate(dateStr) {
@@ -76,101 +67,107 @@ function formatDate(dateStr) {
 }
 
 export default function RecruitmentDashboard() {
-  const statCards = [
-    { title: "Open Positions", value: stats.totalOpenPositions, icon: Briefcase, change: 2, trend: "up" },
-    { title: "Active Candidates", value: stats.activeCandidates, icon: Users, change: 8, trend: "up" },
-    { title: "Interviews Scheduled", value: stats.interviewsScheduled, icon: Calendar, change: 5, trend: "up" },
-    { title: "Offers Pending", value: stats.offersPending, icon: FileCheck2, change: -1, trend: "down" },
-    { title: "Hired This Month", value: stats.hiredThisMonth, icon: UserPlus, change: 3, trend: "up" },
-    { title: "Time to Hire", value: `${stats.timeToHire} days`, icon: Clock, change: -3, trend: "up" },
+  const [dash, setDash] = useState(null);
+  const [candidates, setCandidates] = useState([]);
+  const [requisitions, setRequisitions] = useState([]);
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    Promise.all([
+      getRecruitmentDashboard().catch(() => null),
+      getCandidates().catch(() => ({ items: [] })),
+      getRequisitions().catch(() => ({ items: [] })),
+      getOffers().catch(() => ({ items: [] })),
+    ]).then(([d, cands, reqs, offs]) => {
+      setDash(d);
+      setCandidates(Array.isArray(cands) ? cands : cands?.items || cands?.data || []);
+      setRequisitions(Array.isArray(reqs) ? reqs : reqs?.items || reqs?.data || []);
+      setOffers(Array.isArray(offs) ? offs : offs?.items || offs?.data || []);
+    }).catch((err) => {
+      console.error("Dashboard load error:", err);
+      setError("Failed to load dashboard data. Please try again later.");
+    }).finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <HRPage title="Recruitment Dashboard" subtitle="Hiring pipeline and recruitment metrics"><SubNav /><div className="p-6 text-center text-gray-400">Loading dashboard...</div></HRPage>;
+
+  if (error) return <HRPage title="Recruitment Dashboard" subtitle="Hiring pipeline and recruitment metrics"><SubNav /><div className="p-6 text-center"><div className="inline-flex items-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-lg"><AlertCircle className="w-5 h-5" />{error}</div><div className="mt-4"><button onClick={load} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm">Try Again</button></div></div></HRPage>;
+
+  const d = dash || {};
+  const pipeline = d.pipeline || {};
+  const stages = [
+    { label: "Applied", key: "applied", color: "bg-blue-500" },
+    { label: "Screening", key: "screening", color: "bg-indigo-500" },
+    { label: "Interview", key: "interview", color: "bg-purple-500" },
+    { label: "Offer", key: "offer", color: "bg-orange-500" },
+    { label: "Hired", key: "hired", color: "bg-green-500" },
+    { label: "Rejected", key: "rejected", color: "bg-red-500" },
   ];
+  const totalInPipeline = stages.reduce((sum, s) => sum + (pipeline[s.key] || 0), 0) || 1;
+  const activity = d.recent_activity || [];
 
   return (
-    <HRPage title="Recruitment Dashboard" subtitle="Overview of hiring activities and metrics">
+    <HRPage title="Recruitment Dashboard" subtitle="Hiring pipeline and recruitment metrics">
       <SubNav />
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {statCards.map((s) => <StatsCard key={s.title} {...s} />)}
+        <div className="flex items-center justify-end">
+          <button onClick={load} className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StatsCard title="Total Candidates" value={d.total_candidates ?? candidates.length} icon={Users} subtitle="In the pipeline" color="bg-orange-500" />
+          <StatsCard title="Open Positions" value={d.open_positions ?? requisitions.filter((r) => r.status === "open").length} icon={Briefcase} subtitle="Active requisitions" color="bg-blue-500" />
+          <StatsCard title="Active Interviews" value={d.active_interviews ?? 0} icon={Calendar} subtitle="Scheduled this week" color="bg-purple-500" />
+          <StatsCard title="Offers Extended" value={d.offers_extended ?? offers.filter((o) => o.status === "approved").length} icon={FileCheck2} subtitle="Approved offers" color="bg-green-500" />
+          <StatsCard title="Pending Offers" value={d.pending_offers ?? offers.filter((o) => o.status === "pending" || o.status === "draft").length} icon={Clock} subtitle="Awaiting response" color="bg-yellow-500" />
+          <StatsCard title="Hired This Month" value={d.hired_this_month ?? 0} icon={UserPlus} subtitle="New hires" color="bg-teal-500" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Job Requisitions</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-3 py-3 font-medium text-left">Position</th>
-                    <th className="px-3 py-3 font-medium text-left">Dept</th>
-                    <th className="px-3 py-3 font-medium text-left">Filled</th>
-                    <th className="px-3 py-3 font-medium text-left">Status</th>
-                    <th className="px-3 py-3 font-medium text-left">Priority</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentJobs.map((j) => (
-                    <tr key={j.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="px-3 py-3 font-medium text-gray-900">{j.title}</td>
-                      <td className="px-3 py-3 text-gray-500">{j.department}</td>
-                      <td className="px-3 py-3">{j.filled}/{j.openings}</td>
-                      <td className="px-3 py-3"><StatusBadge status={j.status} /></td>
-                      <td className="px-3 py-3"><StatusBadge status={j.priority} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Candidate Pipeline</h2>
+            {totalInPipeline <= 1 && !stages.some((s) => (pipeline[s.key] || 0) > 0) ? (
+              <div className="text-center py-8 text-gray-400">No candidates in pipeline yet</div>
+            ) : (
+              <div className="space-y-1">
+                {stages.map((s) => (
+                  <PipelineStage key={s.key} label={s.label} count={pipeline[s.key] || 0} total={totalInPipeline} color={s.color} />
+                ))}
+                <div className="pt-2 mt-2 border-t border-gray-100 flex justify-between text-sm">
+                  <span className="text-gray-500">Total</span>
+                  <span className="font-bold text-gray-900">{totalInPipeline}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Upcoming Interviews</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-3 py-3 font-medium text-left">Candidate</th>
-                    <th className="px-3 py-3 font-medium text-left">Position</th>
-                    <th className="px-3 py-3 font-medium text-left">Date</th>
-                    <th className="px-3 py-3 font-medium text-left">Type</th>
-                    <th className="px-3 py-3 font-medium text-left">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingInterviews.map((i) => (
-                    <tr key={i.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="px-3 py-3 font-medium text-gray-900">{i.candidate}</td>
-                      <td className="px-3 py-3 text-gray-500">{i.position}</td>
-                      <td className="px-3 py-3 text-xs">{formatDate(i.date)}</td>
-                      <td className="px-3 py-3 text-xs text-gray-500">{i.type}</td>
-                      <td className="px-3 py-3"><StatusBadge status={i.status} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Source Breakdown</h2>
-          <div className="flex items-end gap-6 h-40">
-            {stats.sourceBreakdown.map((s) => {
-              const max = Math.max(...stats.sourceBreakdown.map((x) => x.count));
-              const pct = (s.count / max) * 100;
-              return (
-                <div key={s.source} className="flex-1 flex flex-col items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">{s.count}</span>
-                  <div className="w-full bg-orange-100 rounded-t-lg" style={{ height: `${Math.max(pct, 4)}%` }}>
-                    <div className="w-full bg-orange-500 rounded-t-lg h-full opacity-80" />
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
+            {activity.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">No recent hiring activity</div>
+            ) : (
+              <div className="space-y-3">
+                {activity.slice(0, 10).map((act, i) => (
+                  <div key={i} className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0">
+                    <div className={`p-1.5 rounded-full ${act.type === "hired" ? "bg-green-100" : act.type === "offer" ? "bg-orange-100" : act.type === "interview" ? "bg-purple-100" : "bg-blue-100"}`}>
+                      {act.type === "hired" ? <CheckCircle className="w-4 h-4 text-green-600" /> : act.type === "offer" ? <FileCheck2 className="w-4 h-4 text-orange-600" /> : act.type === "interview" ? <Calendar className="w-4 h-4 text-purple-600" /> : <UserPlus className="w-4 h-4 text-blue-600" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900">{act.description || act.message}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(act.date || act.created_at)}</p>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-500 text-center">{s.source}</span>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

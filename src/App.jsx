@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import SuperAdminShell from "./components/SuperAdminShell";
 import { flatRoutes } from "./navigation";
 import PagePlaceholder from "./components/PagePlaceholder";
@@ -45,15 +45,9 @@ import Appraisals from "./modules/zoiko-hr/performance/appraisals.jsx";
 import PerformanceAnalytics from "./modules/zoiko-hr/performance/analytics.jsx";
 import RecruitmentDashboard from "./modules/zoiko-hr/recruitment/dashboard.jsx";
 import JobRequisitions from "./modules/zoiko-hr/recruitment/job-requisitions.jsx";
-import OpenPositions from "./modules/zoiko-hr/recruitment/open-positions.jsx";
 import Candidates from "./modules/zoiko-hr/recruitment/candidates.jsx";
-import CandidateDetails from "./modules/zoiko-hr/recruitment/candidate-details.jsx";
-import InterviewPipeline from "./modules/zoiko-hr/recruitment/interview-pipeline.jsx";
-import OfferManagement from "./modules/zoiko-hr/recruitment/offer-management.jsx";
-import HiringSchedule from "./modules/zoiko-hr/recruitment/hiring-schedule.jsx";
-import RecruitmentAnalytics from "./modules/zoiko-hr/recruitment/analytics.jsx";
-import RecruitmentReports from "./modules/zoiko-hr/recruitment/reports.jsx";
-import RecruitmentSettings from "./modules/zoiko-hr/recruitment/settings.jsx";
+import Interviews from "./modules/zoiko-hr/recruitment/interviews.jsx";
+import OfferManagement from "./modules/zoiko-hr/recruitment/offers.jsx";
 import ZoikoHROnboardingDashboard from "./modules/zoiko-hr/onboarding/dashboard.jsx";
 import ZoikoHROnboardingNewHires from "./modules/zoiko-hr/onboarding/new-hires.jsx";
 import ZoikoHROnboardingPreOnboarding from "./modules/zoiko-hr/onboarding/pre-onboarding.jsx";
@@ -116,21 +110,10 @@ import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
 
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
 import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
-import ZoikoHRAttendanceMyAttendance from "./modules/zoiko-hr/attendance/my-attendance.jsx";
-import ZoikoHRAttendanceRegularization from "./modules/zoiko-hr/attendance/regularization.jsx";
-import ZoikoHRAttendancePolicies from "./modules/zoiko-hr/attendance/policies.jsx";
+import ZoikoHRAttendanceLeaves from "./modules/zoiko-hr/attendance/leave-management.jsx";
 import ZoikoHRAttendanceShifts from "./modules/zoiko-hr/attendance/shifts.jsx";
-import ZoikoHRAttendanceRosters from "./modules/zoiko-hr/attendance/rosters.jsx";
-import ZoikoHRAttendanceBiometric from "./modules/zoiko-hr/attendance/biometric.jsx";
-import ZoikoHRAttendanceGeofencing from "./modules/zoiko-hr/attendance/geofencing.jsx";
-import ZoikoHRAttendanceOvertime from "./modules/zoiko-hr/attendance/overtime.jsx";
-import ZoikoHRAttendanceReports from "./modules/zoiko-hr/attendance/reports.jsx";
-import ZoikoHRAttendanceAnalytics from "./modules/zoiko-hr/attendance/analytics.jsx";
-import ZoikoHRAttendanceExceptions from "./modules/zoiko-hr/attendance/exceptions.jsx";
 import ZoikoHRAttendanceHolidays from "./modules/zoiko-hr/attendance/holidays.jsx";
-import ZoikoHRAttendanceWeekends from "./modules/zoiko-hr/attendance/weekends.jsx";
-import ZoikoHRAttendanceAuditLogs from "./modules/zoiko-hr/attendance/audit-logs.jsx";
-import ZoikoHRAttendanceSettings from "./modules/zoiko-hr/attendance/settings.jsx";
+import ZoikoHRAttendanceAnalytics from "./modules/zoiko-hr/attendance/analytics.jsx";
 
 import WorkforceDashboard from "./modules/zoiko-hr/workforce-planning/dashboard.jsx";
 import WorkforcePlans from "./modules/zoiko-hr/workforce-planning/plans.jsx";
@@ -268,21 +251,10 @@ const routeOverrides = {
   // Attendance submodule routes
   "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
   "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
-  "/zoiko-hr/attendance/my-attendance": <ZoikoHRAttendanceMyAttendance />,
-  "/zoiko-hr/attendance/regularization": <ZoikoHRAttendanceRegularization />,
-  "/zoiko-hr/attendance/policies": <ZoikoHRAttendancePolicies />,
+  "/zoiko-hr/attendance/leaves": <ZoikoHRAttendanceLeaves />,
   "/zoiko-hr/attendance/shifts": <ZoikoHRAttendanceShifts />,
-  "/zoiko-hr/attendance/rosters": <ZoikoHRAttendanceRosters />,
-  "/zoiko-hr/attendance/biometric": <ZoikoHRAttendanceBiometric />,
-  "/zoiko-hr/attendance/geofencing": <ZoikoHRAttendanceGeofencing />,
-  "/zoiko-hr/attendance/overtime": <ZoikoHRAttendanceOvertime />,
-  "/zoiko-hr/attendance/reports": <ZoikoHRAttendanceReports />,
-  "/zoiko-hr/attendance/analytics": <ZoikoHRAttendanceAnalytics />,
-  "/zoiko-hr/attendance/exceptions": <ZoikoHRAttendanceExceptions />,
   "/zoiko-hr/attendance/holidays": <ZoikoHRAttendanceHolidays />,
-  "/zoiko-hr/attendance/weekends": <ZoikoHRAttendanceWeekends />,
-  "/zoiko-hr/attendance/audit-logs": <ZoikoHRAttendanceAuditLogs />,
-  "/zoiko-hr/attendance/settings": <ZoikoHRAttendanceSettings />,
+  "/zoiko-hr/attendance/analytics": <ZoikoHRAttendanceAnalytics />,
   "/zoiko-hr/performance": <PerformanceDashboard />,
   "/zoiko-hr/recruitment": <RecruitmentDashboard />,
   "/zoiko-hr/onboarding": <ZoikoHROnboardingDashboard />,
@@ -369,15 +341,9 @@ const routeOverrides = {
 
   // Recruitment submodule routes
   "/zoiko-hr/recruitment/job-requisitions": <JobRequisitions />,
-  "/zoiko-hr/recruitment/open-positions": <OpenPositions />,
   "/zoiko-hr/recruitment/candidates": <Candidates />,
-  "/zoiko-hr/recruitment/candidates/:id": <CandidateDetails />,
-  "/zoiko-hr/recruitment/interview-pipeline": <InterviewPipeline />,
+  "/zoiko-hr/recruitment/interviews": <Interviews />,
   "/zoiko-hr/recruitment/offers": <OfferManagement />,
-  "/zoiko-hr/recruitment/hiring-schedule": <HiringSchedule />,
-  "/zoiko-hr/recruitment/analytics": <RecruitmentAnalytics />,
-  "/zoiko-hr/recruitment/reports": <RecruitmentReports />,
-  "/zoiko-hr/recruitment/settings": <RecruitmentSettings />,
 
   // Performance submodule routes
   "/zoiko-hr/performance/goals": <GoalsOKRs />,
@@ -566,6 +532,50 @@ export default function App() {
                     }
                   />
                 ))}
+                <Route
+                  path="/zoiko-hr/recruitment/candidates/:id"
+                  element={<Candidates />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/open-positions"
+                  element={<Navigate to="/zoiko-hr/recruitment/job-requisitions" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/job-requisitions/open-positions"
+                  element={<Navigate to="/zoiko-hr/recruitment/job-requisitions" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/interview-pipeline"
+                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/interviews/interview-pipeline"
+                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/hiring-schedule"
+                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/interviews/hiring-schedule"
+                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/reports"
+                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/analytics"
+                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/analytics/reports"
+                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
+                />
+                <Route
+                  path="/zoiko-hr/recruitment/settings"
+                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
+                />
                 <Route
                   path="*"
                   element={

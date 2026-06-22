@@ -82,7 +82,7 @@ export default function ManagerAssignment() {
     try {
       const [recordsData, employeesData, mentorData] = await Promise.all([
         getOnboardingRecords(),
-        getEmployees({ per_page: 500 }),
+        getEmployees({ per_page: 100 }),
         getOnboardingMentorAssignments(),
       ]);
       setRecords(Array.isArray(recordsData) ? recordsData : []);

@@ -21,10 +21,10 @@ export default function FinalCTA() {
             <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-6 py-3 rounded-full text-sm shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-[1.03]">
               Get a Demo <ArrowRight size={16} />
             </button>
-            <button className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-semibold px-6 py-3 rounded-full text-sm transition-all duration-200">
+            <button onClick={() => navigate("/pricing")} className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-semibold px-6 py-3 rounded-full text-sm transition-all duration-200">
               View Pricing
             </button>
-            <button className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-semibold px-6 py-3 rounded-full text-sm transition-all duration-200">
+            <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-semibold px-6 py-3 rounded-full text-sm transition-all duration-200">
               Explore Products
             </button>
           </div>

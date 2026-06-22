@@ -207,7 +207,7 @@ export default function ZoikoProductsPage() {
       <LandingHeader />
 
       {/* HERO */}
-      <section style={{
+      <section id="hero" style={{
         position: "relative",
         minHeight: "85vh",
         display: "flex",

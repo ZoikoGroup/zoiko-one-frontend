@@ -1,4 +1,5 @@
 import { ArrowRight, Users, Clock, DollarSign, FileText, Briefcase, CheckSquare, BarChart3, Sparkles, CreditCard, Package, FileSignature } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const products = [
   {
@@ -94,8 +95,9 @@ const products = [
 ];
 
 export default function ProductGrid() {
+  const navigate = useNavigate();
   return (
-    <section className="bg-[#F8F7FC] py-20 md:py-24">
+    <section id="products" className="bg-[#F8F7FC] py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <p className="text-xs font-bold text-[#F97316] tracking-[0.15em] uppercase mb-4">
@@ -151,10 +153,10 @@ export default function ProductGrid() {
         </div>
 
         <div className="flex items-center justify-center gap-4">
-          <button className="inline-flex items-center gap-2 bg-white text-[#1E1B4B] font-semibold px-6 py-3 rounded-full text-sm border border-gray-200 shadow-sm transition-all duration-200 hover:border-[#3B82F6] hover:text-[#3B82F6]">
+          <button onClick={() => navigate("/products#hero")} className="inline-flex items-center gap-2 bg-white text-[#1E1B4B] font-semibold px-6 py-3 rounded-full text-sm border border-gray-200 shadow-sm transition-all duration-200 hover:border-[#3B82F6] hover:text-[#3B82F6]">
             Compare Products
           </button>
-          <button className="inline-flex items-center gap-2 bg-[#1E1B4B] hover:bg-[#2D2A6B] text-white font-bold px-6 py-3 rounded-full text-sm transition-all duration-200">
+          <button onClick={() => navigate("/pricing")} className="inline-flex items-center gap-2 bg-[#1E1B4B] hover:bg-[#2D2A6B] text-white font-bold px-6 py-3 rounded-full text-sm transition-all duration-200">
             View Pricing
           </button>
         </div>

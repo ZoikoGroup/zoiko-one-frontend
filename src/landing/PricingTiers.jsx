@@ -31,7 +31,7 @@ const tiers = [
     ],
     cta: "Compare Bundles",
     variant: "accent",
-    popular: true,
+    popular: false,
   },
   {
     title: "Enterprise",
@@ -74,9 +74,7 @@ export default function PricingTiers() {
           {tiers.map((t) => (
             <div
               key={t.title}
-              className={`relative rounded-2xl p-7 bg-white shadow-sm transition-all duration-200 hover:shadow-md ${
-                t.popular ? "border-2 border-[#F97316]" : "border border-gray-100"
-              }`}
+              className={`relative rounded-2xl p-7 bg-white shadow-sm border border-gray-100 transition-all duration-200 hover:scale-[1.02] hover:shadow-md hover:border-[#F97316]`}
             >
               {t.popular && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F97316] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">

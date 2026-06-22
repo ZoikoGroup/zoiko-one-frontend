@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { sections } from "../navigation";
 import SearchBar from "./SearchBar.jsx";
@@ -114,7 +114,7 @@ export default function Sidebar({ open, onClose }) {
       >
         <div className="mb-8 flex items-center justify-between gap-3">
           <div className="flex flex-col gap-2">
-            <img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain self-start" />
+            <Link to="/"><img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain self-start" /></Link>
             <span className="self-start rounded-full bg-[#FF7A00]/10 border border-[#FF7A00]/25 px-2.5 py-0.5 text-xs font-semibold text-[#FF7A00]">
               Super Admin
             </span>

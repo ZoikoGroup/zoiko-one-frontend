@@ -1,4 +1,5 @@
 import { ArrowRight, Users, Clock, Layers, DollarSign, FileText, Repeat, Diamond, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const spineSteps = [
   { label: "Zoiko HR", sub: "Worker record", icon: Users },
@@ -12,6 +13,7 @@ const spineSteps = [
 ];
 
 export default function WhyExists() {
+  const navigate = useNavigate();
   return (
     <section className="bg-white py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12 text-center">
@@ -54,7 +56,7 @@ export default function WhyExists() {
           </div>
 
           <div className="text-center">
-            <button className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-6 py-3 rounded-full text-sm shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-[1.03]">
+            <button onClick={() => navigate("/platform")} className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-6 py-3 rounded-full text-sm shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-[1.03]">
               View Platform Overview <ArrowRight size={16} />
             </button>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
+import Footer from "../landing/Footer";
 
 // ─── Color tokens ─────────────────────────────────────────────────────────────
 const NAVY = "#0B1C3F";
@@ -504,6 +505,7 @@ export default function PlatformPage() {
       <MoneyArchitecture />
       <PlatformFAQ />
       <BottomCTA />
+      <Footer />
     </div>
   );
 }

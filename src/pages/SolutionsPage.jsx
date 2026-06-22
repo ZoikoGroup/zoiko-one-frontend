@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
+import Footer from "../landing/Footer";
 
 const BG = "#EDEEF2";
 const BLUE_DARK = "#192660";
@@ -551,6 +552,7 @@ export default function SolutionsPage() {
       <OutcomeBundles />
       <FAQ />
       <BottomCTA />
+      <Footer />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { ShieldCheck, Globe2, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const trustLogos = ["Northpeak", "Veritas Labs", "Mercato", "Brightfield", "Hexa Group", "Stratus"];
 
@@ -22,6 +23,7 @@ function Badge({ label, tag = "Home" }) {
 }
 
 export default function Hero() {
+  const navigate = useNavigate();
   return (
     <section style={{
       position: "relative",
@@ -68,7 +70,7 @@ export default function Hero() {
         <div style={{
           display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap"
         }}>
-          <button style={{
+          <button onClick={() => navigate("/get-demo")} style={{
             background: "linear-gradient(135deg, #E07B2A, #c9651a)",
             color: "#fff", border: "none", borderRadius: 999,
             padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",

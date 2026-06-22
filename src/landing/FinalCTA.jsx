@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function FinalCTA() {
+  const navigate = useNavigate();
   return (
     <section className="bg-[#F8F7FC] py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
@@ -16,7 +18,7 @@ export default function FinalCTA() {
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap mb-4">
-            <button className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-6 py-3 rounded-full text-sm shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-[1.03]">
+            <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold px-6 py-3 rounded-full text-sm shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-[1.03]">
               Get a Demo <ArrowRight size={16} />
             </button>
             <button className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-semibold px-6 py-3 rounded-full text-sm transition-all duration-200">

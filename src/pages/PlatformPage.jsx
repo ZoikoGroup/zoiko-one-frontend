@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../landing/LandingHeader";
 
 const colors = {
@@ -107,6 +108,7 @@ function Badge({ label, tag = "Platform" }) {
 }
 
 function HeroSection() {
+  const navigate = useNavigate();
   return (
     <section style={{
       position: "relative",
@@ -140,7 +142,7 @@ function HeroSection() {
           Start with one product, activate a pillar or scale into the full platform.
         </p>
         <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button style={{
+          <button onClick={() => navigate("/get-demo")} style={{
             background: "linear-gradient(135deg, #E07B2A, #c9651a)",
             color: "#fff", border: "none", borderRadius: 999,
             padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
@@ -420,6 +422,7 @@ function FAQSection() {
 }
 
 function CTASection() {
+  const navigate = useNavigate();
   return (
     <section style={{ padding: "60px 5%", background: colors.white }}>
       <div style={{ background: `linear-gradient(135deg, ${colors.blue} 0%, #1e40af 100%)`, borderRadius: "24px", padding: "60px 40px", textAlign: "center", maxWidth: "1100px", margin: "0 auto" }}>
@@ -428,7 +431,7 @@ function CTASection() {
           Bring people, money, work, supply, control, documents, approvals, workflows, insights and AI assistance into one governed operating system.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button style={styles.btnPrimary}>Get a Demo →</button>
+          <button onClick={() => navigate("/get-demo")} style={styles.btnPrimary}>Get a Demo →</button>
           <button style={{ ...styles.btnSecondary, border: "2px solid rgba(255,255,255,0.3)", color: "#fff" }}>Explore Products</button>
           <button style={{ ...styles.btnSecondary, border: "2px solid rgba(255,255,255,0.3)", color: "#fff" }}>Request Pricing</button>
         </div>

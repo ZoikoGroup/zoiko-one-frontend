@@ -14,7 +14,7 @@ const layers = [
 export default function Philosophy() {
   return (
     <section className="bg-[#F8F7FC] py-20 md:py-24">
-      <div className="px-4 sm:px-6 lg:px-20 text-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12 text-center">
         <p className="text-xs font-bold text-[#3B82F6] tracking-[0.15em] uppercase mb-4">
           Shared Platform Layers
         </p>

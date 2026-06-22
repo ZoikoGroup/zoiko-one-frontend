@@ -1,182 +1,110 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { Shield, FileText, ClipboardList, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Sliders, Save, AlertOctagon, LayoutDashboard, Library, ClipboardCheck, AlertTriangle, Settings } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { getRiskAssessments } from "../../../service/hrService";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/compliance" },
-  { label: "Policy Library", href: "/zoiko-hr/compliance/policies" },
-  { label: "Compliance Tracking", href: "/zoiko-hr/compliance/tracking" },
-  { label: "Audits", href: "/zoiko-hr/compliance/audits" },
-  { label: "Violations", href: "/zoiko-hr/compliance/violations" },
-  { label: "Risk Assessment", href: "/zoiko-hr/compliance/risks" },
-  { label: "Regulations", href: "/zoiko-hr/compliance/regulations" },
-  { label: "Corrective Actions", href: "/zoiko-hr/compliance/corrective-actions" },
-  { label: "Reports", href: "/zoiko-hr/compliance/reports" },
-  { label: "Settings", href: "/zoiko-hr/compliance/settings" },
-];
+function EmbeddedSubNav() {
+  const location = useLocation();
+  const NAV_ITEMS = [
+    { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
+    { label: "Policy Library", href: "/comply/policies", icon: Library },
+    { label: "Tracking & Audits", href: "/comply/audits", icon: ClipboardCheck },
+    { label: "Violations & Actions", href: "/comply/incidents", icon: AlertTriangle },
+    { label: "Risks & Settings", href: "/comply/settings", icon: Settings },
+  ];
 
-const SETTINGS_TABS = [
-  { key: "general", label: "General", icon: Shield },
-  { key: "policies", label: "Policies", icon: FileText },
-  { key: "audits", label: "Audits", icon: ClipboardList },
-  { key: "notifications", label: "Notifications", icon: Bell },
-];
-
-function SubNav() {
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/compliance"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
+    <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-4 mb-6">
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            to={item.href}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              isActive ? "bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100" : "text-gray-600 hover:bg-gray-50 border border-transparent"
+            }`}
+          >
+            <Icon size={16} />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
 
-export default function ComplianceSettings() {
-  const [activeTab, setActiveTab] = useState("general");
-  const [settings, setSettings] = useState({
-    complianceOfficer: "Sarah Mitchell",
-    reviewFrequency: "quarterly",
-    approvalWorkflow: "two_step",
-    autoArchiveDays: "90",
-    defaultAuditFrequency: "quarterly",
-    auditLeadTime: "14",
-    notifyOnViolation: true,
-    notifyOnAuditComplete: true,
-    notifyOnPolicyUpdate: true,
-    notifyOnAcknowledgment: false,
-    notifyOnRiskThreshold: true,
-  });
+export default function SettingsRiskParameters() {
+  const [risks, setRisks] = useState([]);
+  const [triggerInterval, setTriggerInterval] = useState("30");
 
-  const toggle = (key) => setSettings((s) => ({ ...s, [key]: !s[key] }));
+  useEffect(() => {
+    getRiskAssessments().then((res) => setRisks(Array.isArray(res) ? res : res?.data || []));
+  }, []);
 
   return (
-    <HRPage title="Compliance Settings" subtitle="Configure compliance module preferences">
-      <SubNav />
-      <div className="space-y-6">
-        <div className="flex border-b border-gray-200">
-          {SETTINGS_TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.key ? "border-emerald-600 text-emerald-600" : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}>
-                <Icon size={16} /> {tab.label}
-              </button>
-            );
-          })}
+    <HRPage title="Risk Controls & Environment Settings" subtitle="Configure platform rules alongside threat calculations.">
+      <EmbeddedSubNav />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white border border-gray-200 p-5 rounded-xl space-y-5 h-fit shadow-sm">
+          <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+            <Sliders size={16} className="text-emerald-600" /> System Automation Anchors
+          </h3>
+          
+          <div>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Audit Pipeline Recurrence
+            </label>
+            <select 
+              className="w-full border border-gray-200 p-2.5 rounded-xl text-sm bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all font-medium text-gray-800"
+              value={triggerInterval} 
+              onChange={(e) => setTriggerInterval(e.target.value)}
+            >
+              <option value="30">Every 30 Days (Continuous Audit)</option>
+              <option value="90">Every 90 Days (Quarterly Loop)</option>
+              <option value="365">Every 365 Days (Annual Verification)</option>
+            </select>
+          </div>
+
+          <button className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-colors">
+            <Save size={14} /> Save Configuration
+          </button>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          {activeTab === "general" && (
-            <div className="space-y-6 max-w-lg">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Compliance Officer</label>
-                <input className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"
-                  value={settings.complianceOfficer}
-                  onChange={(e) => setSettings({ ...settings, complianceOfficer: e.target.value })} />
-                <p className="text-xs text-gray-400 mt-1">Primary contact for compliance matters</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Policy Review Frequency</label>
-                <select className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"
-                  value={settings.reviewFrequency}
-                  onChange={(e) => setSettings({ ...settings, reviewFrequency: e.target.value })}>
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="semi_annual">Semi-Annual</option>
-                  <option value="annual">Annual</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Auto-Archive Inactive Policies (days)</label>
-                <input className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm" type="number"
-                  value={settings.autoArchiveDays}
-                  onChange={(e) => setSettings({ ...settings, autoArchiveDays: e.target.value })} />
-              </div>
-            </div>
-          )}
-
-          {activeTab === "policies" && (
-            <div className="space-y-6 max-w-lg">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Approval Workflow</label>
-                <select className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"
-                  value={settings.approvalWorkflow}
-                  onChange={(e) => setSettings({ ...settings, approvalWorkflow: e.target.value })}>
-                  <option value="single">Single Approval</option>
-                  <option value="two_step">Two-Step Approval</option>
-                  <option value="committee">Committee Review</option>
-                </select>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Policy Categories</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Data Privacy", "Security", "HR", "Finance", "Operations", "Legal"].map((cat) => (
-                    <label key={cat} className="flex items-center gap-2 text-sm text-gray-600">
-                      <input type="checkbox" defaultChecked className="rounded text-emerald-600 focus:ring-emerald-500" />
-                      {cat}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "audits" && (
-            <div className="space-y-6 max-w-lg">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Default Audit Frequency</label>
-                <select className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"
-                  value={settings.defaultAuditFrequency}
-                  onChange={(e) => setSettings({ ...settings, defaultAuditFrequency: e.target.value })}>
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="semi_annual">Semi-Annual</option>
-                  <option value="annual">Annual</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Audit Lead Time (days)</label>
-                <input className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm" type="number"
-                  value={settings.auditLeadTime}
-                  onChange={(e) => setSettings({ ...settings, auditLeadTime: e.target.value })} />
-                <p className="text-xs text-gray-400 mt-1">Days before audit to send notifications</p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "notifications" && (
-            <div className="space-y-4 max-w-lg">
-              {[
-                { key: "notifyOnViolation", label: "Violation Reported", desc: "Alert when a new violation is logged" },
-                { key: "notifyOnAuditComplete", label: "Audit Completed", desc: "Notify when an audit is finalized" },
-                { key: "notifyOnPolicyUpdate", label: "Policy Updated", desc: "Alert employees when policies change" },
-                { key: "notifyOnAcknowledgment", label: "Acknowledgment Reminder", desc: "Send reminders for pending acknowledgments" },
-                { key: "notifyOnRiskThreshold", label: "Risk Threshold Exceeded", desc: "Alert when risk score exceeds threshold" },
-              ].map((n) => (
-                <div key={n.key} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{n.label}</p>
-                    <p className="text-xs text-gray-500">{n.desc}</p>
+        <div className="lg:col-span-2 space-y-4">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Dynamic Strategic Threats Matrix</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {risks.map((r) => {
+              const isHighRisk = r.riskScore >= 12;
+              return (
+                <div 
+                  key={r.id} 
+                  className={`p-4 rounded-xl border transition-all shadow-sm ${
+                    isHighRisk ? "bg-red-50/40 border-red-200" : "bg-amber-50/40 border-amber-200"
+                  }`}
+                >
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider capitalize">{r.category}</span>
+                    <span className={`text-xs font-extrabold px-2 py-0.5 rounded-lg shadow-sm border ${
+                      isHighRisk ? "bg-white border-red-200 text-red-700" : "bg-white border-amber-200 text-amber-700"
+                    }`}>
+                      Score: {r.riskScore}
+                    </span>
                   </div>
-                  <button onClick={() => toggle(n.key)}
-                    className={`relative w-10 h-6 rounded-full transition-colors ${settings[n.key] ? "bg-emerald-600" : "bg-gray-300"}`}>
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${settings[n.key] ? "translate-x-4" : ""}`} />
-                  </button>
+                  <h4 className="text-sm font-bold text-gray-900 mt-3 flex items-center gap-1.5">
+                    <AlertOctagon size={15} className={isHighRisk ? "text-red-500" : "text-amber-500"} />
+                    {r.title}
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-2 font-medium line-clamp-2 leading-relaxed">
+                    <span className="font-bold text-gray-600">Mitigation:</span> {r.mitigation}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </div>
     </HRPage>

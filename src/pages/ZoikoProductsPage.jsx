@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LandingHeader from "../landing/LandingHeader";
 
 const PILLARS = [
   {
@@ -191,6 +193,7 @@ const FAQS = [
 ];
 
 export default function ZoikoProductsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("people");
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -200,6 +203,7 @@ export default function ZoikoProductsPage() {
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", color: "#1a1a2e", background: "#fff", minHeight: "100vh" }}>
+      <LandingHeader />
 
       {/* HERO */}
       <section style={{
@@ -222,7 +226,7 @@ export default function ZoikoProductsPage() {
           pointerEvents: "none",
         }} />
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 720 }}>
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 900 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             background: "rgba(255,255,255,0.92)", borderRadius: 999,
@@ -234,7 +238,7 @@ export default function ZoikoProductsPage() {
           </div>
 
           <h1 style={{ fontSize: "clamp(32px, 6vw, 60px)", fontWeight: 800, lineHeight: 1.15, margin: "0 0 20px", color: "#0f172a" }}>
-            A connected product system across<br /><span style={{ color: "#E07B2A" }}>five pillars.</span>
+            A connected product system across <span style={{ color: "#E07B2A" }}>five pillars.</span>
           </h1>
 
           <p style={{ fontSize: 17, color: "#475569", lineHeight: 1.65, margin: "0 0 36px" }}>
@@ -242,7 +246,7 @@ export default function ZoikoProductsPage() {
           </p>
 
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-            <button style={{
+            <button onClick={() => navigate("/get-demo")} style={{
               background: "linear-gradient(135deg, #E07B2A, #c9651a)",
               color: "#fff", border: "none", borderRadius: 999,
               padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
@@ -464,7 +468,7 @@ export default function ZoikoProductsPage() {
             ))}
           </div>
           <div style={{ textAlign: "center", marginTop: 36 }}>
-            <button style={{
+            <button onClick={() => navigate("/get-demo")} style={{
               background: "linear-gradient(135deg, #E07B2A, #c9651a)",
               color: "#fff", border: "none", borderRadius: 999,
               padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer",
@@ -488,7 +492,7 @@ export default function ZoikoProductsPage() {
               Choose the product your business needs today, then expand into connected workflows across all five pillars.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <button style={{
+              <button onClick={() => navigate("/get-demo")} style={{
                 background: "#E07B2A", color: "#fff", border: "none",
                 borderRadius: 999, padding: "12px 26px", fontSize: 15, fontWeight: 600, cursor: "pointer",
               }}>Get a Demo</button>

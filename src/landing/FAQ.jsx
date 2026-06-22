@@ -11,7 +11,7 @@ const steps = [
 export default function FAQ() {
   return (
     <section className="bg-[#F8F7FC] py-20 md:py-24">
-      <div className="px-4 sm:px-6 lg:px-20 text-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12 text-center">
         <p className="text-xs font-bold text-[#F97316] tracking-[0.15em] uppercase mb-4">
           Grow With The Platform
         </p>

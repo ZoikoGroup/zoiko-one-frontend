@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 export default function GlobalReadiness() {
   return (
     <section className="bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#3B82F6] py-20 md:py-24">
-      <div className="px-4 sm:px-6 lg:px-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
         <p className="text-xs font-bold text-[#FDBA74] tracking-[0.15em] uppercase mb-4">
           Security, Compliance & Trust
         </p>

@@ -505,26 +505,6 @@ export const getEngagementDashboard = () => api.get("/hr/engagement/dashboard");
 // ── HR DASHBOARD STATS ──────────────────────────────────────────────────────
 export const getHrDashboardStats = () => api.get("/hr/dashboard/stats");
 
-// ── DEPARTMENT CRUD SPECIFIC ────────────────────────────────────────────────
-export const getDepartmentById = (id) =>
-  api.get(`/hr/departments/${id}`).then(data => ({ data }));
-export const createDepartment = (payload) =>
-  api.post("/hr/departments", payload).then(data => ({ data }));
-export const updateDepartment = (id, payload) =>
-  api.put(`/hr/departments/${id}`, payload).then(data => ({ data }));
-export const deleteDepartment = (id) =>
-  api.delete(`/hr/departments/${id}`).then(data => ({ data }));
-
-// ── DESIGNATIONS CRUD SPECIFIC ──────────────────────────────────────────────
-export const getDesignationById = (id) =>
-  api.get(`/hr/designations/${id}`).then(data => ({ data }));
-export const createDesignation = (payload) =>
-  api.post("/hr/designations", payload).then(data => ({ data }));
-export const updateDesignation = (id, payload) =>
-  api.put(`/hr/designations/${id}`, payload).then(data => ({ data }));
-export const deleteDesignation = (id) =>
-  api.delete(`/hr/designations/${id}`).then(data => ({ data }));
-
 // ── EMPLOYEE CRUD SPECIFIC ──────────────────────────────────────────────────
 export const getEmployeeById = (id) => api.get(`/hr/employees/${id}`);
 export const createEmployee = (payload) => api.post("/hr/employees", payload);
@@ -724,8 +704,11 @@ export const getDocuments = () =>
   api.get("/hr/documents").then(data => ({ data }));
 
 // Upload a new document (using FormData)
+// Pass { headers: { "Content-Type": undefined } } so the api wrapper does not
+// override the browser-set multipart/form-data boundary. Without this the
+// default application/json header causes FastAPI to return 422.
 export const uploadDocument = (formData) =>
-  api.post("/hr/documents/upload", formData).then(data => ({ data }));
+  api.post("/hr/documents/upload", formData, { headers: { "Content-Type": undefined } }).then(data => ({ data }));
 
 // Delete a document
 export const deleteDocument = (documentId) =>
@@ -738,3 +721,24 @@ export const updateDocumentStatus = (documentId, newStatus) =>
 // Edit/Update document metadata
 export const updateDocument = (documentId, updateData) =>
   api.put(`/hr/documents/${documentId}`, updateData).then(data => ({ data }));
+
+
+// ── DEPARTMENT CRUD SPECIFIC ────────────────────────────────────────────────
+export const getDepartmentById = (id) =>
+  api.get(`/hr/departments/${id}`).then(data => ({ data }));
+export const createDepartment = (payload) =>
+  api.post("/hr/departments", payload).then(data => ({ data }));
+export const updateDepartment = (id, payload) =>
+  api.put(`/hr/departments/${id}`, payload).then(data => ({ data }));
+export const deleteDepartment = (id) =>
+  api.delete(`/hr/departments/${id}`).then(data => ({ data }));
+
+// ── DESIGNATIONS CRUD SPECIFIC ──────────────────────────────────────────────
+export const getDesignationById = (id) =>
+  api.get(`/hr/designations/${id}`).then(data => ({ data }));
+export const createDesignation = (payload) =>
+  api.post("/hr/designations", payload).then(data => ({ data }));
+export const updateDesignation = (id, payload) =>
+  api.put(`/hr/designations/${id}`, payload).then(data => ({ data }));
+export const deleteDesignation = (id) =>
+  api.delete(`/hr/designations/${id}`).then(data => ({ data }));

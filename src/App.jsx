@@ -6,13 +6,18 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ZoikoProductsPage from "./pages/ZoikoProductsPage";
+import PlatformPage from "./pages/PlatformPage";
+import SolutionsPage from "./pages/SolutionsPage";
+import PricingPage from "./pages/PricingPage";
+import ResourcesPage from "./pages/ResourcesPage";
+import AboutPage from "./pages/AboutPage";
+import ZoikoDemoPage from "./pages/ZoikoDemoPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
 import ZoikoHRModule from "./modules/zoiko-hr/HrDashBoard.jsx";
 
 // Sub-module imports pointing explicitly to their component files inside each directory
-import ZoikoHRWorkforce from "./modules/zoiko-hr/workforce/workforce.jsx";
 import ZoikoHRLeaveDashboard from "./modules/zoiko-hr/leave/dashboard.jsx";
 import ZoikoHRLeaveMyLeave from "./modules/zoiko-hr/leave/my-leave.jsx";
 import ZoikoHRLeaveRequests from "./modules/zoiko-hr/leave/leave-requests.jsx";
@@ -100,12 +105,7 @@ import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 import ComplianceDashboard from "./modules/zoiko-hr/compliance/dashboard.jsx";
 import PolicyLibrary from "./modules/zoiko-hr/compliance/policy-library.jsx";
 import ComplianceTracking from "./modules/zoiko-hr/compliance/compliance-tracking.jsx";
-import Audits from "./modules/zoiko-hr/compliance/audits.jsx";
 import Violations from "./modules/zoiko-hr/compliance/violations.jsx";
-import RiskAssessment from "./modules/zoiko-hr/compliance/risk-assessment.jsx";
-import Regulations from "./modules/zoiko-hr/compliance/regulations.jsx";
-import CorrectiveActions from "./modules/zoiko-hr/compliance/corrective-actions.jsx";
-import ComplianceReports from "./modules/zoiko-hr/compliance/reports.jsx";
 import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
 
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
@@ -228,7 +228,6 @@ const routeOverrides = {
   "/shared/expenses": <ExpensesPage />,
   "/shared/ai-assistance": <AiAssistancePage />,
   "/zoiko-hr": <ZoikoHRModule />,
-  "/zoiko-hr/workforce": <ZoikoHRWorkforce />,
   // Departments submodule routes
   "/zoiko-hr/departments": <ZoikoHRDepartmentsDashboard />,
   "/zoiko-hr/departments/list": <ZoikoHRDepartmentsDepartmentList />,
@@ -325,13 +324,11 @@ const routeOverrides = {
   "/zoiko-hr/compliance": <ComplianceDashboard />,
   "/zoiko-hr/compliance/policies": <PolicyLibrary />,
   "/zoiko-hr/compliance/tracking": <ComplianceTracking />,
-  "/zoiko-hr/compliance/audits": <Audits />,
   "/zoiko-hr/compliance/violations": <Violations />,
-  "/zoiko-hr/compliance/risks": <RiskAssessment />,
-  "/zoiko-hr/compliance/regulations": <Regulations />,
-  "/zoiko-hr/compliance/corrective-actions": <CorrectiveActions />,
-  "/zoiko-hr/compliance/reports": <ComplianceReports />,
   "/zoiko-hr/compliance/settings": <ComplianceSettings />,
+
+
+
   "/zoiko-hr/engagement": <EngagementDashboard />,
   "/zoiko-hr/engagement/wellness": <EngagementWellness />,
   "/zoiko-hr/engagement/csr": <EngagementCSR />,
@@ -506,6 +503,12 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/products" element={<ZoikoProductsPage />} />
+      <Route path="/platform" element={<PlatformPage />} />
+      <Route path="/solutions" element={<SolutionsPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/resources" element={<ResourcesPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/get-demo" element={<ZoikoDemoPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

@@ -1,10 +1,11 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-const navLinks = ["Platform", "Products", "Solutions", "Pricing", "Resources", "Company"];
+const navLinks = ["Home", "Platform", "Products", "Solutions", "Pricing", "Resources", "About"];
 
 export default function LandingHeader() {
+  const navigate = useNavigate();
   return (
     <div className="bg-gradient-to-b from-[#F1EEFC] to-white">
       <div className="px-4 sm:px-6 lg:px-20 pt-8">
@@ -15,11 +16,26 @@ export default function LandingHeader() {
 
           <div className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2A2F55]">
             {navLinks.map((l) => {
+              if (l === "Home") {
+                return <Link key={l} to="/" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
               if (l === "Products") {
                 return <Link key={l} to="/products" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
               }
+              if (l === "Solutions") {
+                return <Link key={l} to="/solutions" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "Pricing") {
+                return <Link key={l} to="/pricing" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "Resources") {
+                return <Link key={l} to="/resources" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "About") {
+                return <Link key={l} to="/about" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
               return (
-                <a key={l} href={l === "Platform" ? "/#platform" : l === "Pricing" ? "/#pricing" : "/"} className="hover:text-[#4F46E5] transition-colors">
+                <a key={l} href={l === "Platform" ? "/platform" : "/"} className="hover:text-[#4F46E5] transition-colors">
                   {l}
                 </a>
               );
@@ -30,7 +46,7 @@ export default function LandingHeader() {
             <Link to="/login" className="text-[#1E1B4B] no-underline">
               Sign In
             </Link>
-            <button className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
+            <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
               Get a Demo <ArrowRight size={15} />
             </button>
           </div>

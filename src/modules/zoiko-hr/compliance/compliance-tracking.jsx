@@ -1,149 +1,134 @@
-import { useState, useEffect, useMemo } from "react";
-import { NavLink } from "react-router-dom";
-import { Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { User, ShieldCheck, LayoutDashboard, Library, ClipboardCheck, AlertTriangle, Settings } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getAcknowledgements } from "../../../service/hrService";
+import { getAcknowledgements, getAudits } from "../../../service/hrService";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/compliance" },
-  { label: "Policy Library", href: "/zoiko-hr/compliance/policies" },
-  { label: "Compliance Tracking", href: "/zoiko-hr/compliance/tracking" },
-  { label: "Audits", href: "/zoiko-hr/compliance/audits" },
-  { label: "Violations", href: "/zoiko-hr/compliance/violations" },
-  { label: "Risk Assessment", href: "/zoiko-hr/compliance/risks" },
-  { label: "Regulations", href: "/zoiko-hr/compliance/regulations" },
-  { label: "Corrective Actions", href: "/zoiko-hr/compliance/corrective-actions" },
-  { label: "Reports", href: "/zoiko-hr/compliance/reports" },
-  { label: "Settings", href: "/zoiko-hr/compliance/settings" },
-];
+function EmbeddedSubNav() {
+  const location = useLocation();
+  const NAV_ITEMS = [
+    { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
+    { label: "Policy Library", href: "/comply/policies", icon: Library },
+    { label: "Tracking & Audits", href: "/comply/audits", icon: ClipboardCheck },
+    { label: "Violations & Actions", href: "/comply/incidents", icon: AlertTriangle },
+    { label: "Risks & Settings", href: "/comply/settings", icon: Settings },
+  ];
 
-function SubNav() {
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.href} to={item.href} end={item.href === "/zoiko-hr/compliance"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              isActive ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }>
-          {item.label}
-        </NavLink>
-      ))}
+    <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-4 mb-6">
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            to={item.href}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              isActive ? "bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100" : "text-gray-600 hover:bg-gray-50 border border-transparent"
+            }`}
+          >
+            <Icon size={16} />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
 
-function StatusBadge({ status }) {
-  const colorMap = {
-    acknowledged: "bg-emerald-100 text-emerald-800", pending: "bg-yellow-100 text-yellow-800",
-    overdue: "bg-red-100 text-red-800",
-  };
-  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colorMap[status] || "bg-gray-100 text-gray-800"}`}>{status?.replace(/_/g, " ")}</span>;
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  try { return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }); }
-  catch { return dateStr; }
-}
-
-export default function ComplianceTracking() {
+export default function TrackingAuditsHub() {
   const [tracking, setTracking] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [audits, setAudits] = useState([]);
+  const [viewMode, setViewMode] = useState("logs");
 
   useEffect(() => {
-    let mounted = true;
-    getAcknowledgements()
-      .then((res) => { if (mounted) setTracking(Array.isArray(res) ? res : res?.data || []); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
+    getAcknowledgements().then((res) => setTracking(Array.isArray(res) ? res : res?.data || []));
+    getAudits().then((res) => setAudits(Array.isArray(res) ? res : res?.data || []));
   }, []);
 
-  const filtered = useMemo(() => {
-    let result = tracking;
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter((t) => t.employee?.toLowerCase().includes(q) || t.policy?.toLowerCase().includes(q));
-    }
-    if (statusFilter) result = result.filter((t) => t.status === statusFilter);
-    return result;
-  }, [tracking, search, statusFilter]);
-
-  const completionRate = tracking.length > 0
-    ? Math.round((tracking.filter((t) => t.status === "acknowledged").length / tracking.length) * 100)
-    : 0;
-
-  const overdueCount = tracking.filter((t) => t.status === "overdue").length;
-
-  if (loading) return <div className="p-6 text-gray-400">Loading compliance tracking...</div>;
-
   return (
-    <HRPage title="Compliance Tracking" subtitle="Track policy acknowledgments and compliance status">
-      <SubNav />
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <p className="text-sm text-gray-500">Total Records</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{tracking.length}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <p className="text-sm text-gray-500">Completion Rate</p>
-            <div className="flex items-center gap-3 mt-1">
-              <p className="text-2xl font-bold text-emerald-600">{completionRate}%</p>
-              <div className="flex-1 bg-gray-100 rounded-full h-2.5">
-                <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: `${completionRate}%` }} />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <p className="text-sm text-gray-500">Overdue</p>
-            <p className="text-2xl font-bold text-red-600 mt-1">{overdueCount}</p>
-          </div>
+    <HRPage title="Execution Trackers & Audits" subtitle="Track user document confirmations alongside structured systems checks.">
+      <EmbeddedSubNav />
+      
+      <div className="flex justify-between items-center mb-5">
+        <div className="inline-flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">
+          <button 
+            onClick={() => setViewMode("logs")} 
+            className={`px-4 py-2 rounded-lg transition-all ${viewMode === "logs" ? "bg-white shadow text-emerald-700 font-bold" : "text-gray-500 hover:text-gray-900"}`}
+          >
+            Employee Acknowledgments
+          </button>
+          <button 
+            onClick={() => setViewMode("audits")} 
+            className={`px-4 py-2 rounded-lg transition-all ${viewMode === "audits" ? "bg-white shadow text-emerald-700 font-bold" : "text-gray-500 hover:text-gray-900"}`}
+          >
+            Structural System Audits
+          </button>
         </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="w-full rounded-xl border border-gray-300 pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Search employee or policy..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
-          <select className="rounded-xl border border-gray-300 px-3 py-2 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="acknowledged">Acknowledged</option>
-            <option value="pending">Pending</option>
-            <option value="overdue">Overdue</option>
-          </select>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
-              <tr>
-                {["Employee", "Policy", "Status", "Acknowledged", "Due Date", "Score"].map((h) => (
-                  <th key={h} className="px-3 py-3 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((t, i) => (
-                <tr key={t.id || i} className="border-b border-gray-50 hover:bg-gray-50 text-sm">
-                  <td className="px-3 py-3 font-medium text-gray-900">{t.employee}</td>
-                  <td className="px-3 py-3 text-gray-700">{t.policy}</td>
-                  <td className="px-3 py-3"><StatusBadge status={t.status} /></td>
-                  <td className="px-3 py-3">{formatDate(t.acknowledgedDate)}</td>
-                  <td className="px-3 py-3">{formatDate(t.dueDate)}</td>
-                  <td className="px-3 py-3">{t.score > 0 ? <span className="text-emerald-600 font-medium">{t.score}%</span> : <span className="text-gray-400">—</span>}</td>
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        {viewMode === "logs" ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-gray-50 border-b text-xs text-gray-500 uppercase font-semibold">
+                <tr>
+                  <th className="p-4">Staff Resource</th>
+                  <th className="p-4">Assigned Guideline</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Due Date</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-3 py-8 text-center text-gray-400">No tracking records</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tracking.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50/70 transition-colors">
+                    <td className="p-4 font-semibold text-gray-900 flex items-center gap-2">
+                      <User size={15} className="text-gray-400" /> {t.employee}
+                    </td>
+                    <td className="p-4 text-gray-600 font-medium">{t.policy}</td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
+                        t.status === "acknowledged" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                      }`}>
+                        {t.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-gray-500 font-medium">{t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-gray-50 border-b text-xs text-gray-500 uppercase font-semibold">
+                <tr>
+                  <th className="p-4">Evaluation Target</th>
+                  <th className="p-4">Lead Auditor</th>
+                  <th className="p-4">Score Metrics</th>
+                  <th className="p-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {audits.map((a) => (
+                  <tr key={a.id} className="hover:bg-gray-50/70 transition-colors">
+                    <td className="p-4 font-semibold text-gray-900 flex items-center gap-2">
+                      <ShieldCheck size={16} className="text-blue-500" /> {a.title}
+                    </td>
+                    <td className="p-4 text-gray-600 font-medium">{a.auditor}</td>
+                    <td className="p-4 font-bold text-emerald-600">{a.score ? `${a.score}%` : "—"}</td>
+                    <td className="p-4">
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-xs font-semibold uppercase">
+                        {a.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </HRPage>
   );

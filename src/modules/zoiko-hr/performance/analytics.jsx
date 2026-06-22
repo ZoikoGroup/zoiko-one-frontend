@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { Download, BarChart, PieChart, TrendingUp, Target, CheckCircle, Star, Users, FileText, Printer } from "lucide-react";
 import HRPage from "../../../components/HRPage";
@@ -115,7 +115,7 @@ export default function PerformanceAnalytics() {
   const pieData = [
     { name: "Completed", value: d.completed_reviews ?? 0, color: "#10B981" },
     { name: "Pending", value: d.pending_reviews ?? 0, color: "#F59E0B" },
-  ];n
+  ];
   return (
     <div ref={analyticsRef} className="min-h-screen bg-gray-50">
       <HRPage title="Performance Analytics" subtitle="Key performance metrics and trends">

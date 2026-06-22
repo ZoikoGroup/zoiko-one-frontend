@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { getExecutiveDashboard } from "../../service/insightsService";
 import { DollarSign, Users, Briefcase, TrendingUp, ShieldCheck, Activity, PieChart, TrendingDown, Minus } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, PieChart as RPieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";

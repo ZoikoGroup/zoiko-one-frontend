@@ -1,4 +1,6 @@
 import React, { useState, useRef } from "react";
+import LandingHeader from "../landing/LandingHeader";
+import Footer from "../landing/Footer";
 import {
   Crown,
   DollarSign,
@@ -229,6 +231,7 @@ export default function ZoikoDemoPage() {
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#fff", color: NAVY }}>
+      <LandingHeader />
       {/* ============ HERO + FORM ============ */}
       <section style={{ padding: "72px 24px", maxWidth: 1280, margin: "0 auto" }}>
         <div
@@ -671,6 +674,7 @@ export default function ZoikoDemoPage() {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 }

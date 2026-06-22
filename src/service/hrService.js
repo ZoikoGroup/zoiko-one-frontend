@@ -137,10 +137,10 @@ export const createEss = (payload) => api.post("/hr/ess", payload);
 export const updateEss = (id, payload) => api.put(`/hr/ess/${id}`, payload);
 export const deleteEss = (id) => api.delete(`/hr/ess/${id}`);
 
-export const getOnboardingTasks = (employeeId) => api.get(`/hr/onboarding${employeeId ? `?employee_id=${employeeId}` : ''}`);
-export const createOnboardingTask = (payload) => api.post("/hr/onboarding", payload);
-export const updateOnboardingTask = (id, payload) => api.put(`/hr/onboarding/${id}`, payload);
-export const deleteOnboardingTask = (id) => api.delete(`/hr/onboarding/${id}`);
+export const getOnboardingTasks = (employeeId) => api.get(`/hr/onboarding/preboarding-tasks${employeeId ? `?employee_id=${employeeId}` : ''}`);
+export const createOnboardingTask = (payload) => api.post("/hr/onboarding/preboarding-tasks", payload);
+export const updateOnboardingTask = (id, payload) => api.put(`/hr/onboarding/preboarding-tasks/${id}`, payload);
+export const deleteOnboardingTask = (id) => api.delete(`/hr/onboarding/preboarding-tasks/${id}`);
 
 export const getOnboardingRecords = () => api.get("/hr/onboarding/records");
 export const getOnboardingRecordById = (id) => api.get(`/hr/onboarding/records/${id}`);
@@ -168,68 +168,15 @@ export const createOnboardingChecklistAssignment = (payload) => api.post("/hr/on
 export const updateOnboardingChecklistAssignment = (id, payload) => api.put(`/hr/onboarding/checklist-assignments/${id}`, payload);
 export const deleteOnboardingChecklistAssignment = (id) => api.delete(`/hr/onboarding/checklist-assignments/${id}`);
 
-// ── ONBOARDING MENTOR ASSIGNMENTS ────────────────────────────────────────
-export const getOnboardingMentorAssignments = (recordId) => api.get(`/hr/onboarding/mentor-assignments${recordId ? `?onboarding_record_id=${recordId}` : ''}`);
-export const createOnboardingMentorAssignment = (payload) => api.post("/hr/onboarding/mentor-assignments", payload);
-export const updateOnboardingMentorAssignment = (id, payload) => api.put(`/hr/onboarding/mentor-assignments/${id}`, payload);
-export const deleteOnboardingMentorAssignment = (id) => api.delete(`/hr/onboarding/mentor-assignments/${id}`);
-
-// ── ONBOARDING ASSET ALLOCATIONS ─────────────────────────────────────────
-export const getOnboardingAssetAllocations = (recordId) => api.get(`/hr/onboarding/asset-allocations${recordId ? `?onboarding_record_id=${recordId}` : ''}`);
-export const createOnboardingAssetAllocation = (payload) => api.post("/hr/onboarding/asset-allocations", payload);
-export const updateOnboardingAssetAllocation = (id, payload) => api.put(`/hr/onboarding/asset-allocations/${id}`, payload);
-export const deleteOnboardingAssetAllocation = (id) => api.delete(`/hr/onboarding/asset-allocations/${id}`);
-
-// ── ONBOARDING ACCESS REQUESTS ───────────────────────────────────────────
-export const getOnboardingAccessRequests = (recordId) => api.get(`/hr/onboarding/access-requests${recordId ? `?onboarding_record_id=${recordId}` : ''}`);
-export const createOnboardingAccessRequest = (payload) => api.post("/hr/onboarding/access-requests", payload);
-export const updateOnboardingAccessRequest = (id, payload) => api.put(`/hr/onboarding/access-requests/${id}`, payload);
-export const deleteOnboardingAccessRequest = (id) => api.delete(`/hr/onboarding/access-requests/${id}`);
-
-// ── ONBOARDING ORIENTATION SESSIONS ──────────────────────────────────────
+// ── ONBOARDING ORIENTATIONS ──────────────────────────────────────────────
 export const getOnboardingOrientationSessions = () => api.get("/hr/onboarding/orientation-sessions");
-export const getOnboardingOrientationSessionById = (id) => api.get(`/hr/onboarding/orientation-sessions/${id}`);
 export const createOnboardingOrientationSession = (payload) => api.post("/hr/onboarding/orientation-sessions", payload);
 export const updateOnboardingOrientationSession = (id, payload) => api.put(`/hr/onboarding/orientation-sessions/${id}`, payload);
 export const deleteOnboardingOrientationSession = (id) => api.delete(`/hr/onboarding/orientation-sessions/${id}`);
-
-// ── ONBOARDING ORIENTATION ATTENDEES ─────────────────────────────────────
-export const getOnboardingOrientationAttendees = (sessionId, recordId) => {
-  let url = "/hr/onboarding/orientation-attendees";
-  const params = [];
-  if (sessionId) params.push(`session_id=${sessionId}`);
-  if (recordId) params.push(`onboarding_record_id=${recordId}`);
-  if (params.length) url += `?${params.join("&")}`;
-  return api.get(url);
-};
+export const getOnboardingOrientationAttendees = (sessionId) => api.get(`/hr/onboarding/orientation-attendees${sessionId ? `?session_id=${sessionId}` : ""}`);
 export const createOnboardingOrientationAttendee = (payload) => api.post("/hr/onboarding/orientation-attendees", payload);
 export const updateOnboardingOrientationAttendee = (id, payload) => api.put(`/hr/onboarding/orientation-attendees/${id}`, payload);
 export const deleteOnboardingOrientationAttendee = (id) => api.delete(`/hr/onboarding/orientation-attendees/${id}`);
-
-// ── ONBOARDING TRAINING PATHS ────────────────────────────────────────────
-export const getOnboardingTrainingPaths = (type) => api.get(`/hr/onboarding/training-paths${type ? `?training_type=${type}` : ''}`);
-export const getOnboardingTrainingPathById = (id) => api.get(`/hr/onboarding/training-paths/${id}`);
-export const createOnboardingTrainingPath = (payload) => api.post("/hr/onboarding/training-paths", payload);
-export const updateOnboardingTrainingPath = (id, payload) => api.put(`/hr/onboarding/training-paths/${id}`, payload);
-export const deleteOnboardingTrainingPath = (id) => api.delete(`/hr/onboarding/training-paths/${id}`);
-
-// ── ONBOARDING TRAINING ASSIGNMENTS ──────────────────────────────────────
-export const getOnboardingTrainingAssignments = (recordId) => api.get(`/hr/onboarding/training-assignments${recordId ? `?onboarding_record_id=${recordId}` : ''}`);
-export const createOnboardingTrainingAssignment = (payload) => api.post("/hr/onboarding/training-assignments", payload);
-export const updateOnboardingTrainingAssignment = (id, payload) => api.put(`/hr/onboarding/training-assignments/${id}`, payload);
-export const deleteOnboardingTrainingAssignment = (id) => api.delete(`/hr/onboarding/training-assignments/${id}`);
-
-// ── ONBOARDING CERTIFICATIONS ────────────────────────────────────────────
-export const getOnboardingCertifications = (recordId) => api.get(`/hr/onboarding/certifications${recordId ? `?onboarding_record_id=${recordId}` : ''}`);
-export const createOnboardingCertification = (payload) => api.post("/hr/onboarding/certifications", payload);
-export const updateOnboardingCertification = (id, payload) => api.put(`/hr/onboarding/certifications/${id}`, payload);
-export const deleteOnboardingCertification = (id) => api.delete(`/hr/onboarding/certifications/${id}`);
-
-// ── ONBOARDING MILESTONES ────────────────────────────────────────────────
-export const getOnboardingMilestones = (recordId) => api.get(`/hr/onboarding/milestones${recordId ? `?onboarding_record_id=${recordId}` : ''}`);
-export const createOnboardingMilestone = (payload) => api.post("/hr/onboarding/milestones", payload);
-export const updateOnboardingMilestone = (id, payload) => api.put(`/hr/onboarding/milestones/${id}`, payload);
-export const deleteOnboardingMilestone = (id) => api.delete(`/hr/onboarding/milestones/${id}`);
 
 // ── ONBOARDING ACTIVITIES ────────────────────────────────────────────────
 export const getOnboardingActivities = (limit = 50) => api.get(`/hr/onboarding/activities?limit=${limit}`);
@@ -237,9 +184,7 @@ export const getOnboardingActivities = (limit = 50) => api.get(`/hr/onboarding/a
 // ── ONBOARDING DASHBOARD & REPORTS ───────────────────────────────────────
 export const getOnboardingDashboard = () => api.get("/hr/onboarding/dashboard");
 export const getOnboardingJoiningReport = () => api.get("/hr/onboarding/reports/joining");
-export const getOnboardingPendingActivities = () => api.get("/hr/onboarding/reports/pending-activities");
-export const getOnboardingCompletionReport = () => api.get("/hr/onboarding/reports/completion");
-export const getOnboardingDepartmentReport = () => api.get("/hr/onboarding/reports/department-wise");
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // ASSETS

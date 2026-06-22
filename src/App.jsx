@@ -53,12 +53,7 @@ import ZoikoHROnboardingNewHires from "./modules/zoiko-hr/onboarding/new-hires.j
 import ZoikoHROnboardingPreOnboarding from "./modules/zoiko-hr/onboarding/pre-onboarding.jsx";
 import ZoikoHROnboardingDocuments from "./modules/zoiko-hr/onboarding/documents.jsx";
 import ZoikoHROnboardingChecklists from "./modules/zoiko-hr/onboarding/checklists.jsx";
-import ZoikoHROnboardingDeptAssignment from "./modules/zoiko-hr/onboarding/department-assignment.jsx";
-import ZoikoHROnboardingManagerAssignment from "./modules/zoiko-hr/onboarding/manager-assignment.jsx";
-import ZoikoHROnboardingAssetsAccess from "./modules/zoiko-hr/onboarding/assets-access.jsx";
 import ZoikoHROnboardingOrientation from "./modules/zoiko-hr/onboarding/orientation.jsx";
-import ZoikoHROnboardingTraining from "./modules/zoiko-hr/onboarding/training.jsx";
-import ZoikoHROnboardingProgress from "./modules/zoiko-hr/onboarding/progress.jsx";
 import ZoikoHROnboardingReports from "./modules/zoiko-hr/onboarding/reports.jsx";
 import ZoikoHROnboardingSettings from "./modules/zoiko-hr/onboarding/settings.jsx";
 import ZoikoHRLearning from "./modules/zoiko-hr/learning/learning.jsx";
@@ -262,16 +257,7 @@ const routeOverrides = {
   "/zoiko-hr/onboarding/pre-onboarding": <ZoikoHROnboardingPreOnboarding />,
   "/zoiko-hr/onboarding/documents": <ZoikoHROnboardingDocuments />,
   "/zoiko-hr/onboarding/checklists": <ZoikoHROnboardingChecklists />,
-  "/zoiko-hr/onboarding/department-assignment": (
-    <ZoikoHROnboardingDeptAssignment />
-  ),
-  "/zoiko-hr/onboarding/manager-assignment": (
-    <ZoikoHROnboardingManagerAssignment />
-  ),
-  "/zoiko-hr/onboarding/assets-access": <ZoikoHROnboardingAssetsAccess />,
   "/zoiko-hr/onboarding/orientation": <ZoikoHROnboardingOrientation />,
-  "/zoiko-hr/onboarding/training": <ZoikoHROnboardingTraining />,
-  "/zoiko-hr/onboarding/progress": <ZoikoHROnboardingProgress />,
   "/zoiko-hr/onboarding/reports": <ZoikoHROnboardingReports />,
   "/zoiko-hr/onboarding/settings": <ZoikoHROnboardingSettings />,
   // Assets submodule routes

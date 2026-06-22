@@ -117,7 +117,6 @@ const products = {
           badge: "HR",
           children: [
             { label: "Dashboard",          href: "/zoiko-hr",                    icon: LayoutDashboard },
-            { label: "Workforce",          href: "/zoiko-hr/workforce",          icon: Users },
             { label: "Documents",          icon: FileText, children: [
               { label: "Dashboard",            href: "/zoiko-hr/documents",                   icon: LayoutDashboard },
               { label: "Employee Documents",   href: "/zoiko-hr/documents/employee-documents", icon: FileText },
@@ -248,17 +247,16 @@ const products = {
               { label: "Expenses",           href: "/zoiko-hr/travel/expenses",       icon: Receipt },
               { label: "Settings",           href: "/zoiko-hr/travel/settings",       icon: SlidersHorizontal },
             ]},
-            { label: "Compliance",        icon: ShieldCheck, children: [
-              { label: "Dashboard",           href: "/zoiko-hr/compliance",             icon: LayoutDashboard },
-              { label: "Policy Library",      href: "/zoiko-hr/compliance/policies",    icon: FileCheck2 },
-              { label: "Compliance Tracking", href: "/zoiko-hr/compliance/tracking",    icon: ClipboardCheck },
-              { label: "Audits",              href: "/zoiko-hr/compliance/audits",      icon: Search },
-              { label: "Violations",          href: "/zoiko-hr/compliance/violations",  icon: AlertTriangle },
-              { label: "Risk Assessment",     href: "/zoiko-hr/compliance/risks",       icon: Shield },
-              { label: "Regulations",         href: "/zoiko-hr/compliance/regulations", icon: BookOpen },
-              { label: "Corrective Actions",  href: "/zoiko-hr/compliance/corrective-actions", icon: Briefcase },
-              { label: "Reports",             href: "/zoiko-hr/compliance/reports",     icon: FileText },
-              { label: "Settings",            href: "/zoiko-hr/compliance/settings",    icon: SlidersHorizontal },
+           { 
+  label: "Compliance", 
+  icon: ShieldCheck, 
+  children: [
+    { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
+    { label: "Policy Library", href: "/comply/policies", icon: FileCheck2 },
+    { label: "Tracking & Audits", href: "/comply/audits", icon: Search },
+    { label: "Violations & Actions", href: "/comply/incidents", icon: AlertTriangle },
+    { label: "Risks & Settings", href: "/comply/settings", icon: SlidersHorizontal },
+ 
             ]},
             { label: "Engagement",         icon: HeartHandshake, children: [
               { label: "Wellness Programs", href: "/zoiko-hr/engagement/wellness", icon: HeartHandshake },
@@ -354,18 +352,12 @@ const products = {
           icon: FileCheck2,
           badge: "Comply",
           children: [
-            { label: "Dashboard", href: "/comply", icon: LayoutDashboard },
-            { label: "Policies", href: "/comply/policies", icon: FileCheck2 },
-            { label: "Audits", href: "/comply/audits", icon: Search },
-            { label: "Incidents", href: "/comply/incidents", icon: Activity },
-            { label: "Certifications", href: "/comply/certifications", icon: Award },
-            { label: "Compliance Monitoring", href: "/comply/compliance-monitoring", icon: ClipboardCheck },
-            { label: "Reports", href: "/comply/reports", icon: BarChart3 },
-            { label: "Settings", href: "/comply/settings", icon: SlidersHorizontal },
-            { label: "Risk Management", href: "/comply/risk-management", icon: AlertTriangle },
-            { label: "Controls", href: "/comply/controls", icon: Shield },
-            { label: "Compliance Training", href: "/comply/training", icon: BookOpen },
-          ],
+  { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
+  { label: "Policy Library", href: "/comply/policies", icon: FileCheck2 },
+  { label: "Tracking & Audits", href: "/comply/audits", icon: Search },
+  { label: "Violations & Actions", href: "/comply/incidents", icon: Activity },
+  { label: "Risks & Settings", href: "/comply/settings", icon: SlidersHorizontal },
+],
         },
         {
           label: "Zoiko Insights",

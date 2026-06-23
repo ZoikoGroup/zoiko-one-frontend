@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import logo from "../../assets/logo.png";
+import LandingHeader from "../../landing/LandingHeader";
 import Footer from "../../landing/Footer";
 
 export default function RegisterPage() {
@@ -46,24 +46,24 @@ export default function RegisterPage() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
       background: "linear-gradient(135deg, #fff7f0 0%, #ffffff 50%, #f0f4ff 100%)",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-      padding: "40px 24px"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     }}>
-      <div style={{ width: "100%", maxWidth: "680px" }}>
-        {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <Link to="/">
-            <img src={logo} alt="Zoiko One" style={{ height: "44px", width: "auto", objectFit: "contain", marginBottom: "24px", display: "inline-block" }} />
-          </Link>
-          <h1 style={{ fontSize: "26px", fontWeight: "800", color: "#111827", margin: "0 0 8px 0", letterSpacing: "-0.5px" }}>
-            Create your account
-          </h1>
-          <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>
-            Start with one product. Connect the business. Scale with Zoiko One.
-          </p>
-        </div>
+      <LandingHeader />
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        padding: "40px 24px"
+      }}>
+        <div style={{ width: "100%", maxWidth: "680px" }}>
+          <div style={{ textAlign: "center", marginBottom: "36px" }}>
+            <h1 style={{ fontSize: "26px", fontWeight: "800", color: "#111827", margin: "0 0 8px 0", letterSpacing: "-0.5px" }}>
+              Create your account
+            </h1>
+            <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>
+              Start with one product. Connect the business. Scale with Zoiko One.
+            </p>
+          </div>
 
         {/* Card */}
         <div style={{
@@ -359,6 +359,7 @@ export default function RegisterPage() {
             ← Back to homepage
           </Link>
         </p>
+      </div>
       </div>
 
       <style>{`

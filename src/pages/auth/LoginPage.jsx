@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import logo from "../../assets/logo.png";
+import LandingHeader from "../../landing/LandingHeader";
+import Footer from "../../landing/Footer";
 
 // Social icons as inline SVGs to avoid extra deps
 const GoogleIcon = () => (
@@ -97,256 +98,253 @@ export default function LoginPage() {
     <div style={{
       minHeight: "100vh",
       display: "flex",
+      flexDirection: "column",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       background: "#ffffff",
     }}>
-      {/* ── Left panel: login form ── */}
-      <div style={{
-        flex: "1",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "48px 40px",
-        background: "white",
-        minHeight: "100vh",
-        // subtle watermark-style radial pattern
-        backgroundImage: `
-          radial-gradient(circle at 20% 80%, rgba(255,107,0,0.04) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 50%)
-        `,
-      }}>
-        <div style={{ width: "100%", maxWidth: "400px" }}>
-          {/* Logo */}
-          <div style={{ marginBottom: "32px" }}>
-            <Link to="/">
-              <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />
-            </Link>
-          </div>
+      <LandingHeader />
+      <div style={{ display: "flex", flex: 1 }}>
+        {/* ── Left panel: login form ── */}
+        <div style={{
+          flex: "1",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "48px 40px",
+          background: "white",
+          // subtle watermark-style radial pattern
+          backgroundImage: `
+            radial-gradient(circle at 20% 80%, rgba(255,107,0,0.04) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 50%)
+          `,
+        }}>
+          <div style={{ width: "100%", maxWidth: "400px" }}>
+            {/* Heading */}
+            <h1 style={{ fontSize: "28px", fontWeight: "800", color: "#0F172A", margin: "0 0 32px 0", letterSpacing: "-0.5px" }}>
+              Sign in to Zoiko One.
+            </h1>
 
-          {/* Heading */}
-          <h1 style={{ fontSize: "28px", fontWeight: "800", color: "#0F172A", margin: "0 0 32px 0", letterSpacing: "-0.5px" }}>
-            Sign in to Zoiko One.
-          </h1>
+            {/* Error */}
+            {(localError || authError) && (
+              <div style={{
+                display: "flex", alignItems: "flex-start", gap: "8px",
+                background: "#FEF2F2", border: "1px solid #FECACA",
+                borderRadius: "8px", padding: "12px 14px", marginBottom: "20px"
+              }}>
+                <AlertCircle size={15} color="#DC2626" style={{ marginTop: "1px", flexShrink: 0 }} />
+                <span style={{ fontSize: "13px", color: "#DC2626" }}>{localError || authError}</span>
+              </div>
+            )}
 
-          {/* Error */}
-          {(localError || authError) && (
-            <div style={{
-              display: "flex", alignItems: "flex-start", gap: "8px",
-              background: "#FEF2F2", border: "1px solid #FECACA",
-              borderRadius: "8px", padding: "12px 14px", marginBottom: "20px"
-            }}>
-              <AlertCircle size={15} color="#DC2626" style={{ marginTop: "1px", flexShrink: 0 }} />
-              <span style={{ fontSize: "13px", color: "#DC2626" }}>{localError || authError}</span>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {/* Email */}
-            <div>
-              <label htmlFor="email" style={{ display: "block", fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
-                Email address
-              </label>
-              <input
-                id="email" type="email" required autoComplete="email"
-                value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = "#FF6B00"}
-                onBlur={e => e.target.style.borderColor = "#E5E7EB"}
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" style={{ display: "block", fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
-                Password
-              </label>
-              <div style={{ position: "relative" }}>
+            {/* Form */}
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Email */}
+              <div>
+                <label htmlFor="email" style={{ display: "block", fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
+                  Email address
+                </label>
                 <input
-                  id="password" type={showPassword ? "text" : "password"} required
-                  autoComplete="current-password" value={password}
-                  onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-                  style={{ ...inputStyle, paddingRight: "44px" }}
+                  id="email" type="email" required autoComplete="email"
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  style={inputStyle}
                   onFocus={e => e.target.style.borderColor = "#FF6B00"}
                   onBlur={e => e.target.style.borderColor = "#E5E7EB"}
                 />
-                <button type="button" onClick={() => setShowPassword(v => !v)}
-                  style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", padding: 0 }}
-                  aria-label={showPassword ? "Hide password" : "Show password"}>
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
               </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" style={{ display: "block", fontSize: "13px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
+                  Password
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    id="password" type={showPassword ? "text" : "password"} required
+                    autoComplete="current-password" value={password}
+                    onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+                    style={{ ...inputStyle, paddingRight: "44px" }}
+                    onFocus={e => e.target.style.borderColor = "#FF6B00"}
+                    onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+                  />
+                  <button type="button" onClick={() => setShowPassword(v => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", padding: 0 }}
+                    aria-label={showPassword ? "Hide password" : "Show password"}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button type="submit" disabled={submitting}
+                style={{
+                  width: "100%", padding: "13px", borderRadius: "50px", border: "none",
+                  fontSize: "15px", fontWeight: "600", color: "white",
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  background: submitting ? "#FFA366" : "linear-gradient(135deg, #FF8C00, #FFA500)",
+                  boxShadow: "0 4px 16px rgba(255,140,0,0.4)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                  marginTop: "4px",
+                  letterSpacing: "0.01em",
+                }}>
+                {submitting && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
+                {submitting ? "Signing in…" : "Sign In →"}
+              </button>
+            </form>
+
+            {/* Forgot */}
+            <div style={{ textAlign: "center", marginTop: "16px" }}>
+              <a href="#" style={{ fontSize: "13px", color: "#FF6B00", textDecoration: "none", fontWeight: "500" }}>
+                Forgot password?
+              </a>
             </div>
 
-            {/* Submit */}
-            <button type="submit" disabled={submitting}
-              style={{
-                width: "100%", padding: "13px", borderRadius: "50px", border: "none",
-                fontSize: "15px", fontWeight: "600", color: "white",
-                cursor: submitting ? "not-allowed" : "pointer",
-                background: submitting ? "#FFA366" : "linear-gradient(135deg, #FF8C00, #FFA500)",
-                boxShadow: "0 4px 16px rgba(255,140,0,0.4)",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                marginTop: "4px",
-                letterSpacing: "0.01em",
-              }}>
-              {submitting && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
-              {submitting ? "Signing in…" : "Sign In →"}
-            </button>
-          </form>
+            {/* Divider */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0" }}>
+              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+              <span style={{ fontSize: "12px", color: "#9CA3AF" }}>or</span>
+              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+            </div>
 
-          {/* Forgot */}
-          <div style={{ textAlign: "center", marginTop: "16px" }}>
-            <a href="#" style={{ fontSize: "13px", color: "#FF6B00", textDecoration: "none", fontWeight: "500" }}>
-              Forgot password?
-            </a>
-          </div>
-
-          {/* Divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0" }}>
-            <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
-            <span style={{ fontSize: "12px", color: "#9CA3AF" }}>or</span>
-            <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
-          </div>
-
-          {/* Social logins */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {[
-              { icon: <GoogleIcon />, label: "Continue with Google" },
-              { icon: <MicrosoftIcon />, label: "Continue with Microsoft" },
-              { icon: <SSOIcon />, label: "Continue with SSO" },
-            ].map(({ icon, label }) => (
-              <button key={label} type="button"
-                style={{
-                  width: "100%", padding: "11px 16px", borderRadius: "8px",
-                  border: "1.5px solid #E5E7EB", background: "white",
-                  fontSize: "14px", color: "#374151", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: "10px",
-                  fontFamily: "inherit", fontWeight: "500",
-                  transition: "border-color 0.15s, background 0.15s",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.background = "#F9FAFB"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
-              >
-                {icon}
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Policy note */}
-          <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "24px", lineHeight: "1.6" }}>
-            🔵 Your access is governed by your organization's permissions, roles, workspace settings and security policies.
-          </p>
-        </div>
-      </div>
-
-      {/* ── Right panel: blue promo ── */}
-      <div style={{
-        flex: "1",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: "60px 56px",
-        background: "linear-gradient(160deg, #0a1f8f 0%, #1535cc 50%, #0e28a8 100%)",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Background decorative circles */}
-        <div style={{
-          position: "absolute", top: "-120px", right: "-80px",
-          width: "360px", height: "360px",
-          background: "radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)",
-          borderRadius: "50%",
-        }} />
-        <div style={{
-          position: "absolute", bottom: "-100px", left: "-60px",
-          width: "280px", height: "280px",
-          background: "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)",
-          borderRadius: "50%",
-        }} />
-
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "440px" }}>
-          {/* Eyebrow */}
-          <p style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "0.12em", color: "#FFA500", textTransform: "uppercase", margin: "0 0 16px 0" }}>
-            NEW TO ZOIKO ONE?
-          </p>
-
-          {/* Headline */}
-          <h2 style={{
-            fontSize: "38px", fontWeight: "800", color: "white",
-            lineHeight: "1.15", margin: "0 0 16px 0", letterSpacing: "-0.5px"
-          }}>
-            Run your business on one connected platform.
-          </h2>
-
-          {/* Sub */}
-          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", lineHeight: "1.7", margin: "0 0 36px 0" }}>
-            You don't need an account to explore. See how Zoiko One connects people, money, work, supply and control.
-          </p>
-
-          {/* Sign Up Link */}
-          <Link to="/register"
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "14px 24px", borderRadius: "50px",
-              background: "linear-gradient(135deg, #FF8C00, #FFA500)",
-              color: "white", fontSize: "15px", fontWeight: "700",
-              textDecoration: "none", marginBottom: "24px",
-              boxShadow: "0 4px 16px rgba(255,140,0,0.35)",
-            }}>
-            Create your account →
-          </Link>
-
-          {/* CTA cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {[
-              {
-                icon: <DemoIcon />,
-                title: "Get a Demo",
-                sub: "See it tailored to your business",
-              },
-              {
-                icon: <PricingIcon />,
-                title: "Request Pricing",
-                sub: "Find your pricing path",
-              },
-              {
-                icon: <ProductsIcon />,
-                title: "Explore Products",
-                sub: "Nine core products + Docs Pro",
-              },
-            ].map(({ icon, title, sub }) => (
-              <button key={title} type="button"
-                onClick={() => title === "Get a Demo" && navigate("/get-demo")}
-                style={{
-                  display: "flex", alignItems: "center", gap: "14px",
-                  padding: "16px 20px", borderRadius: "12px",
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  cursor: "pointer", textAlign: "left", width: "100%",
-                  transition: "background 0.15s",
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.14)"}
-                onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
-              >
-                {/* Icon box */}
-                <div style={{
-                  width: "36px", height: "36px", borderRadius: "8px",
-                  background: "rgba(255,255,255,0.12)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0,
-                }}>
+            {/* Social logins */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[
+                { icon: <GoogleIcon />, label: "Continue with Google" },
+                { icon: <MicrosoftIcon />, label: "Continue with Microsoft" },
+                { icon: <SSOIcon />, label: "Continue with SSO" },
+              ].map(({ icon, label }) => (
+                <button key={label} type="button"
+                  style={{
+                    width: "100%", padding: "11px 16px", borderRadius: "8px",
+                    border: "1.5px solid #E5E7EB", background: "white",
+                    fontSize: "14px", color: "#374151", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: "10px",
+                    fontFamily: "inherit", fontWeight: "500",
+                    transition: "border-color 0.15s, background 0.15s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.background = "#F9FAFB"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
+                >
                   {icon}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "white" }}>{title}</p>
-                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.6)", marginTop: "2px" }}>{sub}</p>
-                </div>
-              </button>
-            ))}
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Policy note */}
+            <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "24px", lineHeight: "1.6" }}>
+              🔵 Your access is governed by your organization's permissions, roles, workspace settings and security policies.
+            </p>
+          </div>
+        </div>
+
+        {/* ── Right panel: blue promo ── */}
+        <div style={{
+          flex: "1",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "60px 56px",
+          background: "linear-gradient(164.56deg, #1D0A5E 0%, #240C84 60%, #150844 100%)",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          {/* Background decorative circles */}
+          <div style={{
+            position: "absolute", top: "-120px", right: "-80px",
+            width: "360px", height: "360px",
+            background: "radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)",
+            borderRadius: "50%",
+          }} />
+          <div style={{
+            position: "absolute", bottom: "-100px", left: "-60px",
+            width: "280px", height: "280px",
+            background: "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)",
+            borderRadius: "50%",
+          }} />
+
+          <div style={{ position: "relative", zIndex: 1, maxWidth: "520px" }}>
+            {/* Eyebrow */}
+            <p style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "0.12em", color: "#FFA500", textTransform: "uppercase", margin: "0 0 16px 0" }}>
+              NEW TO ZOIKO ONE?
+            </p>
+
+            {/* Headline */}
+            <h2 style={{
+              fontSize: "38px", fontWeight: "800", color: "white",
+              lineHeight: "1.15", margin: "0 0 16px 0", letterSpacing: "-0.5px"
+            }}>
+              Run your business on one connected platform.
+            </h2>
+
+            {/* Sub */}
+            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", lineHeight: "1.7", margin: "0 0 36px 0" }}>
+              You don't need an account to explore. See how Zoiko One connects people, money, work, supply and control.
+            </p>
+
+            {/* Sign Up Link */}
+            <Link to="/register"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "14px 24px", borderRadius: "50px",
+                background: "linear-gradient(135deg, #FF8C00, #FFA500)",
+                color: "white", fontSize: "15px", fontWeight: "700",
+                textDecoration: "none", marginBottom: "24px",
+                boxShadow: "0 4px 16px rgba(255,140,0,0.35)",
+              }}>
+              Create your account →
+            </Link>
+
+            {/* CTA cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {[
+                {
+                  icon: <DemoIcon />,
+                  title: "Get a Demo",
+                  sub: "See it tailored to your business",
+                },
+                {
+                  icon: <PricingIcon />,
+                  title: "Request Pricing",
+                  sub: "Find your pricing path",
+                },
+                {
+                  icon: <ProductsIcon />,
+                  title: "Explore Products",
+                  sub: "Nine core products + Docs Pro",
+                },
+              ].map(({ icon, title, sub }) => (
+                <button key={title} type="button"
+                  onClick={() => title === "Get a Demo" && navigate("/get-demo")}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "14px",
+                    padding: "16px 20px", borderRadius: "12px",
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    cursor: "pointer", textAlign: "left", width: "100%",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.14)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+                >
+                  {/* Icon box */}
+                  <div style={{
+                    width: "36px", height: "36px", borderRadius: "8px",
+                    background: "rgba(255,255,255,0.12)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    {icon}
+                  </div>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "white" }}>{title}</p>
+                    <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.6)", marginTop: "2px" }}>{sub}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -358,6 +356,7 @@ export default function LoginPage() {
           div[data-panel="right"] { display: none !important; }
         }
       `}</style>
+      <Footer />
     </div>
   );
 }

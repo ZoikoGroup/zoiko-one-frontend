@@ -5,10 +5,10 @@ import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 
 const productLinks = [
-  { label: "Zoiko HR", href: "/zoiko-hr", desc: "People & lifecycle management", color: "#4F46E5" },
-  { label: "ZoikoTime", href: "/zoikotime", desc: "Time, attendance & shifts", color: "#0891B2" },
+  { label: "Zoiko HR", href: "/products/zoiko-hr", desc: "People & lifecycle management", color: "#4F46E5" },
+  { label: "ZoikoTime", href: "/products/zoikotime", desc: "Time, attendance & shifts", color: "#0891B2" },
   { label: "Zoiko Payroll", href: "/payroll", desc: "Pay runs & filings", color: "#059669" },
-  { label: "Zoiko Billing", href: "/billing", desc: "Invoicing & collections", color: "#D97706" },
+  { label: "Zoiko Billing", href: "/products/billing", desc: "Invoicing & collections", color: "#D97706" },
   { label: "Zoiko Comply", href: "/comply", desc: "Compliance & governance", color: "#DC2626" },
   { label: "Zoiko Insights", href: "/insights", desc: "Dashboards & analytics", color: "#7C3AED" },
   { label: "Zoiko Spend", href: "/spend", desc: "Procurement & spend management", color: "#0EA5E9" },

@@ -265,32 +265,7 @@ export const createCourse = (payload) => api.post("/hr/learning/courses", payloa
 export const updateCourse = (id, payload) => api.put(`/hr/learning/courses/${id}`, payload);
 export const deleteCourse = (id) => api.delete(`/hr/learning/courses/${id}`);
 
-export const getEnrollments = (params = {}) => api.get("/hr/learning/enrollments", { params });
-export const getEnrollmentById = (id) => api.get(`/hr/learning/enrollments/${id}`);
-export const createEnrollment = (payload) => api.post("/hr/learning/enrollments", payload);
-export const updateEnrollment = (id, payload) => api.put(`/hr/learning/enrollments/${id}`, payload);
-export const deleteEnrollment = (id) => api.delete(`/hr/learning/enrollments/${id}`);
 
-export const getLearningPaths = () => api.get("/hr/learning/paths");
-export const getLearningPathById = (id) => api.get(`/hr/learning/paths/${id}`);
-export const createLearningPath = (payload) => api.post("/hr/learning/paths", payload);
-export const updateLearningPath = (id, payload) => api.put(`/hr/learning/paths/${id}`, payload);
-export const deleteLearningPath = (id) => api.delete(`/hr/learning/paths/${id}`);
-export const addPathItem = (pathId, payload) => api.post(`/hr/learning/paths/${pathId}/items`, payload);
-export const updatePathItem = (pathId, itemId, payload) => api.put(`/hr/learning/paths/${pathId}/items/${itemId}`, payload);
-export const removePathItem = (pathId, itemId) => api.delete(`/hr/learning/paths/${pathId}/items/${itemId}`);
-
-export const getCertifications = (employeeId) => api.get(`/hr/learning/certifications${employeeId ? `?employee_id=${employeeId}` : ''}`);
-export const getCertificationById = (id) => api.get(`/hr/learning/certifications/${id}`);
-export const createCertification = (payload) => api.post("/hr/learning/certifications", payload);
-export const updateCertification = (id, payload) => api.put(`/hr/learning/certifications/${id}`, payload);
-export const deleteCertification = (id) => api.delete(`/hr/learning/certifications/${id}`);
-
-export const getSkills = (employeeId) => api.get(`/hr/learning/skills${employeeId ? `?employee_id=${employeeId}` : ''}`);
-export const getSkillById = (id) => api.get(`/hr/learning/skills/${id}`);
-export const createSkill = (payload) => api.post("/hr/learning/skills", payload);
-export const updateSkill = (id, payload) => api.put(`/hr/learning/skills/${id}`, payload);
-export const deleteSkill = (id) => api.delete(`/hr/learning/skills/${id}`);
 
 // ── TRAINING PROGRAMS ──────────────────────────────────────────────────────
 export const getTrainingPrograms = (params = {}) => api.get("/hr/learning/programs", { params });
@@ -298,11 +273,6 @@ export const getTrainingProgramById = (id) => api.get(`/hr/learning/programs/${i
 export const createTrainingProgram = (payload) => api.post("/hr/learning/programs", payload);
 export const updateTrainingProgram = (id, payload) => api.put(`/hr/learning/programs/${id}`, payload);
 export const deleteTrainingProgram = (id) => api.delete(`/hr/learning/programs/${id}`);
-
-export const getProgramAssignments = (programId) => api.get(`/hr/learning/programs/${programId}/assignments`);
-export const createProgramAssignment = (programId, payload) => api.post(`/hr/learning/programs/${programId}/assignments`, payload);
-export const updateProgramAssignment = (programId, assignId, payload) => api.put(`/hr/learning/programs/${programId}/assignments/${assignId}`, payload);
-export const removeProgramAssignment = (programId, assignId) => api.delete(`/hr/learning/programs/${programId}/assignments/${assignId}`);
 
 // ── ASSESSMENTS & QUIZZES ──────────────────────────────────────────────────
 export const getAssessments = (courseId) => api.get(`/hr/learning/assessments${courseId ? `?course_id=${courseId}` : ''}`);
@@ -316,8 +286,6 @@ export const createQuestion = (assessmentId, payload) => api.post(`/hr/learning/
 export const updateQuestion = (assessmentId, questionId, payload) => api.put(`/hr/learning/assessments/${assessmentId}/questions/${questionId}`, payload);
 export const deleteQuestion = (assessmentId, questionId) => api.delete(`/hr/learning/assessments/${assessmentId}/questions/${questionId}`);
 
-export const startQuiz = (payload) => api.post("/hr/learning/assessments/start", payload);
-export const submitQuiz = (assessmentId, attemptId, payload) => api.post(`/hr/learning/assessments/${assessmentId}/attempts/${attemptId}/submit`, payload);
 export const getQuizAttempts = (assessmentId, employeeId) => {
   let url = `/hr/learning/assessments/${assessmentId}/attempts`;
   const params = [];
@@ -325,29 +293,11 @@ export const getQuizAttempts = (assessmentId, employeeId) => {
   if (params.length) url += `?${params.join("&")}`;
   return api.get(url);
 };
-export const getQuizAttemptById = (attemptId) => api.get(`/hr/learning/assessments/attempts/${attemptId}`);
-
-// ── TRAINING CALENDAR ──────────────────────────────────────────────────────
-export const getTrainingCalendarEvents = (startDate, endDate, eventType) => {
-  let url = "/hr/learning/calendar";
-  const params = [];
-  if (startDate) params.push(`start_date=${startDate}`);
-  if (endDate) params.push(`end_date=${endDate}`);
-  if (eventType) params.push(`event_type=${eventType}`);
-  if (params.length) url += `?${params.join("&")}`;
-  return api.get(url);
-};
-export const getTrainingCalendarEventById = (id) => api.get(`/hr/learning/calendar/${id}`);
-export const createTrainingCalendarEvent = (payload) => api.post("/hr/learning/calendar", payload);
-export const updateTrainingCalendarEvent = (id, payload) => api.put(`/hr/learning/calendar/${id}`, payload);
-export const deleteTrainingCalendarEvent = (id) => api.delete(`/hr/learning/calendar/${id}`);
 
 // ── LEARNING REPORTS ───────────────────────────────────────────────────────
 export const getCourseCompletionReport = () => api.get("/hr/learning/reports/course-completion");
 export const getCertificationReport = () => api.get("/hr/learning/reports/certifications");
 export const getSkillGapAnalysis = () => api.get("/hr/learning/reports/skill-gap");
-export const getEmployeeLearningProgress = (employeeId) => api.get(`/hr/learning/reports/employee-progress/${employeeId}`);
-export const getDepartmentLearningReport = (departmentId) => api.get(`/hr/learning/reports/department-learning/${departmentId}`);
 
 async function downloadLearningReport(endpoint, filename) {
   const { getAccessToken, API_BASE_URL } = await import("./api");

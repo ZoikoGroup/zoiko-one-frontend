@@ -200,12 +200,7 @@ const products = {
               { label: "Dashboard",          href: "/zoiko-hr/learning",               icon: LayoutDashboard },
               { label: "Courses",            href: "/zoiko-hr/learning/courses",        icon: BookOpen },
               { label: "Training Programs",  href: "/zoiko-hr/learning/training-programs", icon: GraduationCap },
-              { label: "Learning Paths",     href: "/zoiko-hr/learning/paths",          icon: GitBranch },
-              { label: "Certifications",     href: "/zoiko-hr/learning/certifications", icon: Award },
-              { label: "Skill Matrix",       href: "/zoiko-hr/learning/skills",         icon: BarChart3 },
               { label: "Assessments",        href: "/zoiko-hr/learning/assessments",    icon: ClipboardCheck },
-              { label: "Calendar",           href: "/zoiko-hr/learning/calendar",       icon: Calendar },
-              { label: "Progress",           href: "/zoiko-hr/learning/progress",       icon: TrendingUp },
               { label: "Reports",            href: "/zoiko-hr/learning/reports",        icon: FileText },
             ]},
             { label: "Compensation",       icon: CircleDollarSign, children: [

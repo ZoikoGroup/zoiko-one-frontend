@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
 import logo from "../assets/logo.png";
@@ -8,7 +8,7 @@ import logo from "../assets/logo.png";
  * Header component for Super Admin UI.
  * - Shows Zoiko One logo and "Super Admin" badge.
  * - Provides a mobile menu button (hamburger) to toggle the sidebar.
- * - Includes a search button that triggers the command palette (Cmd+K / Ctrl+K).
+ * - (Command palette search button removed).
  */
 export default function Header({ onMenuClick, onSearch }) {
   // Keyboard shortcut for command palette
@@ -43,15 +43,6 @@ export default function Header({ onMenuClick, onSearch }) {
             Super Admin
           </span>
         </div>
-
-        {/* Search / Command Palette */}
-        <button
-          onClick={onSearch}
-          className="flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:border-slate-300 transition-all"
-          aria-label="Open command palette"
-        >
-          <Search className="h-3.5 w-3.5 mr-1.5 text-slate-400" /> Cmd+K / Ctrl+K
-        </button>
 
         {/* User menu */}
         <div className="ml-auto">

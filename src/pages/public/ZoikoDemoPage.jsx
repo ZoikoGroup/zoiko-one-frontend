@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
-import LandingHeader from "../landing/LandingHeader";
-import Footer from "../landing/Footer";
+import LandingHeader from "../../landing/LandingHeader";
+import Footer from "../../landing/Footer";
 import {
   Crown,
   DollarSign,

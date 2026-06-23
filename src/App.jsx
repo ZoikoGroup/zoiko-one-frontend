@@ -2,16 +2,17 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import SuperAdminShell from "./components/SuperAdminShell";
 import { flatRoutes } from "./navigation";
 import PagePlaceholder from "./components/PagePlaceholder";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ZoikoProductsPage from "./pages/ZoikoProductsPage";
-import PlatformPage from "./pages/PlatformPage";
-import SolutionsPage from "./pages/SolutionsPage";
-import PricingPage from "./pages/PricingPage";
-import ResourcesPage from "./pages/ResourcesPage";
-import AboutPage from "./pages/AboutPage";
-import ZoikoDemoPage from "./pages/ZoikoDemoPage";
+import HomePage from "./pages/public/HomePage";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ZoikoProductsPage from "./pages/public/ZoikoProductsPage";
+import PlatformPage from "./pages/public/PlatformPage";
+import SolutionsPage from "./pages/public/SolutionsPage";
+import PricingPage from "./pages/public/PricingPage";
+import ResourcesPage from "./pages/public/ResourcesPage";
+import AboutPage from "./pages/public/AboutPage";
+import ZoikoDemoPage from "./pages/public/ZoikoDemoPage";
+import ZoikoHRPage from "./pages/products/ZoikoHRPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -484,6 +485,7 @@ export default function App() {
       <Route path="/resources" element={<ResourcesPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/get-demo" element={<ZoikoDemoPage />} />
+      <Route path="/products/zoiko-hr" element={<ZoikoHRPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

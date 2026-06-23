@@ -6,7 +6,7 @@ const footerColumns = [
   {
     title: "Zoiko One Products",
     links: [
-      { label: "Zoiko HR", href: "/zoiko-hr" },
+      { label: "Zoiko HR", href: "/products/zoiko-hr" },
       { label: "ZoikoTime", href: "/zoikotime" },
       { label: "Zoiko Payroll", href: "/payroll" },
       { label: "Zoiko Billing", href: "/billing" },

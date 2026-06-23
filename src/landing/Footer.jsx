@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const platformLinks = [
   "Overview",
@@ -11,13 +12,13 @@ const platformLinks = [
 ];
 
 const productLinks = [
-  "Zoiko HR",
-  "ZoikoTime",
-  "Zoiko Payroll",
-  "Zoiko Billing",
-  "Zoiko Projects",
-  "Zoiko Comply",
-  "Zoiko Insights",
+  { label: "Zoiko HR", href: "/products/zoiko-hr" },
+  { label: "ZoikoTime", href: "/products/zoikotime" },
+  { label: "Zoiko Payroll", href: "/products/payroll" },
+  { label: "Zoiko Billing", href: "/products/billing" },
+  { label: "Zoiko Projects", href: "#" },
+  { label: "Zoiko Comply", href: "/products/comply" },
+  { label: "Zoiko Insights", href: "/products/insights" },
 ];
 
 const solutionLinks = [
@@ -55,16 +56,31 @@ function FooterColumn({ heading, links }) {
         {heading}
       </p>
       <ul className="space-y-4">
-        {links.map((link) => (
-          <li key={link}>
-            <a
-              href="#"
-              className="text-white/90 text-[15px] font-medium hover:text-white transition-colors"
-            >
-              {link}
-            </a>
-          </li>
-        ))}
+        {links.map((link) => {
+          const isObj = typeof link === "object";
+          const key = isObj ? link.label : link;
+          const href = isObj ? link.href : "#";
+          const label = isObj ? link.label : link;
+          return (
+            <li key={key}>
+              {isObj ? (
+                <Link
+                  to={href}
+                  className="text-white/90 text-[15px] font-medium hover:text-white transition-colors"
+                >
+                  {label}
+                </Link>
+              ) : (
+                <a
+                  href={href}
+                  className="text-white/90 text-[15px] font-medium hover:text-white transition-colors"
+                >
+                  {label}
+                </a>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

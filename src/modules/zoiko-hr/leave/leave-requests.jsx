@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import { Calendar, Clock, CheckCircle, XCircle, Search } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Search, Users } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard } from "../../../service/hrService";
+import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard, getDepartments } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -74,6 +74,8 @@ export default function LeaveRequests() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [approverFilter, setApproverFilter] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewStatus, setReviewStatus] = useState("");
@@ -82,14 +84,17 @@ export default function LeaveRequests() {
   const [message, setMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [stats, setStats] = useState({ total_requests: 0, pending_requests: 0, approved_requests: 0, rejected_requests: 0 });
+  const [departments, setDepartments] = useState([]);
+  const [approvers, setApprovers] = useState([]);
 
   useEffect(() => {
     let mounted = true;
     const fetch = async () => {
       try {
-        const [leaveData, dashData] = await Promise.all([
+        const [leaveData, dashData, depts] = await Promise.all([
           getLeaveRequests(),
           getLeaveDashboard(),
+          getAllDepartments(),
         ]);
         if (!mounted) return;
         setRecords(Array.isArray(leaveData) ? leaveData : []);
@@ -101,6 +106,13 @@ export default function LeaveRequests() {
             rejected_requests: dashData.rejected_requests || 0,
           });
         }
+        if (depts && depts.data) {
+          setDepartments(Array.isArray(depts.data) ? depts.data : []);
+        }
+        setApprovers([
+          { id: "approved", name: "Approved" },
+          { id: "rejected", name: "Rejected" },
+        ]);
       } catch {
         // ignore
       } finally {
@@ -115,11 +127,23 @@ export default function LeaveRequests() {
     let result = records;
     if (search) {
       const q = search.toLowerCase();
-      result = result.filter((r) => (r.employee_name || "").toLowerCase().includes(q));
+      result = result.filter((r) => 
+        (r.employee_name || "").toLowerCase().includes(q) ||
+        (r.employee_code || "").toLowerCase().includes(q) ||
+        (r.department || "").toLowerCase().includes(q)
+      );
     }
     if (statusFilter) result = result.filter((r) => r.status === statusFilter);
+    if (departmentFilter) result = result.filter((r) => r.department === departmentFilter);
+    if (approverFilter) {
+      if (approverFilter === "approved") {
+        result = result.filter((r) => r.approved_by && r.approved_by !== "-");
+      } else if (approverFilter === "rejected") {
+        result = result.filter((r) => r.approved_by && r.approved_by !== "-" && r.status === "rejected");
+      }
+    }
     return result;
-  }, [records, search, statusFilter]);
+  }, [records, search, statusFilter, departmentFilter, approverFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -192,7 +216,7 @@ export default function LeaveRequests() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by employee or department..." value={search}
+            <input type="text" placeholder="Search by employee, code, or department..." value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
           </div>
@@ -200,6 +224,19 @@ export default function LeaveRequests() {
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <select value={departmentFilter} onChange={(e) => { setDepartmentFilter(e.target.value); setCurrentPage(1); }}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+            <option value="">All Departments</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.name}>{dept.name}</option>
+            ))}
+          </select>
+          <select value={approverFilter} onChange={(e) => { setApproverFilter(e.target.value); setCurrentPage(1); }}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+            <option value="">All Approvers</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
@@ -213,7 +250,11 @@ export default function LeaveRequests() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee ID</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approved By</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval Comments</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Start</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">End</th>
@@ -225,7 +266,11 @@ export default function LeaveRequests() {
                 {paginated.map((row, i) => (
                   <tr key={row.id ?? i} className="hover:bg-teal-50/50 transition-colors cursor-pointer" onClick={() => handleRowClick(row)}>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.employee_name || row.employee}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{row.employee_code || "-"}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">{row.department}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{row.approved_by || "-"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{formatDate(row.approval_date)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{row.approval_comments || "-"}</td>
                     <td className="px-4 py-3 text-sm capitalize text-gray-700">{row.leave_type || row.type}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{formatDate(row.start_date)}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{formatDate(row.end_date)}</td>
@@ -235,7 +280,7 @@ export default function LeaveRequests() {
                 ))}
                 {paginated.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">No requests found</td>
+                    <td colSpan={11} className="px-4 py-12 text-center text-gray-400 text-sm">No requests found</td>
                   </tr>
                 )}
               </tbody>
@@ -264,7 +309,11 @@ export default function LeaveRequests() {
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div><p className="text-gray-500">Employee</p><p className="font-medium text-gray-900">{selectedRequest.employee_name || selectedRequest.employee}</p></div>
+                  <div><p className="text-gray-500">Employee ID</p><p className="font-medium text-gray-900">{selectedRequest.employee_code || "-"}</p></div>
                   <div><p className="text-gray-500">Department</p><p className="font-medium text-gray-900">{selectedRequest.department}</p></div>
+                  <div><p className="text-gray-500">Approved By</p><p className="font-medium text-gray-900">{selectedRequest.approved_by || "-"}</p></div>
+                  <div><p className="text-gray-500">Approval Date</p><p className="font-medium text-gray-900">{formatDate(selectedRequest.approval_date)}</p></div>
+                  <div><p className="text-gray-500">Approval Comments</p><p className="font-medium text-gray-900">{selectedRequest.approval_comments || "-"}</p></div>
                   <div><p className="text-gray-500">Leave Type</p><p className="font-medium text-gray-900 capitalize">{selectedRequest.leave_type || selectedRequest.type}</p></div>
                   <div><p className="text-gray-500">Duration</p><p className="font-medium text-gray-900">{selectedRequest.days} days</p></div>
                   <div><p className="text-gray-500">Start Date</p><p className="font-medium text-gray-900">{formatDate(selectedRequest.start_date)}</p></div>

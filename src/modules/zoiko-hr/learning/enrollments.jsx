@@ -6,7 +6,7 @@ import {
   updateEnrollment,
   deleteEnrollment,
   getCourses,
-  getEmployees,
+  getHrEmployees,
 } from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 8;
@@ -37,7 +37,7 @@ export default function ZoikoHREnrollments({ isTab }) {
   const fetch = () => {
     setLoading(true);
     setError(null);
-    Promise.all([getEnrollments(), getCourses(), getEmployees()])
+    Promise.all([getEnrollments(), getCourses(), getHrEmployees()])
       .then(([enrolls, crs, emps]) => {
         setItems(enrolls?.items || (Array.isArray(enrolls) ? enrolls : []));
         setCourses(crs?.items || (Array.isArray(crs) ? crs : []));

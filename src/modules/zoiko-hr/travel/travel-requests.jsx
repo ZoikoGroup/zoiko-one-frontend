@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, Search, Calendar, MapPin, DollarSign, Briefcase, User, X } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getTravel, createTravel, getEmployees } from "../../../service/hrService.js";
+import { getTravel, createTravel, getHrEmployees } from "../../../service/hrService.js";
 
 const formatCurrency = (amount) => 
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount || 0);
@@ -49,7 +49,7 @@ export default function TravelRequests() {
     async function loadInitialData() {
       try {
         setLoading(true);
-        const [travelRes, empRes] = await Promise.all([getTravel(), getEmployees()]);
+        const [travelRes, empRes] = await Promise.all([getTravel(), getHrEmployees()]);
         
         setRequests(travelRes?.data || travelRes || []);
         setEmployees(empRes?.data || empRes || []);

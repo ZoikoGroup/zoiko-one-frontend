@@ -10,7 +10,7 @@ import {
   exportCertificationReportExcel,
   exportSkillGapReportCsv,
   exportSkillGapReportExcel,
-  getEmployees,
+  getHrEmployees,
 } from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 10;
@@ -179,7 +179,7 @@ function CertificationTab() {
     setLoading(true);
     setError(null);
     try {
-      const [res, emps] = await Promise.all([getCertificationReport(), getEmployees()]);
+      const [res, emps] = await Promise.all([getCertificationReport(), getHrEmployees()]);
       setData(Array.isArray(res) ? res : []);
       setEmployees(emps?.items || (Array.isArray(emps) ? emps : []));
     } catch (err) {

@@ -180,6 +180,13 @@ const products = {
               { label: "Reports",               href: "/zoiko-hr/onboarding/reports",         icon: BarChart3 },
               { label: "Settings",              href: "/zoiko-hr/onboarding/settings",        icon: SlidersHorizontal },
             ]},
+            { label: "Employee Management", icon: Users, children: [
+              { label: "Dashboard",             href: "/zoiko-hr/employee-management",         icon: LayoutDashboard },
+              { label: "Employees",             href: "/zoiko-hr/employee-management/employees", icon: Users },
+              { label: "Organization",           href: "/zoiko-hr/employee-management/organization", icon: GitBranch },
+              { label: "Lifecycle",              href: "/zoiko-hr/employee-management/lifecycle", icon: Clock },
+              { label: "Reports",               href: "/zoiko-hr/employee-management/reports", icon: BarChart3 },
+            ]},
             { label: "Assets",             icon: Package, children: [
               { label: "Dashboard",          href: "/zoiko-hr/assets",                icon: LayoutDashboard },
               { label: "My Assets",          href: "/zoiko-hr/assets/my-assets",       icon: Package },
@@ -227,7 +234,7 @@ const products = {
               { label: "Expenses",           href: "/zoiko-hr/travel/expenses",       icon: Receipt },
               { label: "Settings",           href: "/zoiko-hr/travel/settings",       icon: SlidersHorizontal },
             ]},
-           { 
+            { 
   label: "Compliance", 
   icon: ShieldCheck, 
   children: [
@@ -237,16 +244,6 @@ const products = {
     { label: "Violations & Actions", href: "/comply/incidents", icon: AlertTriangle },
     { label: "Risks & Settings", href: "/comply/settings", icon: SlidersHorizontal },
  
-            ]},
-            { label: "Engagement",         icon: HeartHandshake, children: [
-              { label: "Wellness Programs", href: "/zoiko-hr/engagement/wellness", icon: HeartHandshake },
-              { label: "CSR Activities",    href: "/zoiko-hr/engagement/csr",      icon: Globe },
-              { label: "Communications",    href: "/zoiko-hr/engagement/communications", icon: MessageSquare },
-              { label: "Announcements",     href: "/zoiko-hr/engagement/announcements", icon: Bell },
-              { label: "NPS Surveys",       href: "/zoiko-hr/engagement/nps",      icon: BarChart3 },
-              { label: "Analytics",         href: "/zoiko-hr/engagement/analytics", icon: BarChart3 },
-              { label: "Reports",           href: "/zoiko-hr/engagement/reports",   icon: FileText },
-              { label: "Settings",          href: "/zoiko-hr/engagement/settings",  icon: SlidersHorizontal },
             ]},
             { label: "Workforce Planning", icon: Target, children: [
               { label: "Dashboard",             href: "/zoiko-hr/workforce-planning",       icon: LayoutDashboard },
@@ -349,7 +346,6 @@ const products = {
             { label: "Payroll Analytics", href: "/insights/payroll", icon: CircleDollarSign },
             { label: "Analytics", href: "/insights/analytics", icon: TrendingUp },
             { label: "Attendance Insights", href: "/insights/attendance", icon: Clock },
-            { label: "Engagement Insights", href: "/insights/engagement", icon: HeartHandshake },
             { label: "Performance Insights", href: "/insights/performance", icon: Activity },
             { label: "Recruitment Insights", href: "/insights/recruitment", icon: UserPlus },
             { label: "Reports", href: "/insights/reports", icon: FileText },

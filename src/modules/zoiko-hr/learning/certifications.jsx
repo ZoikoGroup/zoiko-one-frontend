@@ -6,7 +6,7 @@ import {
   updateCertification,
   deleteCertification,
   getCourses,
-  getEmployees,
+  getHrEmployees,
 } from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 8;
@@ -37,7 +37,7 @@ export default function ZoikoHRCertifications({ isTab }) {
   const fetch = () => {
     setLoading(true);
     setError(null);
-    Promise.all([getCertifications(), getCourses(), getEmployees()])
+    Promise.all([getCertifications(), getCourses(), getHrEmployees()])
       .then(([certs, crs, emps]) => {
         setItems(Array.isArray(certs) ? certs : []);
         setCourses(crs?.items || (Array.isArray(crs) ? crs : []));

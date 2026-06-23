@@ -55,7 +55,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { getHrDashboardStats, getEmployees, getDepartments, getAttendanceDashboard, getLeaveDashboard, getEngagementDashboard, getCompensationDashboard, getPerformanceDashboard } from "../../service/hrService";
+import { getHrDashboardStats, getHrEmployees, getDepartments, getAttendanceDashboard, getLeaveDashboard, getCompensationDashboard, getPerformanceDashboard } from "../../service/hrService";
 
 class ChartErrorBoundary extends React.Component {
   constructor(props) {
@@ -115,7 +115,6 @@ const HrDashBoard = () => {
     departments: [],
     attendance: [],
     leave: [],
-    engagement: null,
     compensation: null,
     performance: null,
     operational: null,
@@ -130,16 +129,14 @@ const HrDashBoard = () => {
         departmentsData,
         attendanceData,
         leaveData,
-        engagementData,
         compensationData,
         performanceData,
       ] = await Promise.all([
         getHrDashboardStats(),
-        getEmployees(),
+        getHrEmployees(),
         getDepartments(),
         getAttendanceDashboard(),
         getLeaveDashboard(),
-        getEngagementDashboard(),
         getCompensationDashboard(),
         getPerformanceDashboard(),
       ]);
@@ -158,7 +155,6 @@ const HrDashBoard = () => {
         departments: extractArray(departmentsData),
         attendance: extractArray(attendanceData),
         leave: extractArray(leaveData),
-        engagement: engagementData || {},
         compensation: compensationData || {},
         performance: performanceData || {},
       });
@@ -190,17 +186,16 @@ const HrDashBoard = () => {
       total_employees: 1248,
       active_departments: 12,
       pending_requests: 42,
-      average_engagement: 87,
       total_budget: 2450000,
       compliance_score: 94,
     };
 
     const mockDepartmentStats = [
-      { department: "Engineering", employee_count: 456, engagement_score: 92, compensation_avg: 95000, headcount_status: "stable" },
-      { department: "Sales", employee_count: 234, engagement_score: 88, compensation_avg: 85000, headcount_status: "expanding" },
-      { department: "HR", employee_count: 45, engagement_score: 95, compensation_avg: 75000, headcount_status: "stable" },
-      { department: "Marketing", employee_count: 123, engagement_score: 90, compensation_avg: 80000, headcount_status: "expanding" },
-      { department: "Finance", employee_count: 67, engagement_score: 89, compensation_avg: 90000, headcount_status: "stable" },
+      { department: "Engineering", employee_count: 456, compensation_avg: 95000, headcount_status: "stable" },
+      { department: "Sales", employee_count: 234, compensation_avg: 85000, headcount_status: "expanding" },
+      { department: "HR", employee_count: 45, compensation_avg: 75000, headcount_status: "stable" },
+      { department: "Marketing", employee_count: 123, compensation_avg: 80000, headcount_status: "expanding" },
+      { department: "Finance", employee_count: 67, compensation_avg: 90000, headcount_status: "stable" },
     ];
 
     const mockOperationalStats = {
@@ -245,7 +240,6 @@ const HrDashBoard = () => {
       departments: mockDepartmentStats,
       attendance: mockAttendanceData,
       leave: mockLeaveData,
-      engagement: { overall_score: 87, department_scores: [] },
       compensation: { average_salary: 85000, salary_range: { min: 45000, max: 150000 } },
       performance: mockPerformanceStats,
       operational: {
@@ -385,14 +379,6 @@ const HrDashBoard = () => {
           trend="down"
           trendValue="-12%"
         />
-        <StatCard
-          title="Avg Engagement"
-          value={`${filteredData.hrDashboard?.average_engagement || "0"}%`}
-          icon={ActivityIcon}
-          color="from-green-500 to-emerald-500"
-          trend="up"
-          trendValue="+3.1%"
-        />
       </div>
 
       <div className="grid xl:grid-cols-3 gap-6">
@@ -449,35 +435,6 @@ const HrDashBoard = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <ChartCard title="Engagement Trend">
-          <ChartErrorBoundary>
-            {filteredData.performance?.compensation_trend && filteredData.performance.compensation_trend.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={extractArray(filteredData.performance.compensation_trend)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#FF6B00"
-                    strokeWidth={3}
-                    dot={{ fill: "#FF6B00", strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-gray-400 text-lg mb-2">📈 No trend data available</div>
-                <div className="text-gray-300 text-sm">Performance trends will appear here when available</div>
-              </div>
-            )}
-          </ChartErrorBoundary>
-        </ChartCard>
-
         <ChartCard title="Quick Actions">
           <div className="grid grid-cols-2 gap-4">
             <button className="p-4 bg-gradient-to-r from-[#FF6B00] to-[#FF8C38] rounded-2xl text-white font-medium hover:shadow-lg transition-all">
@@ -515,18 +472,6 @@ const HrDashBoard = () => {
               <ChevronRight className="text-slate-400 group-hover:text-[#FF6B00] transition-colors" size={20} />
             </div>
             <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-600">Engagement</span>
-                  <span className="font-semibold">{dept.engagement_score}%</span>
-                </div>
-                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#FF6B00] to-[#FF8C38] rounded-full"
-                    style={{ width: `${dept.engagement_score}%` }}
-                  />
-                </div>
-              </div>
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-slate-600">Compensation</span>
@@ -858,7 +803,7 @@ const HrDashBoard = () => {
             <div>
               <h1 className="text-4xl font-extrabold text-slate-850">Zoiko HR Dashboard</h1>
               <p className="mt-2 text-slate-650 text-lg max-w-3xl">
-                Manage workforce, attendance, leaves, recruitment and employee engagement from one unified platform.
+                Manage workforce, attendance, leaves, recruitment from one unified platform.
               </p>
             </div>
             <div className="text-right">

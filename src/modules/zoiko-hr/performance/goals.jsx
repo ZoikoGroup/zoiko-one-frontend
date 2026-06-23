@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, X, Edit2, Trash2, BarChart3, Search, ChevronLeft, ChevronRight, Save } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getEmployees } from "../../../service/hrService";
+import { getHrEmployees } from "../../../service/hrService";
 import {
   getPerformanceGoals, createPerformanceGoal, updatePerformanceGoal, deletePerformanceGoal,
   getPerformanceKpis, createPerformanceKpi, updatePerformanceKpi, deletePerformanceKpi,
@@ -83,7 +83,7 @@ export default function GoalsOKRs() {
     setLoading(true);
     Promise.all([
       getPerformanceGoals(),
-      getEmployees().catch(() => []),
+      getHrEmployees().catch(() => []),
     ]).then(([g, emps]) => {
       const list = Array.isArray(g) ? g : g?.data || [];
       setGoals(list);

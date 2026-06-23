@@ -4,7 +4,6 @@ export { default as PayrollInsights } from "./payroll-insights.jsx";
 export { default as Analytics } from "./analytics.jsx";
 export { default as Reports } from "./reports.jsx";
 export { default as AttendanceInsights } from "./attendance-insights.jsx";
-export { default as EngagementInsights } from "./engagement-insights.jsx";
 export { default as PerformanceInsights } from "./performance-insights.jsx";
 export { default as RecruitmentInsights } from "./recruitment-insights.jsx";
 export { default as InsightsSettings } from "./settings.jsx";

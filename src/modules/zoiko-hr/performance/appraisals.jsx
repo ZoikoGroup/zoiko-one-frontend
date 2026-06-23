@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, X, Edit2, Trash2, CheckCircle, XCircle, Send, DollarSign, TrendingUp } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getEmployees } from "../../../service/hrService";
+import { getHrEmployees } from "../../../service/hrService";
 import {
   getPerformanceAppraisals, createPerformanceAppraisal, updatePerformanceAppraisal, deletePerformanceAppraisal,
 } from "../../../service/hrService";
@@ -54,7 +54,7 @@ export default function Appraisals() {
     setLoading(true);
     Promise.all([
       getPerformanceAppraisals().then((r) => { setItems(Array.isArray(r) ? r : r?.data || []); }).catch(() => {}),
-      getEmployees().then((e) => { setEmployees(Array.isArray(e) ? e : e?.data || []); }).catch(() => {}),
+      getHrEmployees().then((e) => { setEmployees(Array.isArray(e) ? e : e?.data || []); }).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, []);
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { Search, Download, Plus, Pencil, Trash2 } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getAttendanceRecords, createAttendanceRecord, updateAttendanceRecord, deleteAttendanceRecord, exportAttendanceCsv, exportAttendanceExcel, getEmployees } from "../../../service/hrService";
+import { getAttendanceRecords, createAttendanceRecord, updateAttendanceRecord, deleteAttendanceRecord, exportAttendanceCsv, exportAttendanceExcel, getHrEmployees } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/attendance" },
@@ -96,7 +96,7 @@ export default function DailyRecords() {
 
   const fetchEmployees = useCallback(async () => {
     try {
-      const data = await getEmployees({ per_page: 100 });
+      const data = await getHrEmployees({ per_page: 100 });
       const list = data?.items || (Array.isArray(data) ? data : []);
       setEmployees(list);
     } catch {

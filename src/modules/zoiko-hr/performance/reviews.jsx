@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Plus, X, Edit2, Trash2, Star, User, MessageSquare, CheckCircle, XCircle, Send } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getStoredUser } from "../../../service/api";
-import { getEmployees } from "../../../service/hrService";
+import { getHrEmployees } from "../../../service/hrService";
 import {
   getPerformanceReviews, createPerformanceReview, updatePerformanceReview, deletePerformanceReview,
   getPeerFeedback, createPeerFeedback, deletePeerFeedback,
@@ -72,7 +72,7 @@ export default function PerformanceReviews() {
     Promise.all([
       getPerformanceReviews().then((r) => { setReviews(Array.isArray(r) ? r : r?.data || []); }).catch(() => {}),
       getPeerFeedback().then((f) => { setFeedback(Array.isArray(f) ? f : f?.data || []); }).catch(() => {}),
-      getEmployees().then((e) => { setEmployees(Array.isArray(e) ? e : e?.data || []); }).catch(() => {}),
+      getHrEmployees().then((e) => { setEmployees(Array.isArray(e) ? e : e?.data || []); }).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, []);
 

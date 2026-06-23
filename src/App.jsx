@@ -57,15 +57,6 @@ import ZoikoHROnboardingOrientation from "./modules/zoiko-hr/onboarding/orientat
 import ZoikoHROnboardingReports from "./modules/zoiko-hr/onboarding/reports.jsx";
 import ZoikoHROnboardingSettings from "./modules/zoiko-hr/onboarding/settings.jsx";
 import ZoikoHRLearning from "./modules/zoiko-hr/learning/learning.jsx";
-import EngagementDashboard from "./modules/zoiko-hr/engagement/engagement-dashboard.jsx";
-import EngagementWellness from "./modules/zoiko-hr/engagement/engagement-wellness.jsx";
-import EngagementCSR from "./modules/zoiko-hr/engagement/engagement-csr.jsx";
-import EngagementCommunications from "./modules/zoiko-hr/engagement/engagement-communications.jsx";
-import EngagementAnnouncements from "./modules/zoiko-hr/engagement/engagement-announcements.jsx";
-import EngagementNPS from "./modules/zoiko-hr/engagement/engagement-nps.jsx";
-import EngagementSurveys from "./modules/zoiko-hr/engagement/engagement-surveys.jsx";
-import EngagementReports from "./modules/zoiko-hr/engagement/engagement-reports.jsx";
-import EngagementSettings from "./modules/zoiko-hr/engagement/engagement-settings.jsx";
 
 import EssDashboard from "./modules/zoiko-hr/ess/dashboard.jsx";
 import EssProfile from "./modules/zoiko-hr/ess/profile.jsx";
@@ -132,6 +123,12 @@ import ZoikoHRCompRevisions from "./modules/zoiko-hr/compensation/salary-revisio
 import ZoikoHRCompAllowances from "./modules/zoiko-hr/compensation/allowances.jsx";
 import ZoikoHRCompBenefits from "./modules/zoiko-hr/compensation/benefits.jsx";
 
+import ZoikoHRDashboard from "./modules/zoiko-hr/employee-management/dashboard.jsx";
+import ZoikoHREmployees from "./modules/zoiko-hr/employee-management/employees.jsx";
+import ZoikoHROrgChart from "./modules/zoiko-hr/employee-management/organization.jsx";
+import ZoikoHRLifecycle from "./modules/zoiko-hr/employee-management/lifecycle.jsx";
+import ZoikoHRReports from "./modules/zoiko-hr/employee-management/reports.jsx";
+
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
 import {
@@ -173,7 +170,6 @@ import PayrollInsights from "./modules/insights/payroll-insights.jsx";
 import Analytics from "./modules/insights/analytics.jsx";
 import Reports from "./modules/insights/reports.jsx";
 import AttendanceInsights from "./modules/insights/attendance-insights.jsx";
-import EngagementInsights from "./modules/insights/engagement-insights.jsx";
 import PerformanceInsights from "./modules/insights/performance-insights.jsx";
 import RecruitmentInsights from "./modules/insights/recruitment-insights.jsx";
 import InsightsSettings from "./modules/insights/settings.jsx";
@@ -283,15 +279,15 @@ const routeOverrides = {
   "/zoiko-hr/learning/progress": <ZoikoHRLearning />,
   "/zoiko-hr/learning/reports": <ZoikoHRLearning />,
   "/zoiko-hr/learning/enrollments": <ZoikoHRLearning />,
-"/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
-"/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
-"/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
-"/zoiko-hr/compensation/salary-components": <ZoikoHRCompSalaryComponents />,
-"/zoiko-hr/compensation/bands": <ZoikoHRCompBands />,
-"/zoiko-hr/compensation/revisions": <ZoikoHRCompRevisions />,
-"/zoiko-hr/compensation/allowances": <ZoikoHRCompAllowances />,
-"/zoiko-hr/compensation/benefits": <ZoikoHRCompBenefits />,
-  // ESS submodule routes
+  "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
+  "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
+  "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
+  "/zoiko-hr/compensation/salary-components": <ZoikoHRCompSalaryComponents />,
+  "/zoiko-hr/compensation/bands": <ZoikoHRCompBands />,
+  "/zoiko-hr/compensation/revisions": <ZoikoHRCompRevisions />,
+  "/zoiko-hr/compensation/allowances": <ZoikoHRCompAllowances />,
+  "/zoiko-hr/compensation/benefits": <ZoikoHRCompBenefits />,
+    // ESS submodule routes
   "/zoiko-hr/ess": <EssDashboard />,
   "/zoiko-hr/ess/profile": <EssProfile />,
   "/zoiko-hr/ess/leave": <EssLeaveManagement />,
@@ -313,17 +309,17 @@ const routeOverrides = {
   "/zoiko-hr/compliance/violations": <Violations />,
   "/zoiko-hr/compliance/settings": <ComplianceSettings />,
 
-
-
-  "/zoiko-hr/engagement": <EngagementDashboard />,
-  "/zoiko-hr/engagement/wellness": <EngagementWellness />,
-  "/zoiko-hr/engagement/csr": <EngagementCSR />,
-  "/zoiko-hr/engagement/communications": <EngagementCommunications />,
-  "/zoiko-hr/engagement/announcements": <EngagementAnnouncements />,
-  "/zoiko-hr/engagement/nps": <EngagementNPS />,
-  "/zoiko-hr/engagement/surveys": <EngagementSurveys />,
-  "/zoiko-hr/engagement/reports": <EngagementReports />,
-  "/zoiko-hr/engagement/settings": <EngagementSettings />,
+  // Employee Management submodule routes
+  "/zoiko-hr/employee-management": <ZoikoHRDashboard />,
+  "/zoiko-hr/employee-management/employees": <ZoikoHREmployees />,
+  "/zoiko-hr/employee-management/organization": <ZoikoHROrgChart />,
+  "/zoiko-hr/employee-management/lifecycle": <ZoikoHRLifecycle />,
+  "/zoiko-hr/employee-management/reports": <ZoikoHRReports />,
+  "/zoiko-hr/compliance": <ComplianceDashboard />,
+  "/zoiko-hr/compliance/policies": <PolicyLibrary />,
+  "/zoiko-hr/compliance/tracking": <ComplianceTracking />,
+  "/zoiko-hr/compliance/violations": <Violations />,
+  "/zoiko-hr/compliance/settings": <ComplianceSettings />,
 
   // Recruitment submodule routes
   "/zoiko-hr/recruitment/job-requisitions": <JobRequisitions />,
@@ -466,7 +462,6 @@ const routeOverrides = {
   "/insights/saved-reports": <Reports defaultTab="saved" />,
   "/insights/reports": <Reports />,
   "/insights/attendance": <AttendanceInsights />,
-  "/insights/engagement": <EngagementInsights />,
   "/insights/performance": <PerformanceInsights />,
   "/insights/recruitment": <RecruitmentInsights />,
   "/insights/settings": <InsightsSettings />,

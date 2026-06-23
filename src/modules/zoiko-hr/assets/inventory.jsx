@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { getAssets, createAsset, updateAsset, deleteAsset, getAssetCategories, getEmployees, transferAsset, assignAsset, returnAsset, exportAssetsCsv, exportAssetsExcel } from "../../../service/hrService";
+import { getAssets, createAsset, updateAsset, deleteAsset, getAssetCategories, getHrEmployees, transferAsset, assignAsset, returnAsset, exportAssetsCsv, exportAssetsExcel } from "../../../service/hrService";
 
 const ITEMS_PER_PAGE = 15;
 
@@ -58,7 +58,7 @@ export default function Inventory() {
     try {
       const [catData, empData] = await Promise.all([
         getAssetCategories(),
-        getEmployees({ per_page: 200 }),
+        getHrEmployees({ per_page: 200 }),
       ]);
       const cats = Array.isArray(catData) ? catData : catData?.data || [];
       setCategoryOptions(cats.map((c) => c.name));

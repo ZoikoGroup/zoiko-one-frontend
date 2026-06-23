@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { NavLink } from "react-router-dom";
 import { Trophy, Target, Star, MessageSquare, Award, RefreshCw, TrendingUp, Activity, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getPerformanceDashboard, getPerformanceAnalytics, getEmployees } from "../../../service/hrService";
+import { getPerformanceDashboard, getPerformanceAnalytics, getHrEmployees } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/performance" },
@@ -79,7 +79,7 @@ export default function PerformanceDashboard() {
     Promise.all([
       getPerformanceDashboard(),
       getPerformanceAnalytics(),
-      getEmployees().catch(() => []),
+      getHrEmployees().catch(() => []),
     ])
       .then(([d, a, emps]) => {
         setDash(d);

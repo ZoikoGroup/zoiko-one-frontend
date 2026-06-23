@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import logo from "../assets/logo.png";
+import { useAuth } from "../../context/AuthContext";
+import logo from "../../assets/logo.png";
 
 // Social icons as inline SVGs to avoid extra deps
 const GoogleIcon = () => (

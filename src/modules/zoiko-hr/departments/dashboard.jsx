@@ -29,189 +29,88 @@ function SubNav() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, change, trend }) {
-  const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
-  const trendColor = trend === "up" ? "text-green-600" : trend === "down" ? "text-red-600" : "text-gray-400";
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500 font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-        </div>
-        {Icon && <div className="p-2 bg-rose-50 rounded-lg"><Icon className="w-5 h-5 text-rose-600" /></div>}
-      </div>
-      {change != null && (
-        <div className="flex items-center gap-1 mt-3">
-          <TrendIcon className={`w-4 h-4 ${trendColor}`} />
-          <span className={`text-sm font-medium ${trendColor}`}>{change > 0 ? "+" : ""}{change}%</span>
-          <span className="text-sm text-gray-400">vs last month</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function DepartmentsDashboard() {
   const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    const fetch = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getDepartments();
-        if (mounted) setRecords(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (mounted) setError(err.message || "Failed to load dashboard");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetch();
+    setIsLoading(true);
+    getDepartments()
+      .then((res) => {
+        if (mounted) {
+          const data = res?.data?.data || res?.data || res || [];
+          setRecords(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
     return () => { mounted = false; };
   }, []);
 
   const stats = useMemo(() => {
-    const total = records.length;
-    const active = records.filter((r) => r.status === "active").length;
-    const totalEmployees = records.reduce((sum, r) => sum + (r.employee_count || 0), 0);
-    const totalBudget = records.reduce((sum, r) => sum + (r.budget || 0), 0);
-    const withoutHeads = records.filter((r) => !r.head).length;
-    const avgEmployees = Math.round(totalEmployees / total);
-    return { total, active, totalEmployees, totalBudget, withoutHeads, avgEmployees };
+    const totalDepts = records.length;
+    const totalEmployees = records.reduce((sum, r) => sum + (Number(r.employee_count) || 0), 0);
+    const totalBudget = records.reduce((sum, r) => sum + (Number(r.budget) || 0), 0);
+    const inactiveDepts = records.filter(r => r.status === "inactive").length;
+
+    return { totalDepts, totalEmployees, totalBudget, inactiveDepts };
   }, [records]);
 
-  const recentDepartments = useMemo(() => {
-    return [...records].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5).map((d) => ({
-      id: d.id, name: d.name, code: d.code, head: d.head, employee_count: d.employee_count, budget: d.budget, status: d.status,
-    }));
-  }, [records]);
-
-  const allocated = 20000000;
-  const utilized = 15450000;
-
-  const departmentDistribution = useMemo(() => {
-    return records.slice(0, 8).map((d) => ({ dept: d.name, employees: d.employee_count, budget: d.budget }));
-  }, [records]);
-
-  const statCards = [
-    { title: "Total Departments", value: stats.total, icon: Building2, change: null, trend: null },
-    { title: "Active", value: stats.active, icon: BarChart3, change: 8, trend: "up" },
-    { title: "Total Employees", value: stats.totalEmployees, icon: Users, change: 12, trend: "up" },
-    { title: "Total Budget", value: `$${(stats.totalBudget / 1000000).toFixed(1)}M`, icon: CircleDollarSign, change: 5, trend: "up" },
-    { title: "Without Heads", value: stats.withoutHeads, icon: UserX, change: -1, trend: "down" },
+  const cards = [
+    { title: "Total Departments", value: stats.totalDepts, icon: Building2, color: "bg-blue-50 text-blue-600", trend: "+1 this month", trendType: "up" },
+    { title: "Total Employees", value: stats.totalEmployees, icon: Users, color: "bg-green-50 text-green-600", trend: "+12 this week", trendType: "up" },
+    { title: "Total Budget", value: `$${(stats.totalBudget / 1000000).toFixed(1)}M`, icon: CircleDollarSign, color: "bg-rose-50 text-rose-600", trend: "Within limit", trendType: "neutral" },
+    { title: "Inactive Entities", value: stats.inactiveDepts, icon: UserX, color: "bg-amber-50 text-amber-600", trend: "No change", trendType: "neutral" },
   ];
 
-  if (loading) {
-    return (
-      <HRPage title="Departments Dashboard" subtitle="Overview of all departments and organizational metrics">
-        <SubNav />
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
-          <span className="ml-3 text-gray-500">Loading dashboard...</span>
-        </div>
-      </HRPage>
-    );
-  }
-
-  if (error) {
-    return (
-      <HRPage title="Departments Dashboard" subtitle="Overview of all departments and organizational metrics">
-        <SubNav />
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error}</div>
-      </HRPage>
-    );
-  }
+  const recentDepartments = useMemo(() => {
+    return [...records].slice(0, 5);
+  }, [records]);
 
   return (
-    <HRPage title="Departments Dashboard" subtitle="Overview of all departments and organizational metrics">
+    <HRPage title="Departments Overview" subtitle="High-level structural insights and resource distributions">
       <SubNav />
-      <div className="space-y-6">
-        <div className="bg-gradient-to-r from-rose-600 to-rose-700 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-rose-100 text-sm font-medium">Organizational Overview</p>
-              <p className="text-4xl font-bold mt-1">{stats.active}/{stats.total}</p>
-              <p className="text-rose-100 mt-1">departments active</p>
-            </div>
-            <div className="text-right">
-              <p className="text-rose-100 text-sm">Average Employees/Dept</p>
-              <p className="text-3xl font-bold">{stats.avgEmployees}</p>
-              <p className="text-rose-100 text-sm mt-1">{stats.totalEmployees} total employees</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {statCards.map((s) => <StatCard key={s.title} {...s} />)}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Budget Overview</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Allocated</span>
-                <span className="text-sm font-medium text-gray-900">${allocated.toLocaleString()}</span>
+      {/* Stats Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        {cards.map((c, i) => {
+          const Icon = c.icon;
+          return (
+            <div key={i} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{c.title}</p>
+                <h3 className="text-2xl font-bold text-gray-800">{isLoading ? "..." : c.value}</h3>
+                <p className="text-xs flex items-center gap-1 font-medium text-gray-400">
+                  {c.trendType === "up" && <TrendingUp size={12} className="text-green-500" />}
+                  {c.trendType === "down" && <TrendingDown size={12} className="text-red-500" />}
+                  {c.trendType === "neutral" && <Minus size={12} className="text-gray-400" />}
+                  <span>{c.trend}</span>
+                </p>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div className="bg-rose-500 h-3 rounded-full" style={{ width: `${(utilized / allocated) * 100}%` }} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Utilized</span>
-                <span className="text-sm font-medium text-gray-900">${utilized.toLocaleString()}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div className="bg-rose-300 h-3 rounded-full" style={{ width: `${(utilized / allocated) * 100}%` }} />
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                <span className="text-sm font-semibold text-gray-700">Remaining</span>
-                <span className="text-sm font-semibold text-green-600">${(allocated - utilized).toLocaleString()}</span>
-              </div>
+              <div className={`p-3 rounded-xl ${c.color}`}><Icon size={22} /></div>
             </div>
-          </div>
+          );
+        })}
+      </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Department Distribution</h2>
-            <div className="space-y-3">
-              {departmentDistribution.map((d) => {
-                const maxEmployees = Math.max(...departmentDistribution.map((x) => x.employees));
-                const pct = (d.employees / maxEmployees) * 100;
-                return (
-                  <div key={d.dept}>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-700 font-medium">{d.dept}</span>
-                      <span className="text-gray-500">{d.employees} employees</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div className="bg-rose-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Rows Table View */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-50 flex items-center justify-between">
+            <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <BarChart3 size={16} className="text-rose-600" /> Recent Structural Changes
+            </h4>
+            <NavLink to="/zoiko-hr/departments/list" className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors">
+              View All
+            </NavLink>
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Top Departments by Headcount</h2>
-            <span className="text-xs text-rose-600 font-medium flex items-center gap-1"><TrendingUp className="w-3 h-3" /> Top 5</span>
-          </div>
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="bg-gray-50/70 border-b border-gray-100">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Code</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Head</th>
@@ -221,18 +120,57 @@ export default function DepartmentsDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
-                {recentDepartments.map((d, i) => (
-                  <tr key={d.id ?? i} className="hover:bg-rose-50/50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{d.name}</td>
-                    <td className="px-4 py-3 text-sm font-mono text-xs font-semibold text-rose-600">{d.code}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{d.head || <span className="text-gray-300">-</span>}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{d.employee_count}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">${d.budget?.toLocaleString() || "0"}</td>
-                    <td className="px-4 py-3 text-sm"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${d.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{d.status}</span></td>
-                  </tr>
-                ))}
+                {isLoading ? (
+                  <tr><td colSpan={6} className="text-center py-6 text-sm text-gray-400">Loading data metrics...</td></tr>
+                ) : recentDepartments.length === 0 ? (
+                  <tr><td colSpan={6} className="text-center py-6 text-sm text-gray-400">No departments found.</td></tr>
+                ) : (
+                  recentDepartments.map((d, i) => (
+                    <tr key={d.id ?? i} className="hover:bg-rose-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{d.name}</td>
+                      <td className="px-4 py-3 text-sm font-mono text-xs font-semibold text-rose-600">{d.code}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{d.head || <span className="text-gray-300">-</span>}</td>
+                      <td className="px-4 py-3 text-sm font-medium">{d.employee_count || 0}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">${(Number(d.budget) || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${d.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
+                          {d.status || "active"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Resource Breakdown Card Layout */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+          <h4 className="font-bold text-gray-800 text-sm">Resource Allocation</h4>
+          <div className="space-y-3 pt-2">
+            {isLoading ? (
+              <p className="text-xs text-gray-400">Calculating ratios...</p>
+            ) : records.length === 0 ? (
+              <p className="text-xs text-gray-400">No data available.</p>
+            ) : (
+              records.slice(0, 4).map((d, i) => {
+                const totalBudgetSum = stats.totalBudget || 1;
+                const percentage = Math.min(Math.round(((Number(d.budget) || 0) / totalBudgetSum) * 100), 100);
+                const progressColors = ["bg-blue-500", "bg-rose-500", "bg-green-500", "bg-amber-500"];
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-medium text-gray-700">{d.name}</span>
+                      <span className="font-semibold text-gray-500">{percentage}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div className={`${progressColors[i % 4]} h-full rounded-full`} style={{ width: `${percentage}%` }}></div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

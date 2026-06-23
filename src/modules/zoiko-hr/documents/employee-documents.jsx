@@ -62,14 +62,19 @@ function UploadModal({ onClose, onUploaded }) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("name", name || file.name);
+      formData.append("title", name || file.name);
       formData.append("category", category);
       if (description) formData.append("description", description);
       await uploadDocument(formData);
       onUploaded();
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.detail || "Upload failed. Please try again.");
+      // FastAPI 422 detail is an array of {loc, msg, type} objects
+      const detail = err?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map(e => e.msg || e.message || JSON.stringify(e)).join("; ")
+        : (typeof detail === "string" ? detail : null);
+      setError(msg || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -188,7 +193,7 @@ export default function EmployeeDocuments() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getDocuments();
+      const res = await getDocuments({ category: "employee" });
       setDocs(Array.isArray(res?.data) ? res.data : []);
     } catch {
       showToast("error", "Failed to load documents.");
@@ -216,8 +221,7 @@ export default function EmployeeDocuments() {
   };
 
   const filtered = docs
-    .filter(d => (d.category?.toLowerCase() === "employee" || !d.category))
-    .filter(d => !search.trim() || d.name?.toLowerCase().includes(search.trim().toLowerCase()));
+    .filter(d => !search.trim() || d.title?.toLowerCase().includes(search.trim().toLowerCase()));
 
   return (
     <HRPage title="Employee Documents">
@@ -300,8 +304,8 @@ export default function EmployeeDocuments() {
                       <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3">
-                            <span className="text-lg shrink-0">{fileTypeIcon(d.name)}</span>
-                            <span className="font-medium text-slate-800 truncate max-w-[200px]">{d.name}</span>
+                            <span className="text-lg shrink-0">{fileTypeIcon(d.file_name || d.title)}</span>
+                            <span className="font-medium text-slate-800 truncate max-w-[200px]">{d.title}</span>
                           </div>
                         </td>
                         <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
@@ -309,7 +313,7 @@ export default function EmployeeDocuments() {
                         <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.created_at)}</td>
                         <td className="px-6 py-3 text-center">
                           <button
-                            onClick={() => setConfirmDelete({ id: d.id, name: d.name })}
+                            onClick={() => setConfirmDelete({ id: d.id, name: d.title })}
                             disabled={deletingId === d.id}
                             className="p-2 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-40"
                             title="Delete document"

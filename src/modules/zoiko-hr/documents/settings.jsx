@@ -72,7 +72,7 @@ export default function Settings() {
 
   const startEdit = (d) => {
     setEditId(d.id);
-    setEditFields({ name: d.name, category: d.category || "employee", description: d.description || "", status: d.status });
+    setEditFields({ title: d.title, category: d.category || "employee", description: d.description || "", status: d.status });
   };
 
   const cancelEdit = () => { setEditId(null); setEditFields({}); };
@@ -80,8 +80,9 @@ export default function Settings() {
   const saveEdit = async (id) => {
     setSaving(id);
     try {
-      await updateDocument(id, editFields);
-      setDocs(prev => prev.map(d => d.id === id ? { ...d, ...editFields } : d));
+      const updated = await updateDocument(id, editFields);
+      // Merge server response (if available) or optimistic update
+      setDocs(prev => prev.map(d => d.id === id ? { ...d, ...editFields, ...(updated?.data || {}) } : d));
       showToast("success", "Document updated successfully.");
       setEditId(null);
     } catch {
@@ -105,7 +106,7 @@ export default function Settings() {
   };
 
   const filtered = docs.filter(
-    d => !search.trim() || d.name?.toLowerCase().includes(search.trim().toLowerCase())
+    d => !search.trim() || d.title?.toLowerCase().includes(search.trim().toLowerCase())
   );
 
   return (
@@ -174,7 +175,7 @@ export default function Settings() {
                     /* View mode */
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5">
                       <div className="min-w-0 space-y-1.5">
-                        <p className="font-semibold text-slate-900 truncate">{d.name}</p>
+                        <p className="font-semibold text-slate-900 truncate">{d.title}</p>
                         <div className="flex flex-wrap items-center gap-2">
                           <CategoryPill category={d.category} />
                           <StatusBadge status={d.status} />
@@ -206,11 +207,11 @@ export default function Settings() {
                     <div className="p-5 space-y-4">
                       <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Editing document</p>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Name</label>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Title</label>
                         <input
                           type="text"
-                          value={editFields.name}
-                          onChange={e => setEditFields(f => ({ ...f, name: e.target.value }))}
+                          value={editFields.title}
+                          onChange={e => setEditFields(f => ({ ...f, title: e.target.value }))}
                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                         />
                       </div>

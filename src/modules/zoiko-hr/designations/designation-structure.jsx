@@ -50,7 +50,6 @@ const LEVEL_TEXT = { L1: "text-blue-800", L2: "text-indigo-800", L3: "text-purpl
 function LevelNode({ level, items, selected, onSelect }) {
   const [expanded, setExpanded] = useState(true);
   const meta = LEVEL_META[level];
-  const color = meta?.color || "gray";
   const bg = LEVEL_BG[level] || "bg-gray-100";
   const text = LEVEL_TEXT[level] || "text-gray-800";
 
@@ -86,62 +85,9 @@ function LevelNode({ level, items, selected, onSelect }) {
               <span className="font-medium text-gray-800">{item.title}</span>
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${item.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{item.status}</span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-500 mt-0.5">
-              <span className="flex items-center gap-1"><Building2 className="w-3 h-3" /> {item.department_name}</span>
-              <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {item.employees_count}</span>
-              {item.min_salary && <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> {item.min_salary} - {item.max_salary}</span>}
-            </div>
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-function DesignationDetail({ item }) {
-  if (!item) return null;
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Designation Details</h3>
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-50 rounded-lg"><Briefcase className="w-5 h-5 text-orange-600" /></div>
-          <div>
-            <p className="text-lg font-bold text-gray-900">{item.title}</p>
-            <p className="text-sm text-gray-500 font-mono">#{item.id}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Department</label>
-            <p className="text-sm text-gray-900">{item.department_name}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Level</label>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${LEVEL_BG[item.level] || "bg-gray-100"} ${LEVEL_TEXT[item.level] || "text-gray-800"}`}>{item.level}</span>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Salary Range</label>
-            <p className="text-sm text-gray-900">{item.min_salary} - {item.max_salary}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Employees</label>
-            <p className="text-sm text-gray-900 font-semibold">{item.employees_count}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${item.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{item.status}</span>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
-            <p className="text-sm text-gray-700">{item.description || "-"}</p>
-          </div>
-        </div>
-        <div className="pt-3 border-t border-gray-100 text-xs text-gray-400">
-          <div>Created: {item.created_at ? new Date(item.created_at).toLocaleString() : "-"}</div>
-          <div>Updated: {item.updated_at ? new Date(item.updated_at).toLocaleString() : "-"}</div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -154,28 +100,38 @@ export default function DesignationStructure() {
   useEffect(() => {
     let mounted = true;
     getDesignations()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
+      .then((res) => { 
+        // Unpack response.data wrapper safely
+        if (mounted) setRecords(Array.isArray(res?.data) ? res.data : []); 
+      })
       .catch(() => {})
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
   const grouped = useMemo(() => {
-    const map = {};
-    records.forEach((d) => {
-      const level = d.level || "L3";
-      if (!map[level]) map[level] = [];
-      map[level].push(d);
-    });
-    return LEVEL_ORDER.filter((l) => map[l]).map((l) => ({ level: l, items: map[l] }));
+    return LEVEL_ORDER.map((level) => ({
+      level,
+      items: records.filter((r) => r.level === level),
+    })).filter((g) => g.items.length > 0);
   }, [records]);
 
-  if (loading) return <div className="p-6 text-gray-400">Loading structure...</div>;
+  if (loading) {
+    return (
+      <HRPage title="Designation Structure" subtitle="Organizational hierarchy and designation relationships">
+        <SubNav />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          <span className="ml-3 text-gray-500">Loading hierarchy...</span>
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
     <HRPage title="Designation Structure" subtitle="Organizational hierarchy and designation relationships">
       <SubNav />
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Designation Structure</h1>
           <p className="text-sm text-gray-500 mt-1">Organizational hierarchy and designation relationships</p>
@@ -195,17 +151,6 @@ export default function DesignationStructure() {
                 <div className="text-center py-8 text-gray-400">No designations found</div>
               )}
             </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            {selected ? (
-              <DesignationDetail item={selected} />
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
-                <ChevronsDownUp className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">Click on any designation to view its details</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

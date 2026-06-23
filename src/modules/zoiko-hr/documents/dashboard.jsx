@@ -161,7 +161,7 @@ export default function DocumentsDashboard() {
                     <tbody className="divide-y divide-gray-100">
                       {recent.map(d => (
                         <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="px-6 py-3 font-medium text-slate-800 truncate max-w-[160px]">{d.name}</td>
+                          <td className="px-6 py-3 font-medium text-slate-800 truncate max-w-[160px]">{d.title}</td>
                           <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
                           <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
                           <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.created_at)}</td>

@@ -42,19 +42,25 @@ export default function DesignationReports() {
     return () => { mounted = false; };
   }, []);
 
-  const maxHeadcount = Math.max(...records.map((r) => r.employees_count || 0));
-  const maxBudget = Math.max(...records.map((r) => r.max_salary || 0));
+  // BUG FIX 3: Math.max(...[]) returns -Infinity when records is empty, causing
+  // division by zero and broken bar chart heights. Guard with a fallback of 0.
+  const maxHeadcount = records.length > 0 ? Math.max(...records.map((r) => r.employees_count || 0)) : 0;
+  const maxBudget = records.length > 0 ? Math.max(...records.map((r) => r.max_salary || 0)) : 0;
+
   const totalBudget = records.reduce((s, r) => s + (r.max_salary || 0), 0);
   const totalUtilized = records.reduce((s, r) => s + (r.max_salary || 0), 0);
   const totalEmployees = records.reduce((s, r) => s + (r.employees_count || 0), 0);
   const startEmployees = 210;
-  const growth = ((totalEmployees - startEmployees) / startEmployees * 100).toFixed(1);
+  const growth = startEmployees > 0
+    ? ((totalEmployees - startEmployees) / startEmployees * 100).toFixed(1)
+    : "0.0";
 
   const statCards = [
     { title: "Total Designations", value: records.length, icon: Building2, change: null, trend: null },
     { title: "Total Headcount", value: totalEmployees, icon: Users, change: Number(growth), trend: "up" },
     { title: "Total Budget", value: `$${(totalBudget / 1000000).toFixed(1)}M`, icon: CircleDollarSign, change: null, trend: null },
-    { title: "Utilized Budget", value: `$${(totalUtilized / 1000000).toFixed(1)}M`, icon: TrendingUp, change: Math.round((totalUtilized / totalBudget) * 100), trend: "up" },
+    // BUG FIX 3 (cont): guard against division by zero when totalBudget is 0
+    { title: "Utilized Budget", value: `$${(totalUtilized / 1000000).toFixed(1)}M`, icon: TrendingUp, change: totalBudget > 0 ? Math.round((totalUtilized / totalBudget) * 100) : 0, trend: "up" },
   ];
 
   if (loading) {
@@ -113,7 +119,8 @@ export default function DesignationReports() {
                 { month: "Nov", count: 282 },
                 { month: "Dec", count: 294 },
               ].map((h) => {
-                const pct = (h.count / maxHeadcount) * 100;
+                // BUG FIX 3 (cont): guard maxHeadcount=0 to avoid NaN heights
+                const pct = maxHeadcount > 0 ? (h.count / maxHeadcount) * 100 : 0;
                 return (
                   <div key={h.month} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                     <span className="text-[10px] text-gray-500 font-medium">{h.count}</span>

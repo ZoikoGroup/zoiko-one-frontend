@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import { FileText, Download, TrendingUp, Users, Building2, CircleDollarSign, Calendar } from "lucide-react";
+import { FileText, Download, TrendingUp, Users, Building2, CircleDollarSign } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDepartments } from "../../../service/hrService";
 
@@ -31,167 +31,124 @@ function SubNav() {
 
 export default function DepartmentReports() {
   const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
+    setIsLoading(true);
     getDepartments()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
-      .catch(() => {})
-      .finally(() => { if (mounted) setLoading(false); });
+      .then((res) => {
+        if (mounted) {
+          const data = res?.data?.data || res?.data || res || [];
+          setRecords(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
     return () => { mounted = false; };
   }, []);
 
-  const maxHeadcount = Math.max(...records.map((r) => r.employee_count || 0));
-  const maxBudget = Math.max(...records.map((r) => r.budget || 0));
-  const totalBudget = records.reduce((s, r) => s + (r.budget || 0), 0);
-  const totalUtilized = records.reduce((s, r) => s + (r.budget || 0), 0);
-  const totalEmployees = records.reduce((s, r) => s + (r.employee_count || 0), 0);
-  const startEmployees = 210;
-  const growth = ((totalEmployees - startEmployees) / startEmployees * 100).toFixed(1);
-
-  const statCards = [
-    { title: "Total Departments", value: records.length, icon: Building2, change: null, trend: null },
-    { title: "Total Headcount", value: totalEmployees, icon: Users, change: Number(growth), trend: "up" },
-    { title: "Total Budget", value: `$${(totalBudget / 1000000).toFixed(1)}M`, icon: CircleDollarSign, change: null, trend: null },
-    { title: "Utilized Budget", value: `$${(totalUtilized / 1000000).toFixed(1)}M`, icon: TrendingUp, change: Math.round((totalUtilized / totalBudget) * 100), trend: "up" },
-  ];
-
-  if (loading) {
-    return (
-      <HRPage title="Department Reports" subtitle="Analytics and insights across all departments">
-        <SubNav />
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
-          <span className="ml-3 text-gray-500">Loading reports...</span>
-        </div>
-      </HRPage>
-    );
-  }
+  const summaries = useMemo(() => {
+    const totalAllocated = records.reduce((sum, r) => sum + (Number(r.budget) || 0), 0);
+    const totalSpent = records.reduce((sum, r) => sum + (Number(r.spent_budget) || 0), 0);
+    const totalEmployees = records.reduce((sum, r) => sum + (Number(r.employee_count) || 0), 0);
+    return { totalAllocated, totalSpent, totalEmployees };
+  }, [records]);
 
   return (
-    <HRPage title="Department Reports" subtitle="Analytics and insights across all departments">
+    <HRPage title="Reports" subtitle="Analyze fiscal statements and headcounts">
       <SubNav />
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+
+      {/* Overview Sheets Blocks */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-blue-50 rounded-lg text-blue-600"><CircleDollarSign size={20} /></div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Department Reports</h1>
-            <p className="text-sm text-gray-500 mt-1">Analytics and insights across all departments</p>
+            <p className="text-xs text-gray-400 font-medium">Total Envelope Budget</p>
+            <h3 className="text-xl font-bold text-gray-800">${summaries.totalAllocated.toLocaleString()}</h3>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium">
-            <Download className="w-4 h-4" /> Export CSV
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-emerald-50 rounded-lg text-emerald-600"><TrendingUp size={20} /></div>
+          <div>
+            <p className="text-xs text-gray-400 font-medium">Total Spent Utilization</p>
+            <h3 className="text-xl font-bold text-gray-800">${summaries.totalSpent.toLocaleString()}</h3>
+          </div>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-rose-50 rounded-lg text-rose-600"><Users size={20} /></div>
+          <div>
+            <p className="text-xs text-gray-400 font-medium">Total Headcount Staff</p>
+            <h3 className="text-xl font-bold text-gray-800">{summaries.totalEmployees}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Report Table Container */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/40">
+          <div className="flex items-center gap-2">
+            <FileText size={18} className="text-rose-600" />
+            <div>
+              <h3 className="text-sm font-bold text-gray-800">Budget Execution Breakdown</h3>
+              <p className="text-xs text-gray-400">Department metrics alignment report matrix</p>
+            </div>
+          </div>
+          <button className="flex items-center gap-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+            <Download size={14} /> Export CSV Matrix
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statCards.map((s) => <div key={s.title} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">{s.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{s.value}</p>
-              </div>
-              {s.icon && <div className="p-2 bg-rose-50 rounded-lg"><s.icon className="w-5 h-5 text-rose-600" /></div>}
-            </div>
-          </div>)}
-        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Department Title</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Allocated Limit</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Spent Funds</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Variance Balance</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Utilization Scale</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {isLoading ? (
+                <tr><td colSpan={5} className="text-center py-8 text-sm text-gray-400">Loading sheets matrix metrics...</td></tr>
+              ) : records.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-8 text-sm text-gray-400">No organizational data logs found.</td></tr>
+              ) : (
+                records.map((r, i) => {
+                  const allocated = Number(r.budget) || 0;
+                  const spent = Number(r.spent_budget) || 0;
+                  const variance = allocated - spent;
+                  const ratio = allocated > 0 ? Math.min(Math.round((spent / allocated) * 100), 100) : 0;
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Headcount Trend</h2>
-            <div className="flex items-end gap-2 h-48">
-              {[
-                { month: "Jan", count: 210 },
-                { month: "Feb", count: 218 },
-                { month: "Mar", count: 225 },
-                { month: "Apr", count: 230 },
-                { month: "May", count: 240 },
-                { month: "Jun", count: 248 },
-                { month: "Jul", count: 255 },
-                { month: "Aug", count: 260 },
-                { month: "Sep", count: 268 },
-                { month: "Oct", count: 275 },
-                { month: "Nov", count: 282 },
-                { month: "Dec", count: 294 },
-              ].map((h) => {
-                const pct = (h.count / maxHeadcount) * 100;
-                return (
-                  <div key={h.month} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                    <span className="text-[10px] text-gray-500 font-medium">{h.count}</span>
-                    <div className="w-full bg-rose-200 rounded-t" style={{ height: `${Math.max(pct, 3)}%` }} />
-                    <span className="text-[10px] text-gray-400 -rotate-45 origin-right whitespace-nowrap">{h.month}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Department Growth</h2>
-            <div className="space-y-4">
-              {[
-                { quarter: "Q1 2024", new_depts: 2, total: 12 },
-                { quarter: "Q2 2024", new_depts: 1, total: 13 },
-                { quarter: "Q3 2024", new_depts: 1, total: 14 },
-                { quarter: "Q4 2024", new_depts: 0, total: 14 },
-                { quarter: "Q1 2025", new_depts: 1, total: 15 },
-                { quarter: "Q2 2025", new_depts: 0, total: 15 },
-              ].map((g) => (
-                <div key={g.quarter} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-rose-50 rounded-lg">
-                      <Calendar className="w-4 h-4 text-rose-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{g.quarter}</p>
-                      <p className="text-xs text-gray-500">{g.total} total departments</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-sm font-semibold ${g.new_depts > 0 ? "text-green-600" : "text-gray-400"}`}>{g.new_depts > 0 ? `+${g.new_depts}` : g.new_depts === 0 ? "0" : g.new_depts}</span>
-                    <p className="text-[10px] text-gray-400">new</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Budget by Department</h2>
-            <span className="text-xs text-gray-400">{records.length} departments</span>
-          </div>
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Budget</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Utilized</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Remaining</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Utilization</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {records.map((r, i) => (
-                  <tr key={r.id ?? i} className="hover:bg-rose-50/50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{r.budget}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{r.budget}</td>
-                    <td className={`px-4 py-3 text-sm font-medium ${r.budget - r.budget < 0 ? "text-red-600" : "text-green-600"}`}>{r.budget - r.budget}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-gray-100 rounded-full h-2">
-                          <div className={`h-2 rounded-full ${Math.round((r.budget / r.budget) * 100) > 90 ? "bg-red-500" : Math.round((r.budget / r.budget) * 100) > 75 ? "bg-orange-500" : "bg-green-500"}`} style={{ width: `${Math.round((r.budget / r.budget) * 100)}%` }} />
+                  return (
+                    <tr key={r.id ?? i} className="hover:bg-rose-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">${allocated.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">${spent.toLocaleString()}</td>
+                      <td className={`px-4 py-3 text-sm font-semibold ${variance < 0 ? "text-red-600" : "text-green-600"}`}>
+                        ${variance.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${ratio > 90 ? "bg-red-500" : ratio > 75 ? "bg-orange-500" : "bg-green-500"}`} 
+                              style={{ width: `${ratio}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs font-bold text-gray-500">{ratio}%</span>
                         </div>
-                        <span className="text-xs text-gray-500">{Math.round((r.budget / r.budget) * 100)}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </HRPage>

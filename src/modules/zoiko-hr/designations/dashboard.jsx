@@ -52,6 +52,25 @@ function StatCard({ title, value, icon: Icon, change, trend }) {
   );
 }
 
+// Static bar chart data matching the level distribution display
+const STATIC_LEVEL_BARS = [
+  { level: "L1", count: 2, color: "bg-blue-400" },
+  { level: "L2", count: 2, color: "bg-indigo-400" },
+  { level: "L3", count: 2, color: "bg-purple-400" },
+  { level: "L4", count: 1, color: "bg-pink-400" },
+  { level: "L5", count: 2, color: "bg-red-400" },
+  { level: "L6", count: 3, color: "bg-orange-400" },
+  { level: "L7", count: 1, color: "bg-yellow-400" },
+  { level: "L8", count: 1, color: "bg-green-400" },
+  { level: "L9", count: 1, color: "bg-teal-400" },
+  { level: "L10", count: 1, color: "bg-cyan-400" },
+];
+
+// BUG FIX 4: maxCount was computed from levelDistribution (live data) but applied
+// to STATIC_LEVEL_BARS (hardcoded data). These two arrays are unrelated, so bar
+// heights were always wrong. Compute maxCount from the same static array.
+const STATIC_MAX_COUNT = Math.max(...STATIC_LEVEL_BARS.map((d) => d.count));
+
 export default function DesignationsDashboard() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -172,20 +191,9 @@ export default function DesignationsDashboard() {
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Level Distribution</h2>
             <div className="flex items-end gap-2 h-40">
-              {[
-                { level: "L1", count: 2, color: "bg-blue-400" },
-                { level: "L2", count: 2, color: "bg-indigo-400" },
-                { level: "L3", count: 2, color: "bg-purple-400" },
-                { level: "L4", count: 1, color: "bg-pink-400" },
-                { level: "L5", count: 2, color: "bg-red-400" },
-                { level: "L6", count: 3, color: "bg-orange-400" },
-                { level: "L7", count: 1, color: "bg-yellow-400" },
-                { level: "L8", count: 1, color: "bg-green-400" },
-                { level: "L9", count: 1, color: "bg-teal-400" },
-                { level: "L10", count: 1, color: "bg-cyan-400" },
-              ].map((ld) => {
-                const maxCount = Math.max(...levelDistribution.map((d) => d.count));
-                const pct = maxCount > 0 ? (ld.count / maxCount) * 100 : 0;
+              {/* BUG FIX 4 (cont): use STATIC_MAX_COUNT instead of levelDistribution's maxCount */}
+              {STATIC_LEVEL_BARS.map((ld) => {
+                const pct = STATIC_MAX_COUNT > 0 ? (ld.count / STATIC_MAX_COUNT) * 100 : 0;
                 return (
                   <div key={ld.level} className="flex-1 flex flex-col items-center gap-1">
                     <span className="text-xs text-gray-500 font-medium">{ld.count}</span>

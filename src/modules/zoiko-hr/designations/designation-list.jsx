@@ -32,7 +32,6 @@ const DEPT_OPTIONS = [
   { value: "Finance", label: "Finance" },
 ];
 
-// Initial form schema adjusted to use department_name
 const initialForm = {
   title: "",
   department_name: "", 
@@ -53,7 +52,9 @@ export default function DesignationList() {
   const fetchRecords = () => {
     setLoading(true);
     getDesignations()
-      .then((res) => setRecords(res.data || []))
+      // BUG FIX 1: was `res.data` — getDesignations() returns the array directly,
+      // not a response wrapper. This caused the table to always be empty.
+      .then((res) => setRecords(Array.isArray(res) ? res : (res?.data ?? [])))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   };
@@ -127,6 +128,9 @@ export default function DesignationList() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Designation Title</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
+                {/* BUG FIX 2: Status column was missing from the table header and rows
+                    despite being part of the form and data model */}
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -134,9 +138,14 @@ export default function DesignationList() {
               {records.map((item) => (
                 <tr key={item.id} onClick={() => { setDetailItem(item); setShowDetail(true); }} className="hover:bg-gray-50/80 cursor-pointer transition-colors">
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.title}</td>
-                  {/* Updated item table rendering to match backend key */}
                   <td className="px-4 py-3 text-sm text-gray-600">{item.department_name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{item.level}</td>
+                  {/* BUG FIX 2 (cont): render status badge in the new column */}
+                  <td className="px-4 py-3 text-sm">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${item.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
+                      {item.status}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-sm flex gap-2">
                     <button onClick={(e) => handleOpenEdit(item, e)} className="text-blue-600 hover:underline">Edit</button>
                     <button onClick={(e) => handleDelete(item.id, e)} className="text-red-600 hover:underline">Delete</button>
@@ -148,7 +157,6 @@ export default function DesignationList() {
         </div>
       </div>
 
-      {/* Slide-out Sidebar details mapping updated */}
       {showDetail && detailItem && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex justify-end">
           <div className="w-full max-w-md bg-white h-full p-6 shadow-xl overflow-y-auto">
@@ -172,7 +180,6 @@ export default function DesignationList() {
         </div>
       )}
 
-      {/* Creation/Editing Modal state binding fixed */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -194,6 +201,12 @@ export default function DesignationList() {
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Hierarchy Level</label>
                   <select value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none" required>
                     {LEVEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Status</label>
+                  <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none">
+                    {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
               </div>

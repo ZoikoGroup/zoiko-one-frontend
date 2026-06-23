@@ -147,7 +147,7 @@ export default function Approvals() {
                           <AlertCircle className="w-5 h-5 text-amber-600" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">{d.name}</p>
+                          <p className="font-semibold text-slate-900 truncate">{d.title}</p>
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             <CategoryPill category={d.category} />
                             <StatusBadge status={d.status} />
@@ -160,14 +160,14 @@ export default function Approvals() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                         <button
-                          onClick={() => setConfirm({ id: d.id, name: d.name, action: "rejected" })}
+                          onClick={() => setConfirm({ id: d.id, name: d.title, action: "rejected" })}
                           disabled={processingId === d.id}
                           className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-rose-600 border border-rose-200 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors disabled:opacity-50"
                         >
                           <X className="w-4 h-4" /> Reject
                         </button>
                         <button
-                          onClick={() => setConfirm({ id: d.id, name: d.name, action: "approved" })}
+                          onClick={() => setConfirm({ id: d.id, name: d.title, action: "approved" })}
                           disabled={processingId === d.id}
                           className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
                         >
@@ -202,7 +202,7 @@ export default function Approvals() {
                     <tbody className="divide-y divide-gray-100">
                       {resolved.map(d => (
                         <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="px-6 py-3 font-medium text-slate-800">{d.name}</td>
+                          <td className="px-6 py-3 font-medium text-slate-800">{d.title}</td>
                           <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
                           <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
                           <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.updated_at || d.created_at)}</td>

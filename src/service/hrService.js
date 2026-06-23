@@ -76,8 +76,7 @@ export const getLearning = () => fetchList("learning");
 // directly (no axios-style { data } envelope). Components consuming these
 // expect `res.data`, so we wrap the result here. See DEPARTMENT/DESIGNATION
 // CRUD SPECIFIC section below for the matching create/update/delete wraps.
-export const getDepartments = () => api.get("/hr/departments").then(data => ({ data }));
-export const getDesignations = () => api.get("/hr/designations").then(data => ({ data }));
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // RECRUITMENT MODULE
@@ -579,39 +578,109 @@ export const deleteCorrectiveAction = (id) => api.delete(`/hr/compliance/correct
 // approvals.jsx, settings.jsx) was written expecting `res.data`, so we wrap
 // the result here to match that shape without having to touch 5 files.
 
-// Get all documents
-export const getDocuments = () =>
-  api.get("/hr/documents").then(data => ({ data }));
+/**
+ * Get all HR documents.
+ * @param {Object} params  - Optional filters:
+ *   category    {string}  – "company" | "employee" | "policy" | "contract" | "other"
+ *   status      {string}  – "pending" | "approved" | "rejected" | "expired"
+ *   employee_id {number}  – filter to a specific employee
+ *   search      {string}  – search by title or document type
+ */
+export const getDocuments = (params = {}) => {
+  // Build query string from non-empty params
+  const query = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+  return api.get(`/hr/documents${query ? `?${query}` : ""}`).then(data => ({ data }));
+};
 
-// Upload a new document (using FormData)
-// Pass { headers: { "Content-Type": undefined } } so the api wrapper does not
-// override the browser-set multipart/form-data boundary. Without this the
-// default application/json header causes FastAPI to return 422.
-export const uploadDocument = (formData) =>
-  api.post("/hr/documents/upload", formData, { headers: { "Content-Type": undefined } }).then(data => ({ data }));
+// Get a single document by ID
+export const getDocumentById = (documentId) =>
+  api.get(`/hr/documents/${documentId}`).then(data => ({ data }));
 
-// Delete a document
+/**
+ * Upload a new document (multipart/form-data).
+ *
+ * Uses native fetch (NOT the api wrapper) so the browser sets the correct
+ * multipart/form-data Content-Type + boundary automatically.
+ *
+ * The api wrapper hard-codes Content-Type: application/json which corrupts
+ * multipart uploads and causes FastAPI to return 422 "Field required".
+ *
+ * Build a FormData before calling:
+ *   const fd = new FormData();
+ *   fd.append("file", fileObject);
+ *   fd.append("title", "Offer Letter");
+ *   fd.append("category", "employee");        // optional, defaults to "other"
+ *   fd.append("document_type", "offer_letter"); // optional
+ *   fd.append("employee_id", 42);             // optional
+ *   fd.append("expiry_date", "2026-12-31");   // optional, YYYY-MM-DD
+ *   fd.append("tags", JSON.stringify(["onboarding"])); // optional
+ */
+export async function uploadDocument(formData) {
+  const { getAccessToken, API_BASE_URL: base } = await import("./api");
+  const token = getAccessToken();
+  // Do NOT set Content-Type — browser sets it automatically with the correct
+  // multipart boundary when body is a FormData instance.
+  const res = await fetch(`${base}/hr/documents/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    const err = new Error(`Upload failed: ${res.status}`);
+    err.response = { data: detail };
+    throw err;
+  }
+  const data = await res.json();
+  return { data };
+}
+
+// Soft-delete a document
 export const deleteDocument = (documentId) =>
   api.delete(`/hr/documents/${documentId}`).then(data => ({ data }));
 
-// Update document status (Approve, Reject, Expire)
-export const updateDocumentStatus = (documentId, newStatus) =>
-  api.patch(`/hr/documents/${documentId}/status`, { status: newStatus }).then(data => ({ data }));
+/**
+ * Update document approval status.
+ * @param {number} documentId
+ * @param {string} newStatus         – "pending" | "approved" | "rejected" | "expired"
+ * @param {string} [rejectionReason] – required when newStatus === "rejected"
+ */
+export const updateDocumentStatus = (documentId, newStatus, rejectionReason = undefined) =>
+  api.patch(`/hr/documents/${documentId}/status`, {
+    status: newStatus,
+    ...(rejectionReason !== undefined && { rejection_reason: rejectionReason }),
+  }).then(data => ({ data }));
 
-// Edit/Update document metadata
+// Edit document metadata (title, description, category, document_type, employee_id, expiry_date, tags)
 export const updateDocument = (documentId, updateData) =>
   api.put(`/hr/documents/${documentId}`, updateData).then(data => ({ data }));
 
 
-// ── DEPARTMENT CRUD SPECIFIC ────────────────────────────────────────────────
-export const getDepartmentById = (id) =>
-  api.get(`/hr/departments/${id}`).then(data => ({ data }));
+/// ── DEPARTMENT CRUD SPECIFIC ────────────────────────────────────────────────
+
+// GET an individual department by its ID
+export const getDepartmentById = (deptId) =>
+  api.get(`/hr/departments/${deptId}`).then(data => ({ data }));
+
+// POST - Create a new department
+// Ensure payload contains: { name: "Engineering", code: "ENG", description: "..." }
 export const createDepartment = (payload) =>
   api.post("/hr/departments", payload).then(data => ({ data }));
-export const updateDepartment = (id, payload) =>
-  api.put(`/hr/departments/${id}`, payload).then(data => ({ data }));
-export const deleteDepartment = (id) =>
-  api.delete(`/hr/departments/${id}`).then(data => ({ data }));
+
+// PUT - Update an existing department
+export const updateDepartment = (deptId, payload) =>
+  api.put(`/hr/departments/${deptId}`, payload).then(data => ({ data }));
+
+// DELETE - Deactivate/Remove a department
+export const deleteDepartment = (deptId) =>
+  api.delete(`/hr/departments/${deptId}`).then(data => ({ data }));
+
+
+export const getDepartments = () => api.get("/hr/departments").then(data => ({ data }));
+export const getDesignations = () => api.get("/hr/designations").then(data => ({ data }));
 
 // ── DESIGNATIONS CRUD SPECIFIC ──────────────────────────────────────────────
 export const getDesignationById = (id) =>

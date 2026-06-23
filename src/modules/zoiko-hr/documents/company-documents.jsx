@@ -42,7 +42,7 @@ export default function CompanyDocuments() {
   const load = () => {
     setLoading(true);
     setError(null);
-    getDocuments()
+    getDocuments({ category: "company" })
       .then(res => setDocs(Array.isArray(res?.data) ? res.data : []))
       .catch(() => setError("Could not fetch company documents. Please try again."))
       .finally(() => setLoading(false));
@@ -52,9 +52,8 @@ export default function CompanyDocuments() {
 
   const companyDocs = useMemo(() =>
     docs
-      .filter(d => d.category?.toLowerCase() === "company")
       .filter(d => statusFilter === "all" || d.status === statusFilter)
-      .filter(d => !search.trim() || d.name?.toLowerCase().includes(search.trim().toLowerCase())),
+      .filter(d => !search.trim() || d.title?.toLowerCase().includes(search.trim().toLowerCase())),
     [docs, search, statusFilter]
   );
 
@@ -133,9 +132,9 @@ export default function CompanyDocuments() {
               {companyDocs.map(d => (
                 <div key={d.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-5 flex flex-col gap-3 group">
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl select-none shrink-0 mt-0.5">{fileTypeIcon(d.name)}</span>
+                    <span className="text-2xl select-none shrink-0 mt-0.5">{fileTypeIcon(d.file_name || d.title)}</span>
                     <p className="font-semibold text-slate-800 leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors">
-                      {d.name}
+                      {d.title}
                     </p>
                   </div>
                   {d.description && <p className="text-xs text-slate-400 line-clamp-2">{d.description}</p>}

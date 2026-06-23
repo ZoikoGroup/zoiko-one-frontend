@@ -80,7 +80,7 @@ const styles = {
     fontSize: "11px",
     fontWeight: 600,
     letterSpacing: "0.12em",
-    color: "#E05C2A",
+    color: "#F97316",
     textTransform: "uppercase",
     marginBottom: "16px",
   },
@@ -105,7 +105,7 @@ const styles = {
   btnPrimary: {
     display: "inline-block",
     padding: "12px 24px",
-    backgroundColor: "#E05C2A",
+    backgroundColor: "#F97316",
     color: "#fff",
     borderRadius: "999px",
     fontWeight: 600,

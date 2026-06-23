@@ -13,6 +13,9 @@ import ResourcesPage from "./pages/public/ResourcesPage";
 import AboutPage from "./pages/public/AboutPage";
 import ZoikoDemoPage from "./pages/public/ZoikoDemoPage";
 import ZoikoHRPage from "./pages/products/ZoikoHRPage";
+import ZoikoPayrollPage from "./pages/products/ZoikoPayrollPage";
+import ZoikoTimePage from "./pages/products/ZoikoTimePage";
+import ZoikoBillingPage from "./pages/products/ZoikoBillingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -486,6 +489,9 @@ export default function App() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/get-demo" element={<ZoikoDemoPage />} />
       <Route path="/products/zoiko-hr" element={<ZoikoHRPage />} />
+      <Route path="/products/payroll" element={<ZoikoPayrollPage />} />
+      <Route path="/products/zoikotime" element={<ZoikoTimePage />} />
+      <Route path="/products/billing" element={<ZoikoBillingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

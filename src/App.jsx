@@ -105,9 +105,7 @@ import WorkforceDashboard from "./modules/zoiko-hr/workforce-planning/dashboard.
 import WorkforcePlans from "./modules/zoiko-hr/workforce-planning/plans.jsx";
 import HeadcountPlanning from "./modules/zoiko-hr/workforce-planning/headcount.jsx";
 import Succession from "./modules/zoiko-hr/workforce-planning/succession.jsx";
-import ScenarioPlanning from "./modules/zoiko-hr/workforce-planning/scenario-planning.jsx";
 import WorkforceReports from "./modules/zoiko-hr/workforce-planning/reports.jsx";
-import WorkforceSettings from "./modules/zoiko-hr/workforce-planning/settings.jsx";
 
 
 
@@ -338,9 +336,7 @@ const routeOverrides = {
   "/zoiko-hr/workforce-planning/plans": <WorkforcePlans />,
   "/zoiko-hr/workforce-planning/headcount": <HeadcountPlanning />,
   "/zoiko-hr/workforce-planning/succession": <Succession />,
-  "/zoiko-hr/workforce-planning/scenarios": <ScenarioPlanning />,
   "/zoiko-hr/workforce-planning/reports": <WorkforceReports />,
-  "/zoiko-hr/workforce-planning/settings": <WorkforceSettings />,
   "/zoiko-hr/documents": <DocumentsDashboard />,
   "/zoikotime": <ZoikoTimeModule />,
   "/payroll": <ZoikoPayrollModule />,

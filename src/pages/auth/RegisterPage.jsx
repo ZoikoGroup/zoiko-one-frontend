@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import logo from "../assets/logo.png";
-import Footer from "../landing/Footer";
+import { useAuth } from "../../context/AuthContext";
+import logo from "../../assets/logo.png";
+import Footer from "../../landing/Footer";
 
 export default function RegisterPage() {
   const { register, error: authError } = useAuth();

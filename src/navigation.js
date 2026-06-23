@@ -189,11 +189,9 @@ const products = {
             ]},
             { label: "Assets",             icon: Package, children: [
               { label: "Dashboard",          href: "/zoiko-hr/assets",                icon: LayoutDashboard },
-              { label: "My Assets",          href: "/zoiko-hr/assets/my-assets",       icon: Package },
               { label: "Asset Catalog",      href: "/zoiko-hr/assets/catalog",         icon: Layers },
+              { label: "My Assets",          href: "/zoiko-hr/assets/my-assets",       icon: Package },
               { label: "Asset Requests",     href: "/zoiko-hr/assets/requests",        icon: ClipboardList },
-              { label: "Maintenance",        href: "/zoiko-hr/assets/maintenance",     icon: Wrench },
-              { label: "Reports",            href: "/zoiko-hr/assets/reports",         icon: FileText },
               { label: "Settings",           href: "/zoiko-hr/assets/settings",        icon: SlidersHorizontal },
             ]},
             { label: "Learning",           icon: BookOpen, children: [

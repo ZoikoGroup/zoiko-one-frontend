@@ -508,6 +508,14 @@ export default function App() {
                   />
                 ))}
                 <Route
+                  path="/zoiko-hr/assets/maintenance"
+                  element={<AssetMaintenance />}
+                />
+                <Route
+                  path="/zoiko-hr/assets/reports"
+                  element={<AssetReports />}
+                />
+                <Route
                   path="/zoiko-hr/recruitment/candidates/:id"
                   element={<Candidates />}
                 />

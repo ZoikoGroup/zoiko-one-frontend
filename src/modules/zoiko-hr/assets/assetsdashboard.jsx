@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
-import { Package, UserCheck, Archive, Wrench, PlusCircle, Monitor, Layers, Sofa, MonitorDown, Car } from "lucide-react";
+import { Package, UserCheck, Archive, Wrench, PlusCircle, Monitor, Layers, Sofa, MonitorDown, Car, FileText, BarChart3, ClipboardList, FileSearch } from "lucide-react";
 import { getAssetDashboard } from "../../../service/hrService";
+import Maintenance from "./maintenance";
+import AssetReports from "./reports";
+
+const TABS = [
+  { key: "overview", label: "Overview", icon: BarChart3 },
+  { key: "maintenance", label: "Maintenance", icon: Wrench },
+  { key: "reports", label: "Reports", icon: FileText },
+];
 
 const categoryIcons = {
   Hardware: Monitor, Software: Layers, Furniture: Sofa, Electronics: MonitorDown, Vehicle: Car, Other: Package,
@@ -33,48 +41,7 @@ function SimpleBar({ label, value, max, color }) {
   );
 }
 
-export default function AssetsDashboard() {
-  const [dashboard, setDashboard] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetch = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getAssetDashboard();
-        if (mounted) setDashboard(data);
-      } catch (err) {
-        if (mounted) setError(err.message || "Failed to load dashboard");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetch();
-    return () => { mounted = false; };
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-500">Loading dashboard...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !dashboard) {
-    return (
-      <div className="p-6">
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error || "No data returned"}</div>
-      </div>
-    );
-  }
-
+function OverviewTab({ dashboard }) {
   const {
     total_assets = 0, assigned_count = 0, available_count = 0,
     maintenance_count = 0, recently_added = 0,
@@ -89,12 +56,7 @@ export default function AssetsDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Assets Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Overview of company asset inventory and status</p>
-      </div>
-
+    <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard title="Total Assets" value={total_assets} icon={Package} />
         <StatCard title="Assigned" value={assigned_count} icon={UserCheck} />
@@ -152,6 +114,85 @@ export default function AssetsDashboard() {
           )}
         </div>
       </div>
+    </>
+  );
+}
+
+export default function AssetsDashboard() {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetch = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getAssetDashboard();
+        if (mounted) setDashboard(data);
+      } catch (err) {
+        if (mounted) setError(err.message || "Failed to load dashboard");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => { mounted = false; };
+  }, []);
+
+  const renderContent = () => {
+    if (activeTab === "maintenance") {
+      return <Maintenance />;
+    }
+    if (activeTab === "reports") {
+      return <AssetReports />;
+    }
+
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-500">Loading dashboard...</span>
+        </div>
+      );
+    }
+
+    if (error || !dashboard) {
+      return (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error || "No data returned"}</div>
+      );
+    }
+
+    return <OverviewTab dashboard={dashboard} />;
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Assets Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Overview of company asset inventory and status</p>
+      </div>
+
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeTab === tab.key
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <tab.icon size={16} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {renderContent()}
     </div>
   );
 }

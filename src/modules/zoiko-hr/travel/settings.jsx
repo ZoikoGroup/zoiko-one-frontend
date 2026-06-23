@@ -1,54 +1,62 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { Save, Sliders, Bell, Eye, Lock } from "lucide-react";
-import HRPage from "../../../components/HRPage";
-
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/travel" },
-  { label: "Requests", href: "/zoiko-hr/travel/requests" },
-  { label: "Approvals", href: "/zoiko-hr/travel/approvals" },
-  { label: "Expenses", href: "/zoiko-hr/travel/expenses" },
-  { label: "Settings", href: "/zoiko-hr/travel/settings" },
-];
-
-function SubNav() {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink
-          key={item.href}
-          to={item.href}
-          end={item.href === "/zoiko-hr/travel"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-all duration-200 ${
-              isActive ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }
-        >
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
-  );
-}
+import { useState, useEffect } from "react";
+import { Save, Sliders, Bell, Lock, DollarSign, Calendar, Layers, BellRing } from "lucide-react";
+import TravelLayout from "./TravelLayout";
+import { api } from "../../../service/api";
 
 export default function TravelSettings() {
   const [settings, setSettings] = useState({
-    notifications: { email: true, push: true, sms: false, requestUpdates: true },
-    privacy: { profileVisibility: "internal", showEmail: true },
-    preferences: { theme: "light", language: "en", dateFormat: "MM/DD/YYYY" },
+    approval_workflow: "manager",
+    expense_limit_per_day: 500,
+    max_trip_duration: 30,
+    auto_approve_threshold: 1000,
+    reimbursement_deadline: 30,
+    notification_enabled: true,
   });
-
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState("notifications");
+  const [activeTab, setActiveTab] = useState("general");
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        setLoading(true);
+        const res = await api.get("/hr/travel/settings");
+        const data = res || {};
+        if (data && data.id) {
+          setSettings({
+            approval_workflow: data.approval_workflow || "manager",
+            expense_limit_per_day: parseFloat(data.expense_limit_per_day) || 500,
+            max_trip_duration: data.max_trip_duration || 30,
+            auto_approve_threshold: data.auto_approve_threshold || 1000,
+            reimbursement_deadline: data.reimbursement_deadline || 30,
+            notification_enabled: data.notification_enabled !== false,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load travel settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
 
   const handleSave = async () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaving(true);
+    try {
+      await api.put("/hr/travel/settings", settings);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const updateNested = (section, key, value) => {
-    setSettings({ ...settings, [section]: { ...settings[section], [key]: value } });
+  const update = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
   };
 
   const Toggle = ({ checked, onChange }) => (
@@ -59,48 +67,68 @@ export default function TravelSettings() {
   );
 
   return (
-    <HRPage title="Travel" subtitle="Configure travel module preferences">
-      <SubNav />
+    <TravelLayout title="Travel" subtitle="Configure travel module preferences">
       <div className="space-y-6">
         <div className="flex justify-between items-center bg-white p-4 border border-gray-200 rounded-xl shadow-sm">
           <div>
             <h1 className="text-xl font-black text-gray-900">Module Preferences</h1>
-            <p className="text-xs text-gray-500">Local terminal system config behaviors</p>
+            <p className="text-xs text-gray-500">Travel policy and workflow configuration</p>
           </div>
-          <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
-            <Save className="w-4 h-4" /> {saved ? "Preferences Locked!" : "Commit Configurations"}
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+            <Save className="w-4 h-4" /> {saving ? "Saving..." : saved ? "Saved!" : "Save Settings"}
           </button>
         </div>
 
-        {/* Tab Selection Nodes Layout */}
         <div className="flex gap-2 border-b border-gray-200">
+          <button onClick={() => setActiveTab("general")} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 ${activeTab === "general" ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500"}`}><Sliders className="w-4 h-4" /> General</button>
           <button onClick={() => setActiveTab("notifications")} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 ${activeTab === "notifications" ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500"}`}><Bell className="w-4 h-4" /> Notifications</button>
-          <button onClick={() => setActiveTab("privacy")} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 ${activeTab === "privacy" ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500"}`}><Lock className="w-4 h-4" /> Security Matrix</button>
         </div>
 
-        {/* Settings Panels Mapping */}
-        {activeTab === "notifications" && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between py-2 border-b border-gray-50 font-medium text-sm">
-              <span className="text-gray-700">Automated Mail Alerts</span>
-              <Toggle checked={settings.notifications.email} onChange={(v) => updateNested("notifications", "email", v)} />
-            </div>
-            <div className="flex items-center justify-between py-2 font-medium text-sm">
-              <span className="text-gray-700">Push Payload Submissions</span>
-              <Toggle checked={settings.notifications.push} onChange={(v) => updateNested("notifications", "push", v)} />
-            </div>
-          </div>
-        )}
+        {loading ? (
+          <div className="text-center py-12 text-gray-500 font-medium">Loading settings...</div>
+        ) : (
+          <>
+            {activeTab === "general" && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5 shadow-sm">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Layers className="w-3.5 h-3.5" /> Approval Workflow</label>
+                  <select value={settings.approval_workflow} onChange={e => update("approval_workflow", e.target.value)} className="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                    <option value="manager">Manager Only</option>
+                    <option value="manager+director">Manager + Director</option>
+                    <option value="manager+director+finance">Manager + Director + Finance</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"><DollarSign className="w-3.5 h-3.5" /> Daily Expense Limit ($)</label>
+                  <input type="number" value={settings.expense_limit_per_day} onChange={e => update("expense_limit_per_day", parseFloat(e.target.value) || 0)} className="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> Max Trip Duration (days)</label>
+                  <input type="number" value={settings.max_trip_duration} onChange={e => update("max_trip_duration", parseInt(e.target.value) || 1)} className="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"><DollarSign className="w-3.5 h-3.5" /> Auto-Approve Threshold ($)</label>
+                  <input type="number" value={settings.auto_approve_threshold} onChange={e => update("auto_approve_threshold", parseInt(e.target.value) || 0)} className="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> Reimbursement Deadline (days)</label>
+                  <input type="number" value={settings.reimbursement_deadline} onChange={e => update("reimbursement_deadline", parseInt(e.target.value) || 1)} className="w-full border border-gray-200 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+                </div>
+              </div>
+            )}
 
-        {activeTab === "privacy" && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between py-2 font-medium text-sm">
-              <span className="text-gray-700">Expose Digital Email Parameters</span>
-              <Toggle checked={settings.privacy.showEmail} onChange={(v) => updateNested("privacy", "showEmail", v)} />
-            </div>
-          </div>
+            {activeTab === "notifications" && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between py-2 border-b border-gray-50 font-medium text-sm">
+                  <span className="text-gray-700 flex items-center gap-2"><BellRing className="w-4 h-4 text-blue-500" /> Email & Push Notifications</span>
+                  <Toggle checked={settings.notification_enabled} onChange={(v) => update("notification_enabled", v)} />
+                </div>
+                <p className="text-xs text-gray-400">When enabled, users will receive notifications for travel request approvals, expense reimbursements, and policy updates.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
-    </HRPage>
+    </TravelLayout>
   );
 }

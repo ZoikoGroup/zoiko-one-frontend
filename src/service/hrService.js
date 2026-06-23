@@ -508,6 +508,55 @@ export const getWorkforcePlans = () => api.get("/hr/workforce-planning");
 export const createWorkforcePlan = (payload) => api.post("/hr/workforce-planning", payload);
 export const getWorkforceSummary = () => api.get("/hr/workforce/summary");
 
+// ── WORKFORCE PLANNING V2 (Production API) ─────────────────────────────────
+export const getWorkforceDashboard = () => api.get("/hr/workforce/dashboard");
+
+export const getWfPlans = (params = {}) => api.get("/hr/workforce/plans", { params });
+export const getWfPlanById = (id) => api.get(`/hr/workforce/plans/${id}`);
+export const createWfPlan = (payload) => api.post("/hr/workforce/plans", payload);
+export const updateWfPlan = (id, payload) => api.put(`/hr/workforce/plans/${id}`, payload);
+export const deleteWfPlan = (id) => api.delete(`/hr/workforce/plans/${id}`);
+
+export const getWfHeadcounts = (params = {}) => api.get("/hr/workforce/headcount", { params });
+export const getWfHeadcountById = (id) => api.get(`/hr/workforce/headcount/${id}`);
+export const createWfHeadcount = (payload) => api.post("/hr/workforce/headcount", payload);
+export const updateWfHeadcount = (id, payload) => api.put(`/hr/workforce/headcount/${id}`, payload);
+export const deleteWfHeadcount = (id) => api.delete(`/hr/workforce/headcount/${id}`);
+
+export const getWfSuccessions = (params = {}) => api.get("/hr/workforce/succession", { params });
+export const getWfSuccessionById = (id) => api.get(`/hr/workforce/succession/${id}`);
+export const createWfSuccession = (payload) => api.post("/hr/workforce/succession", payload);
+export const updateWfSuccession = (id, payload) => api.put(`/hr/workforce/succession/${id}`, payload);
+export const deleteWfSuccession = (id) => api.delete(`/hr/workforce/succession/${id}`);
+
+export const getWfReports = (params = {}) => api.get("/hr/workforce/reports", { params });
+export const generateWfReport = (payload) => api.post("/hr/workforce/reports/generate", payload);
+
+async function downloadWfExport(endpoint, filename) {
+  const { getAccessToken, API_BASE_URL } = await import("./api");
+  const token = getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to export workforce report");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export const exportWfCsv = (reportType = "workforce_summary") =>
+  downloadWfExport(`/hr/workforce/reports/export/csv?report_type=${reportType}`, `workforce_${reportType}_${new Date().toISOString().split("T")[0]}.csv`);
+
+export const exportWfExcel = (reportType = "workforce_summary") =>
+  downloadWfExport(`/hr/workforce/reports/export/excel?report_type=${reportType}`, `workforce_${reportType}_${new Date().toISOString().split("T")[0]}.xlsx`);
+
+export const exportWfPdf = (reportType = "workforce_summary") =>
+  downloadWfExport(`/hr/workforce/reports/export/pdf?report_type=${reportType}`, `workforce_${reportType}_${new Date().toISOString().split("T")[0]}.pdf`);
+
 // ── COMPLIANCE & RISK AUDITS ────────────────────────────────────────────────
 export const getComplianceDashboard = () => api.get("/hr/compliance/dashboard");
 export const getComplianceReport = () => api.get("/hr/compliance/reports");

@@ -227,17 +227,6 @@ const products = {
               { label: "Expenses",           href: "/zoiko-hr/travel/expenses",       icon: Receipt },
               { label: "Settings",           href: "/zoiko-hr/travel/settings",       icon: SlidersHorizontal },
             ]},
-            { 
-  label: "Compliance", 
-  icon: ShieldCheck, 
-  children: [
-    { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
-    { label: "Policy Library", href: "/comply/policies", icon: FileCheck2 },
-    { label: "Tracking & Audits", href: "/comply/audits", icon: Search },
-    { label: "Violations & Actions", href: "/comply/incidents", icon: AlertTriangle },
-    { label: "Risks & Settings", href: "/comply/settings", icon: SlidersHorizontal },
- 
-            ]},
             { label: "Workforce Planning", icon: Target, children: [
               { label: "Dashboard",             href: "/zoiko-hr/workforce-planning",       icon: LayoutDashboard },
               { label: "Plans",                 href: "/zoiko-hr/workforce-planning/plans",  icon: Target },

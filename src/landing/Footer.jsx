@@ -16,9 +16,12 @@ const productLinks = [
   { label: "ZoikoTime", href: "/products/zoikotime" },
   { label: "Zoiko Payroll", href: "/products/payroll" },
   { label: "Zoiko Billing", href: "/products/billing" },
-  { label: "Zoiko Projects", href: "#" },
+  { label: "Zoiko Projects", href: "/projects" },
   { label: "Zoiko Comply", href: "/products/comply" },
   { label: "Zoiko Insights", href: "/products/insights" },
+  { label: "Zoiko Inventory", href: "/inventory" },
+  { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
+  { label: "Zoiko Spend", href: "/products/spend" },
 ];
 
 const solutionLinks = [

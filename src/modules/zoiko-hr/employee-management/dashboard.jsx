@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { TrendingUp, Users, UserCheck, Clock, AlertCircle, RefreshCw, Building2, Award, Target, Star, Activity, CheckCircle, Briefcase, MapPin, Calendar, FileText } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getEmployeeDashboard } from "../../../service/hrService";
@@ -67,6 +67,7 @@ function EmptyState({ icon: Icon, title, message, action }) {
 }
 
 export default function EmployeeManagementDashboard() {
+  const navigate = useNavigate();
   const [dash, setDash] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -226,7 +227,7 @@ export default function EmployeeManagementDashboard() {
                       <p className="text-sm font-medium text-gray-900">{emp.employee_name}</p>
                       <p className="text-xs text-gray-500">Probation ends: {emp.probation_end_date}</p>
                     </div>
-                    <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">View</button>
+                    <button onClick={() => navigate(`/zoiko-hr/employee-management/employees/${emp.employee_id}`)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">View</button>
                   </div>
                 ))}
               </div>
@@ -249,7 +250,7 @@ export default function EmployeeManagementDashboard() {
                       <p className="text-sm font-medium text-gray-900">{emp.employee_name}</p>
                       <p className="text-xs text-gray-500">Confirmation due: {emp.confirmation_date}</p>
                     </div>
-                    <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">Confirm</button>
+                    <button onClick={() => navigate("/zoiko-hr/employee-management/lifecycle")} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Confirm</button>
                   </div>
                 ))}
               </div>

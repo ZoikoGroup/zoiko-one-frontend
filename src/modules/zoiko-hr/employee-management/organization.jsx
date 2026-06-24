@@ -27,6 +27,28 @@ function SubNav() {
   );
 }
 
+const DEPARTMENT_COLORS = [
+  "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
+  "bg-red-500", "bg-teal-500", "bg-cyan-500", "bg-indigo-500",
+];
+
+function TreeNode({ node, depth = 0 }) {
+  return (
+    <div className="relative pl-6 ml-3 border-l border-gray-200">
+      <div className="absolute left-0 top-2 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center -translate-x-1.5">
+        <Users className="w-1.5 h-1.5 text-white" />
+      </div>
+      <div className="bg-green-50 rounded-lg p-2 ml-4 hover:bg-green-100 transition-colors mb-2">
+        <p className="text-xs font-medium text-green-900">{node.name}</p>
+        <p className="text-xs text-green-600">{node.job_title}</p>
+      </div>
+      {node.children?.map((child) => (
+        <TreeNode key={child.id} node={child} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
 function OrgChart() {
   const [chart, setChart] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -92,15 +114,15 @@ function OrgChart() {
               <Users className="w-5 h-5 text-green-600" />
               Reporting Hierarchy
             </h2>
-            {chart?.reporting_structure?.length === 0 ? (
+            {(!chart?.reporting_structure || chart.reporting_structure.length === 0) ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p className="text-gray-500">No reporting hierarchy data available</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {chart?.reporting_structure?.map((emp, idx) => (
-                  <div key={idx} className="relative pl-8">
+                {chart.reporting_structure.map((emp) => (
+                  <div key={emp.id} className="relative pl-8">
                     <div className="absolute left-0 top-1 w-0.5 h-full bg-gray-200"></div>
                     <div className="absolute left-0 top-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
                       <UserCheck className="w-2.5 h-2.5 text-white" />
@@ -111,22 +133,9 @@ function OrgChart() {
                       {emp.manager_name && (
                         <p className="text-xs text-blue-600 mt-1">Manager: {emp.manager_name}</p>
                       )}
-                      {emp.children?.length > 0 && (
-                        <div className="mt-2 pl-2 border-l border-gray-200">
-                          {emp.children.map((child, cidx) => (
-                            <div key={cidx} className="relative pl-6">
-                              <div className="absolute left-0 top-1 w-0.5 h-full bg-gray-200"></div>
-                              <div className="absolute left-0 top-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                                <Users className="w-1.5 h-1.5 text-white" />
-                              </div>
-                              <div className="bg-green-50 rounded-lg p-2 ml-6 hover:bg-green-100 transition-colors">
-                                <p className="text-xs font-medium text-green-900">{child.name}</p>
-                                <p className="text-xs text-green-600">{child.job_title}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {emp.children?.map((child) => (
+                        <TreeNode key={child.id} node={child} depth={1} />
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -140,15 +149,15 @@ function OrgChart() {
             <MapPin className="w-5 h-5 text-purple-600" />
             Location Distribution
           </h2>
-          {chart?.employees?.filter((e) => e.location)?.length === 0 ? (
+          {(!chart?.employees || chart.employees.filter((e) => e.location).length === 0) ? (
             <div className="text-center py-8">
               <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="text-gray-500">No location data available</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {chart?.employees?.filter((e) => e.location)?.map((emp, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+              {chart.employees.filter((e) => e.location).map((emp) => (
+                <div key={emp.id} className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                   <MapPin className="w-4 h-4 text-purple-600" />
                   <div>
                     <p className="text-sm font-medium text-purple-900">{emp.name}</p>
@@ -163,10 +172,5 @@ function OrgChart() {
     </HRPage>
   );
 }
-
-const DEPARTMENT_COLORS = [
-  "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
-  "bg-red-500", "bg-teal-500", "bg-cyan-500", "bg-indigo-500",
-];
 
 export default OrgChart;

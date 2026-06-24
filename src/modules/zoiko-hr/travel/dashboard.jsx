@@ -39,7 +39,7 @@ export default function TravelDashboard() {
         setLoading(true);
         setError(null);
         
-        const dashboardRes = await api.get("/hr/travel/dashboard?organization_id=1");
+        const dashboardRes = await api.get("/hr/travel/dashboard");
         const dashboardData = dashboardRes || {};
         
         const travelRes = await api.get("/hr/travel?page=1&per_page=5&search=");

@@ -88,7 +88,8 @@ export default function DesignationsDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const data = await getDesignations();
+        const res = await getDesignations();
+        const data = res?.data?.data || res?.data || res || [];
         if (mounted) setRecords(Array.isArray(data) ? data : []);
       } catch (err) {
         if (mounted) setError(err.message || "Failed to load dashboard");

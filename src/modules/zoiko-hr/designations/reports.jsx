@@ -36,7 +36,10 @@ export default function DesignationReports() {
   useEffect(() => {
     let mounted = true;
     getDesignations()
-      .then((data) => { if (mounted) setRecords(Array.isArray(data) ? data : []); })
+      .then((res) => {
+        const data = res?.data?.data || res?.data || res || [];
+        if (mounted) setRecords(Array.isArray(data) ? data : []);
+      })
       .catch(() => {})
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
@@ -84,7 +87,17 @@ export default function DesignationReports() {
             <h1 className="text-2xl font-bold text-gray-900">Designation Reports</h1>
             <p className="text-sm text-gray-500 mt-1">Analytics and insights across all designations</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium">
+          <button
+            onClick={() => {
+              const csv = [["Designation","Headcount","Max Salary"]];
+              records.forEach(r => csv.push([r.name, r.employees_count || 0, r.max_salary || 0]));
+              const blob = new Blob([csv.map(r => r.join(",")).join("\n")], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "designation_reports.csv"; a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
+          >
             <Download className="w-4 h-4" /> Export CSV
           </button>
         </div>

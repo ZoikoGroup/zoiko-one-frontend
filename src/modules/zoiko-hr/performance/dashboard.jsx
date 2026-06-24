@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Trophy, Target, Star, MessageSquare, Award, RefreshCw, TrendingUp, Activity, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getPerformanceDashboard, getPerformanceAnalytics, getHrEmployees } from "../../../service/hrService";
@@ -67,6 +67,7 @@ function EmptyState({ icon: Icon, title, message, action }) {
 }
 
 export default function PerformanceDashboard() {
+  const navigate = useNavigate();
   const [dash, setDash] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [employees, setEmployees] = useState([]);
@@ -133,7 +134,7 @@ export default function PerformanceDashboard() {
                 icon={MessageSquare}
                 title="No reviews found"
                 message="Create your first review to get started"
-                action={<button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Review</button>}
+                action={<button onClick={() => navigate("/zoiko-hr/performance/reviews")} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Review</button>}
               />
             ) : (
               <div className="space-y-4">
@@ -154,7 +155,7 @@ export default function PerformanceDashboard() {
                 icon={Target}
                 title="No goals found"
                 message="Create your first goal to get started"
-                action={<button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Goal</button>}
+                action={<button onClick={() => navigate("/zoiko-hr/performance/goals")} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Goal</button>}
               />
             ) : (
               <div className="space-y-4">

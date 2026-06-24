@@ -660,7 +660,7 @@ export const deleteDepartment = (deptId) =>
 
 
 export const getDepartments = () => api.get("/hr/departments").then(data => ({ data }));
-export const getDesignations = () => api.get("/hr/designations").then(data => ({ data }));
+export const getDesignations = () => api.get("/hr/designations");
 
 // ── DESIGNATIONS CRUD SPECIFIC ──────────────────────────────────────────────
 export const getDesignationById = (id) =>

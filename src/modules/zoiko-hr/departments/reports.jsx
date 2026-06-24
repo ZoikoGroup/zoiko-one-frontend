@@ -1,18 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import {
-  Building2,
-  CircleDollarSign,
-  Users,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  GitBranch,
-  UserCheck,
-  Calendar,
-} from "lucide-react";
+import { Building2, Download, Filter, Search } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getDepartments } from "../../../service/hrService";
+import { api } from "../../../service/api";
 
 const NAV_ITEMS = [
   { label: "Dashboard",            href: "/zoiko-hr/departments" },
@@ -45,52 +35,46 @@ function SubNav() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, change, trend }) {
-  const TrendIcon =
-    trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
-  const trendColor =
-    trend === "up"
-      ? "text-green-600"
-      : trend === "down"
-      ? "text-red-600"
-      : "text-gray-400";
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500 font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-        </div>
-        {Icon && (
-          <div className="p-2 bg-rose-50 rounded-lg">
-            <Icon className="w-5 h-5 text-rose-600" />
-          </div>
-        )}
-      </div>
-      {change != null && (
-        <div className="flex items-center gap-1 mt-3">
-          <TrendIcon className={`w-4 h-4 ${trendColor}`} />
-          <span className={`text-sm font-medium ${trendColor}`}>
-            {change > 0 ? "+" : ""}
-            {change}%
-          </span>
-          <span className="text-sm text-gray-400">vs last month</span>
-        </div>
-      )}
-    </div>
-  );
+function exportCsv(rows, filename) {
+  const headers = ["Name", "Code", "Head", "Budget", "Spent Budget", "Utilization %", "Parent ID", "Establishment Year"];
+  const csvRows = [headers.join(",")];
+  for (const r of rows) {
+    const budget = Number(r.budget) || 0;
+    const spent = Number(r.spent_budget) || 0;
+    const util = budget > 0 ? Math.round((spent / budget) * 100) : 0;
+    csvRows.push([
+      `"${(r.name || "").replace(/"/g, '""')}"`,
+      `"${(r.code || "").replace(/"/g, '""')}"`,
+      `"${(r.head || "").replace(/"/g, '""')}"`,
+      budget,
+      spent,
+      util,
+      r.parent_id ?? "",
+      r.establishment_year ?? "",
+    ].join(","));
+  }
+  const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-export default function DepartmentDashboard() {
+export default function DepartmentReports() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setError(null);
-    getDepartments()
+    api.get("/hr/departments")
       .then((res) => {
         if (!mounted) return;
         const data = res?.data?.data || res?.data || res || [];
@@ -103,51 +87,63 @@ export default function DepartmentDashboard() {
     return () => { mounted = false; };
   }, []);
 
-  /* ── Derived stats ── */
   const stats = useMemo(() => {
-    const total       = records.length;
+    const total = records.length;
     const totalBudget = records.reduce((s, r) => s + (Number(r.budget) || 0), 0);
-    const totalSpent  = records.reduce((s, r) => s + (Number(r.spent_budget) || 0), 0);
-    const rootDepts   = records.filter((r) => !r.parent_id).length;
-    const withHead    = records.filter((r) => r.head).length;
-    const utilPct     = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
-    return { total, totalBudget, totalSpent, rootDepts, withHead, utilPct };
+    const totalSpent = records.reduce((s, r) => s + (Number(r.spent_budget) || 0), 0);
+    const rootDepts = records.filter((r) => !r.parent_id).length;
+    const utilPct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+    return { total, totalBudget, totalSpent, rootDepts, utilPct };
   }, [records]);
 
-  /* ── Budget bar chart ── */
-  const maxBudget = useMemo(
-    () => (records.length > 0 ? Math.max(...records.map((r) => Number(r.budget) || 0)) : 0),
-    [records]
-  );
+  const filtered = useMemo(() => {
+    let list = [...records];
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter((r) =>
+        (r.name || "").toLowerCase().includes(q) ||
+        (r.code || "").toLowerCase().includes(q) ||
+        (r.head || "").toLowerCase().includes(q)
+      );
+    }
+    list.sort((a, b) => {
+      let va = (a[sortKey] ?? "");
+      let vb = (b[sortKey] ?? "");
+      if (sortKey === "budget" || sortKey === "spent_budget") {
+        va = Number(va) || 0;
+        vb = Number(vb) || 0;
+      } else {
+        va = String(va).toLowerCase();
+        vb = String(vb).toLowerCase();
+      }
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [records, search, sortKey, sortDir]);
 
-  /* ── Top 5 by budget ── */
-  const topByBudget = useMemo(
-    () => [...records].sort((a, b) => (Number(b.budget) || 0) - (Number(a.budget) || 0)).slice(0, 5),
-    [records]
-  );
+  const toggleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
 
-  /* ── Tree roots ── */
-  const rootDepartments = useMemo(
-    () => records.filter((r) => !r.parent_id),
-    [records]
-  );
+  const SortIcon = ({ colKey }) => {
+    if (sortKey !== colKey) return <span className="ml-1 text-gray-300">↕</span>;
+    return <span className="ml-1 text-rose-600">{sortDir === "asc" ? "↑" : "↓"}</span>;
+  };
 
-  const statCards = [
-    { title: "Total Departments",    value: stats.total,                                         icon: Building2,         change: null, trend: null },
-    { title: "Root Departments",     value: stats.rootDepts,                                      icon: GitBranch,         change: null, trend: null },
-    { title: "Total Budget",         value: `$${(stats.totalBudget / 1_000_000).toFixed(1)}M`,   icon: CircleDollarSign,  change: null, trend: null },
-    { title: "Budget Utilization",   value: `${stats.utilPct}%`,                                  icon: TrendingUp,        change: null, trend: null },
-    { title: "Departments with Head",value: `${stats.withHead} / ${stats.total}`,                 icon: UserCheck,         change: null, trend: null },
-  ];
-
-  /* ── Loading / Error ── */
   if (loading) {
     return (
-      <HRPage title="Departments" subtitle="Manage organizational entities">
+      <HRPage title="Department Reports" subtitle="Export and analyze department data">
         <SubNav />
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600" />
-          <span className="ml-3 text-gray-500">Loading dashboard...</span>
+          <span className="ml-3 text-gray-500">Loading reports...</span>
         </div>
       </HRPage>
     );
@@ -155,198 +151,141 @@ export default function DepartmentDashboard() {
 
   if (error) {
     return (
-      <HRPage title="Departments" subtitle="Manage organizational entities">
+      <HRPage title="Department Reports" subtitle="Export and analyze department data">
         <SubNav />
-        <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-          Error: {error}
-        </div>
+        <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error: {error}</div>
       </HRPage>
     );
   }
 
   return (
-    <HRPage title="Departments" subtitle="Manage organizational entities">
+    <HRPage title="Department Reports" subtitle="Export and analyze department data">
       <SubNav />
+
       <div className="space-y-6">
-
-        {/* ── Hero banner ── */}
-        <div className="bg-gradient-to-r from-rose-600 to-rose-700 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <p className="text-rose-100 text-sm font-medium">Total Departments</p>
-              <p className="text-4xl font-bold font-mono mt-1">{stats.total}</p>
-              <p className="text-rose-100 mt-1">
-                {stats.rootDepts} root · {stats.total - stats.rootDepts} sub-departments
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-rose-100 text-sm">Budget Utilization</p>
-              <p className="text-3xl font-bold">{stats.utilPct}%</p>
-              <p className="text-rose-100 text-sm mt-1">
-                ${(stats.totalSpent / 1_000_000).toFixed(1)}M spent of ${(stats.totalBudget / 1_000_000).toFixed(1)}M
-              </p>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Total Departments</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{stats.total}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Root Departments</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{stats.rootDepts}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Total Budget</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">${(stats.totalBudget / 1_000_000).toFixed(1)}M</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Budget Utilization</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{stats.utilPct}%</p>
           </div>
         </div>
 
-        {/* ── Stat cards ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {statCards.map((s) => (
-            <StatCard key={s.title} {...s} />
-          ))}
-        </div>
-
-        {/* ── Charts row ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* Budget bar chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Budget by Department</h2>
-            {records.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No departments yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {records.map((r) => {
-                  const budget   = Number(r.budget) || 0;
-                  const spent    = Number(r.spent_budget) || 0;
-                  const barWidth = maxBudget > 0 ? Math.round((budget / maxBudget) * 100) : 0;
-                  const spentPct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
-                  return (
-                    <div key={r.id} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-gray-800 truncate max-w-[140px]">{r.name}</span>
-                        <span className="text-xs text-gray-500 shrink-0 ml-2">
-                          ${spent.toLocaleString()} / ${budget.toLocaleString()} ({spentPct}%)
-                        </span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden" style={{ width: `${Math.max(barWidth, 4)}%` }}>
-                        <div
-                          className={`h-full rounded-full ${
-                            spentPct > 90 ? "bg-red-500" : spentPct > 70 ? "bg-amber-400" : "bg-rose-500"
-                          }`}
-                          style={{ width: `${spentPct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">Department Data Report</h2>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search departments..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 w-64"
+                />
               </div>
-            )}
+              <button
+                onClick={() => exportCsv(filtered, `departments-report-${new Date().toISOString().slice(0, 10)}.csv`)}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white text-sm font-medium rounded-lg hover:bg-rose-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
           </div>
 
-          {/* Top 5 departments table */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Departments by Budget</h2>
-            {topByBudget.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No data.</p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border border-gray-200">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Head</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Budget</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {topByBudget.map((r, i) => (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  {[
+                    { key: "name", label: "Department" },
+                    { key: "code", label: "Code" },
+                    { key: "head", label: "Head" },
+                    { key: "budget", label: "Budget" },
+                    { key: "spent_budget", label: "Spent" },
+                    { key: null, label: "Utilization" },
+                    { key: "parent_id", label: "Parent ID" },
+                    { key: "establishment_year", label: "Est. Year" },
+                  ].map((col) => (
+                    <th
+                      key={col.label}
+                      className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${
+                        col.key ? "cursor-pointer hover:text-gray-700 select-none" : ""
+                      }`}
+                      onClick={() => col.key && toggleSort(col.key)}
+                    >
+                      <span className="inline-flex items-center">
+                        {col.label}
+                        {col.key && <SortIcon colKey={col.key} />}
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-12 text-center text-sm text-gray-400">
+                      {search ? "No departments match your search." : "No departments found."}
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((r) => {
+                    const budget = Number(r.budget) || 0;
+                    const spent = Number(r.spent_budget) || 0;
+                    const util = budget > 0 ? Math.round((spent / budget) * 100) : 0;
+                    return (
                       <tr key={r.id} className="hover:bg-rose-50/30 transition-colors">
-                        <td className="px-4 py-3 text-sm text-gray-400 font-medium">{i + 1}</td>
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{r.name}</p>
-                          <p className="text-xs font-mono text-rose-600">{r.code}</p>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-rose-500 shrink-0" />
+                            <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                          </div>
                         </td>
+                        <td className="px-4 py-3 text-sm font-mono text-rose-600">{r.code || "—"}</td>
                         <td className="px-4 py-3 text-sm text-gray-600">{r.head || "—"}</td>
-                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
-                          ${(Number(r.budget) || 0).toLocaleString()}
+                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">${budget.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600">${spent.toLocaleString()}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-16 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  util > 90 ? "bg-red-500" : util > 70 ? "bg-amber-400" : "bg-rose-500"
+                                }`}
+                                style={{ width: `${Math.min(util, 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-500">{util}%</span>
+                          </div>
                         </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">{r.parent_id ?? "—"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500">{r.establishment_year ?? "—"}</td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 text-sm text-gray-500">
+            Showing {filtered.length} of {records.length} departments
           </div>
         </div>
-
-        {/* ── Root departments overview ── */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Root Departments Overview</h2>
-            <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-              {rootDepartments.length} root entities
-            </span>
-          </div>
-          {rootDepartments.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">
-              No departments found. Add one from the Department List tab.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rootDepartments.map((r) => {
-                const budget  = Number(r.budget) || 0;
-                const spent   = Number(r.spent_budget) || 0;
-                const utilPct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
-                const subCount = records.filter((d) => d.parent_id === r.id).length;
-                return (
-                  <div
-                    key={r.id}
-                    className="border border-gray-100 rounded-xl p-4 hover:border-rose-200 hover:bg-rose-50/20 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-rose-50 rounded-lg shrink-0">
-                        <Building2 className="w-4 h-4 text-rose-600" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{r.name}</p>
-                        <p className="text-xs font-mono text-rose-600">{r.code}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 space-y-1.5 text-xs text-gray-500">
-                      {r.head && (
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{r.head}</span>
-                        </div>
-                      )}
-                      {r.establishment_year && (
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 shrink-0" />
-                          <span>Est. {r.establishment_year}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1.5">
-                        <GitBranch className="w-3.5 h-3.5 shrink-0" />
-                        <span>{subCount} sub-department{subCount !== 1 ? "s" : ""}</span>
-                      </div>
-                    </div>
-
-                    {/* Budget util bar */}
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>Budget</span>
-                        <span>${budget.toLocaleString()}</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            utilPct > 90 ? "bg-red-500" : utilPct > 70 ? "bg-amber-400" : "bg-rose-500"
-                          }`}
-                          style={{ width: `${Math.min(utilPct, 100)}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-400 mt-0.5 text-right">{utilPct}% utilized</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
       </div>
     </HRPage>
   );

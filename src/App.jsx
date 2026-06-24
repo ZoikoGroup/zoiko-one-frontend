@@ -92,11 +92,7 @@ import CompanyDocuments from "./modules/zoiko-hr/documents/company-documents.jsx
 import ApprovalWorkflow from "./modules/zoiko-hr/documents/approvals.jsx";
 import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 
-import ComplianceDashboard from "./modules/zoiko-hr/compliance/dashboard.jsx";
-import PolicyLibrary from "./modules/zoiko-hr/compliance/policy-library.jsx";
-import ComplianceTracking from "./modules/zoiko-hr/compliance/compliance-tracking.jsx";
-import Violations from "./modules/zoiko-hr/compliance/violations.jsx";
-import ComplianceSettings from "./modules/zoiko-hr/compliance/settings.jsx";
+
 
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
 import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
@@ -299,11 +295,7 @@ const routeOverrides = {
   "/zoiko-hr/travel/expenses": <TravelExpenses />,
   "/zoiko-hr/travel/settings": <TravelSettings />,
   // Compliance submodule routes
-  "/zoiko-hr/compliance": <ComplianceDashboard />,
-  "/zoiko-hr/compliance/policies": <PolicyLibrary />,
-  "/zoiko-hr/compliance/tracking": <ComplianceTracking />,
-  "/zoiko-hr/compliance/violations": <Violations />,
-  "/zoiko-hr/compliance/settings": <ComplianceSettings />,
+ 
 
   // Employee Management submodule routes
   "/zoiko-hr/employee-management": <ZoikoHRDashboard />,
@@ -311,12 +303,8 @@ const routeOverrides = {
   "/zoiko-hr/employee-management/organization": <ZoikoHROrgChart />,
   "/zoiko-hr/employee-management/lifecycle": <ZoikoHRLifecycle />,
   "/zoiko-hr/employee-management/reports": <ZoikoHRReports />,
-  "/zoiko-hr/compliance": <ComplianceDashboard />,
-  "/zoiko-hr/compliance/policies": <PolicyLibrary />,
-  "/zoiko-hr/compliance/tracking": <ComplianceTracking />,
-  "/zoiko-hr/compliance/violations": <Violations />,
-  "/zoiko-hr/compliance/settings": <ComplianceSettings />,
 
+  
   // Recruitment submodule routes
   "/zoiko-hr/recruitment/job-requisitions": <JobRequisitions />,
   "/zoiko-hr/recruitment/candidates": <Candidates />,

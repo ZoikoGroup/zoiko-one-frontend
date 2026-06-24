@@ -71,12 +71,6 @@ export const deleteEmployeeBenefit = (id) => api.delete(`/hr/compensation/employ
 export const getPayrollSummary = () => fetchList("payrollSummary");
 export const getLearning = () => fetchList("learning");
 
-// NOTE: getDepartments/getDesignations are intentionally NOT built on
-// fetchList() — api.js uses raw fetch and resolves to the parsed JSON body
-// directly (no axios-style { data } envelope). Components consuming these
-// expect `res.data`, so we wrap the result here. See DEPARTMENT/DESIGNATION
-// CRUD SPECIFIC section below for the matching create/update/delete wraps.
-
 
 // ════════════════════════════════════════════════════════════════════════════
 // RECRUITMENT MODULE
@@ -508,6 +502,11 @@ export const getWorkforcePlans = () => api.get("/hr/workforce-planning");
 export const createWorkforcePlan = (payload) => api.post("/hr/workforce-planning", payload);
 export const getWorkforceSummary = () => api.get("/hr/workforce/summary");
 
+// ════════════════════════════════════════════════════════════════════════════
+// COMPLIANCE & RISK AUDITS MODULE
+// ════════════════════════════════════════════════════════════════════════════
+
+// --- Dashboard & Reports ---
 // ── WORKFORCE PLANNING V2 (Production API) ─────────────────────────────────
 export const getWorkforceDashboard = () => api.get("/hr/workforce/dashboard");
 
@@ -559,67 +558,112 @@ export const exportWfPdf = (reportType = "workforce_summary") =>
 
 // ── COMPLIANCE & RISK AUDITS ────────────────────────────────────────────────
 export const getComplianceDashboard = () => api.get("/hr/compliance/dashboard");
-export const getComplianceReport = () => api.get("/hr/compliance/reports");
+export const getComplianceReport    = () => api.get("/hr/compliance/reports");
 
+// --- Policy Library ---
 export const getPolicies = (params = {}) => {
-  const query = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+  const query = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("&");
   return api.get(`/hr/compliance/policies${query ? `?${query}` : ""}`);
 };
-export const getPolicyById = (id) => api.get(`/hr/compliance/policies/${id}`);
-export const createPolicy = (payload) => api.post("/hr/compliance/policies", payload);
-export const updatePolicy = (id, payload) => api.put(`/hr/compliance/policies/${id}`, payload);
-export const deletePolicy = (id) => api.delete(`/hr/compliance/policies/${id}`);
+export const getPolicyById  = (id)          => api.get(`/hr/compliance/policies/${id}`);
+export const createPolicy   = (payload)     => api.post("/hr/compliance/policies", payload);
+export const updatePolicy   = (id, payload) => api.put(`/hr/compliance/policies/${id}`, payload);
+export const deletePolicy   = (id)          => api.delete(`/hr/compliance/policies/${id}`);
 
-export const getAcknowledgements = (employeeId, policyId) => {
+// --- Tracking & Acknowledgements ---
+// Backend returns: { id, policy_id, employee_id, employee, policy, status, due_date, acknowledged_at }
+// compliance-tracking.jsx reads: t.employee, t.policy, t.status, t.dueDate
+// `due_date` (snake_case) → rename to `dueDate` here so the component works unchanged
+export const getAcknowledgements = async (employeeId, policyId) => {
   const params = [];
   if (employeeId) params.push(`employee_id=${employeeId}`);
-  if (policyId) params.push(`policy_id=${policyId}`);
-  return api.get(`/hr/compliance/acknowledgements${params.length ? `?${params.join("&")}` : ""}`);
+  if (policyId)   params.push(`policy_id=${policyId}`);
+  const raw = await api.get(`/hr/compliance/acknowledgements${params.length ? `?${params.join("&")}` : ""}`);
+  const list = Array.isArray(raw) ? raw : raw?.data || [];
+  // Rename snake_case fields the component reads as camelCase
+  return list.map(t => ({ ...t, dueDate: t.due_date }));
 };
 export const createAcknowledgement = (payload) => api.post("/hr/compliance/acknowledgements", payload);
 
+// --- Structural System Audits ---
 export const getAudits = (params = {}) => {
-  const query = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+  const query = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("&");
   return api.get(`/hr/compliance/audits${query ? `?${query}` : ""}`);
 };
-export const getAuditById = (id) => api.get(`/hr/compliance/audits/${id}`);
-export const createAudit = (payload) => api.post("/hr/compliance/audits", payload);
-export const updateAudit = (id, payload) => api.put(`/hr/compliance/audits/${id}`, payload);
-export const deleteAudit = (id) => api.delete(`/hr/compliance/audits/${id}`);
+export const getAuditById  = (id)          => api.get(`/hr/compliance/audits/${id}`);
+export const createAudit   = (payload)     => api.post("/hr/compliance/audits", payload);
+export const updateAudit   = (id, payload) => api.put(`/hr/compliance/audits/${id}`, payload);
+export const deleteAudit   = (id)          => api.delete(`/hr/compliance/audits/${id}`);
 
-export const getRegulatoryRequirements = () => api.get("/hr/compliance/regulations");
-export const createRegulatoryRequirement = (payload) => api.post("/hr/compliance/regulations", payload);
+// --- Statutory Frameworks ---
+export const getRegulatoryRequirements    = ()        => api.get("/hr/compliance/regulations");
+export const createRegulatoryRequirement  = (payload) => api.post("/hr/compliance/regulations", payload);
 
-export const getRiskAssessments = (status) =>
-  api.get(`/hr/compliance/risks${status ? `?status=${status}` : ""}`);
-export const getRiskAssessmentById = (id) => api.get(`/hr/compliance/risks/${id}`);
-export const createRiskAssessment = (payload) => api.post("/hr/compliance/risks", payload);
-export const updateRiskAssessment = (id, payload) => api.put(`/hr/compliance/risks/${id}`, payload);
-export const deleteRiskAssessment = (id) => api.delete(`/hr/compliance/risks/${id}`);
-
-export const getComplianceViolations = (params = {}) => {
-  const query = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
-  return api.get(`/hr/compliance/violations${query ? `?${query}` : ""}`);
+// --- Risk Assessments ---
+// Backend returns: { id, title, category, risk_score, mitigation, mitigation_strategy, status }
+// settings.jsx reads: r.riskScore, r.mitigation, r.title, r.category, r.status
+// Remap risk_score → riskScore so the component works unchanged
+export const getRiskAssessments = async (status) => {
+  const raw = await api.get(`/hr/compliance/risks${status ? `?status=${status}` : ""}`);
+  const list = Array.isArray(raw) ? raw : raw?.data || [];
+  return list.map(r => ({
+    ...r,
+    riskScore:  r.risk_score,                                    // camelCase alias
+    mitigation: r.mitigation || r.mitigation_strategy || "",     // ensure field exists
+  }));
 };
-export const getComplianceViolationById = (id) => api.get(`/hr/compliance/violations/${id}`);
-export const createComplianceViolation = (payload) => api.post("/hr/compliance/violations", payload);
-export const updateComplianceViolation = (id, payload) => api.put(`/hr/compliance/violations/${id}`, payload);
-export const deleteComplianceViolation = (id) => api.delete(`/hr/compliance/violations/${id}`);
+export const getRiskAssessmentById  = (id)          => api.get(`/hr/compliance/risks/${id}`);
+export const createRiskAssessment   = (payload)     => api.post("/hr/compliance/risks", payload);
+export const updateRiskAssessment   = (id, payload) => api.put(`/hr/compliance/risks/${id}`, payload);
+export const deleteRiskAssessment   = (id)          => api.delete(`/hr/compliance/risks/${id}`);
 
-export const getCorrectiveActions = (violationId, assignedTo) => {
+// --- Violations & Breaches ---
+// Backend returns: { id, title, violation, policy, employee, reported_by, severity, status, date }
+// violations.jsx reads: v.violation, v.policy, v.employee, v.reportedBy, v.severity, v.date
+// Remap reported_by → reportedBy
+export const getComplianceViolations = async (params = {}) => {
+  const query = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("&");
+  const raw = await api.get(`/hr/compliance/violations${query ? `?${query}` : ""}`);
+  const list = Array.isArray(raw) ? raw : raw?.data || [];
+  return list.map(v => ({
+    ...v,
+    violation:  v.violation  || v.title || "",   // ensure field exists
+    reportedBy: v.reported_by,                   // camelCase alias
+  }));
+};
+export const getComplianceViolationById  = (id)          => api.get(`/hr/compliance/violations/${id}`);
+export const createComplianceViolation   = (payload)     => api.post("/hr/compliance/violations", payload);
+export const updateComplianceViolation   = (id, payload) => api.put(`/hr/compliance/violations/${id}`, payload);
+export const deleteComplianceViolation   = (id)          => api.delete(`/hr/compliance/violations/${id}`);
+
+// --- Corrective Remediation Actions ---
+// Backend returns: { id, title, violation_id, assigned_to, status, deadline }
+// violations.jsx reads: act.title, act.assignedTo, act.status, act.deadline, act.violation
+// Remap assigned_to → assignedTo
+export const getCorrectiveActions = async (violationId, assignedTo) => {
   const params = [];
   if (violationId) params.push(`violation_id=${violationId}`);
-  if (assignedTo) params.push(`assigned_to=${assignedTo}`);
-  return api.get(`/hr/compliance/corrective-actions${params.length ? `?${params.join("&")}` : ""}`);
+  if (assignedTo)  params.push(`assigned_to=${assignedTo}`);
+  const raw = await api.get(`/hr/compliance/corrective-actions${params.length ? `?${params.join("&")}` : ""}`);
+  const list = Array.isArray(raw) ? raw : raw?.data || [];
+  return list.map(a => ({
+    ...a,
+    assignedTo: a.assigned_to,   // camelCase alias
+  }));
 };
-export const getCorrectiveActionById = (id) => api.get(`/hr/compliance/corrective-actions/${id}`);
-export const createCorrectiveAction = (payload) => api.post("/hr/compliance/corrective-actions", payload);
-export const updateCorrectiveAction = (id, payload) => api.put(`/hr/compliance/corrective-actions/${id}`, payload);
-export const deleteCorrectiveAction = (id) => api.delete(`/hr/compliance/corrective-actions/${id}`);
-
+export const getCorrectiveActionById  = (id)          => api.get(`/hr/compliance/corrective-actions/${id}`);
+export const createCorrectiveAction   = (payload)     => api.post("/hr/compliance/corrective-actions", payload);
+export const updateCorrectiveAction   = (id, payload) => api.put(`/hr/compliance/corrective-actions/${id}`, payload);
+export const deleteCorrectiveAction   = (id)          => api.delete(`/hr/compliance/corrective-actions/${id}`);
 // ── DOCUMENTS ──────────────────────────────────────────────────────────────
 // NOTE: api.js uses raw fetch and resolves to the parsed JSON body directly
 // (not an axios-style { data, status, headers } envelope). Every document

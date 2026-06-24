@@ -505,6 +505,11 @@ export const getWorkforceSummary = () => api.get("/hr/workforce/summary");
 // ════════════════════════════════════════════════════════════════════════════
 // COMPLIANCE & RISK AUDITS MODULE
 // ════════════════════════════════════════════════════════════════════════════
+<<<<<<< HEAD
+=======
+
+// --- Dashboard & Reports ---
+>>>>>>> c50aa7855e839bcf6348e8ba51440be4c2227c4c
 // ── WORKFORCE PLANNING V2 (Production API) ─────────────────────────────────
 export const getWorkforceDashboard = () => api.get("/hr/workforce/dashboard");
 
@@ -554,8 +559,12 @@ export const exportWfExcel = (reportType = "workforce_summary") =>
 export const exportWfPdf = (reportType = "workforce_summary") =>
   downloadWfExport(`/hr/workforce/reports/export/pdf?report_type=${reportType}`, `workforce_${reportType}_${new Date().toISOString().split("T")[0]}.pdf`);
 
+<<<<<<< HEAD
 
 // --- Dashboard & Reports ---
+=======
+// ── COMPLIANCE & RISK AUDITS ────────────────────────────────────────────────
+>>>>>>> c50aa7855e839bcf6348e8ba51440be4c2227c4c
 export const getComplianceDashboard = () => api.get("/hr/compliance/dashboard");
 export const getComplianceReport    = () => api.get("/hr/compliance/reports");
 

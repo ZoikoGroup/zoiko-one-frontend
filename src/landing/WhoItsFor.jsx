@@ -15,7 +15,7 @@ const tabs = [
     ],
     tags: ["Billing", "Payroll", "Projects", "Insights"],
     metrics: [
-      { label: "Reconciliation time", value: "-61%", color: "#E05C2A" },
+      { label: "Reconciliation time", value: "-61%", color: "#F97316" },
       { label: "Days sales outstanding", value: "-9 days", color: "#2B4EFF" },
       { label: "Forecast confidence", value: "High", color: "#1A1A2E" },
     ],
@@ -34,7 +34,7 @@ const tabs = [
     ],
     tags: ["People", "Payroll", "Time", "Compliance"],
     metrics: [
-      { label: "Admin time saved", value: "-40%", color: "#E05C2A" },
+      { label: "Admin time saved", value: "-40%", color: "#F97316" },
       { label: "Payroll errors", value: "~Zero", color: "#2B4EFF" },
       { label: "Compliance risk", value: "Low", color: "#1A1A2E" },
     ],
@@ -53,7 +53,7 @@ const tabs = [
     ],
     tags: ["Projects", "Billing", "Time", "Insights"],
     metrics: [
-      { label: "Invoicing time", value: "-55%", color: "#E05C2A" },
+      { label: "Invoicing time", value: "-55%", color: "#F97316" },
       { label: "Revenue leakage", value: "Eliminated", color: "#2B4EFF" },
       { label: "Margin visibility", value: "Live", color: "#1A1A2E" },
     ],
@@ -72,7 +72,7 @@ const tabs = [
     ],
     tags: ["Payroll", "Compliance", "Insights", "Billing"],
     metrics: [
-      { label: "Reporting time", value: "-70%", color: "#E05C2A" },
+      { label: "Reporting time", value: "-70%", color: "#F97316" },
       { label: "Audit readiness", value: "Always", color: "#2B4EFF" },
       { label: "Entity coverage", value: "Full", color: "#1A1A2E" },
     ],
@@ -176,7 +176,7 @@ const styles = {
     fontSize: "11px",
     fontWeight: 600,
     letterSpacing: "0.12em",
-    color: "#E05C2A",
+    color: "#F97316",
     textTransform: "uppercase",
     marginBottom: "16px",
   },
@@ -259,7 +259,7 @@ const styles = {
     fontWeight: 500,
   },
   checkIcon: {
-    color: "#E05C2A",
+    color: "#F97316",
     fontWeight: 700,
     fontSize: "13px",
   },

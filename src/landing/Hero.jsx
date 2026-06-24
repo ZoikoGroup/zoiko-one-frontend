@@ -71,7 +71,7 @@ export default function Hero() {
           display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap"
         }}>
           <button onClick={() => navigate("/get-demo")} style={{
-            background: "linear-gradient(135deg, #E07B2A, #c9651a)",
+            background: "linear-gradient(135deg, #F97316, #EA580C)",
             color: "#fff", border: "none", borderRadius: 999,
             padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
           }}>Get a Demo →</button>

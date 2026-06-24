@@ -1,39 +1,29 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Plus, Search, Calendar, MapPin, DollarSign, Briefcase, User, X } from "lucide-react";
-import HRPage from "../../../components/HRPage";
-import { getTravel, createTravel, getHrEmployees } from "../../../service/hrService.js";
+import TravelLayout from "./TravelLayout";
+import { api } from "../../../service/api";
 
 const formatCurrency = (amount) => 
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount || 0);
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/zoiko-hr/travel" },
-  { label: "Requests", href: "/zoiko-hr/travel/requests" },
-  { label: "Approvals", href: "/zoiko-hr/travel/approvals" },
-  { label: "Expenses", href: "/zoiko-hr/travel/expenses" },
-  { label: "Settings", href: "/zoiko-hr/travel/settings" }
-];
+function getEmployeeDisplay(emp) {
+  if (!emp) return "Unknown";
+  if (typeof emp === "string") return emp;
+  if (typeof emp === "object") {
+    const fullName = `${emp.first_name || ""} ${emp.last_name || ""}`.trim();
+    return fullName || emp.full_name || emp.name || emp.email || "Unknown";
+  }
+  return "Unknown";
+}
 
-function SubNav() {
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1 mb-6 border-b border-gray-100">
-      {NAV_ITEMS.map((item) => (
-        <NavLink
-          key={item.href}
-          to={item.href}
-          end={item.href === "/zoiko-hr/travel/requests"}
-          className={({ isActive }) =>
-            `whitespace-nowrap px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-all duration-200 ${
-              isActive ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`
-          }
-        >
-          {item.label}
-        </NavLink>
-      ))}
-    </div>
-  );
+function getDestinationDisplay(dest) {
+  if (!dest) return "—";
+  if (typeof dest === "string") return dest;
+  if (typeof dest === "object") {
+    return dest.city || dest.name || dest.location || JSON.stringify(dest);
+  }
+  return "—";
 }
 
 export default function TravelRequests() {
@@ -43,16 +33,19 @@ export default function TravelRequests() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ employee_id: "", destination: "", purpose: "", type: "Domestic", amount: "" });
+  const [form, setForm] = useState({ employee_id: "", destination: "", purpose: "", start_date: "", end_date: "" });
 
   useEffect(() => {
     async function loadInitialData() {
       try {
         setLoading(true);
-        const [travelRes, empRes] = await Promise.all([getTravel(), getHrEmployees()]);
+        const [travelRes, empRes] = await Promise.all([
+          api.get("/hr/travel?page=1&per_page=100&search="),
+          api.get("/hr/employees?page=1&per_page=100")
+        ]);
         
-        setRequests(travelRes?.data || travelRes || []);
-        setEmployees(empRes?.data || empRes || []);
+        setRequests(travelRes?.items || travelRes || []);
+        setEmployees(empRes?.items || empRes || []);
       } catch (err) {
         console.error("Failed to load initial modules:", err);
       } finally {
@@ -64,27 +57,26 @@ export default function TravelRequests() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!form.employee_id || !form.destination || !form.amount) {
+    if (!form.employee_id || !form.destination || !form.start_date || !form.end_date) {
       alert("Please accurately fill all mandatory input parameters.");
       return;
     }
     setSubmitting(true);
     try {
-      const selectedEmp = employees.find(emp => emp.id.toString() === form.employee_id.toString());
       const payload = { 
-        ...form, 
         employee_id: parseInt(form.employee_id),
-        employee_name: selectedEmp ? `${selectedEmp.first_name || ""} ${selectedEmp.last_name || ""}`.trim() : "Unknown",
-        amount: parseFloat(form.amount), 
-        status: "Pending" 
+        destination: form.destination,
+        purpose: form.purpose,
+        start_date: form.start_date,
+        end_date: form.end_date,
       };
       
-      const newRecordResponse = await createTravel(payload);
+      const newRecordResponse = await api.post("/hr/travel", payload);
       const addedItem = newRecordResponse?.data || newRecordResponse;
       
       setRequests(prev => [addedItem, ...prev]);
       setShowModal(false);
-      setForm({ employee_id: "", destination: "", purpose: "", type: "Domestic", amount: "" });
+      setForm({ employee_id: "", destination: "", purpose: "", start_date: "", end_date: "" });
     } catch (err) {
       alert("Failed to securely deploy your travel registration request.");
     } finally {
@@ -98,8 +90,7 @@ export default function TravelRequests() {
   );
 
   return (
-    <HRPage title="Travel Requests" subtitle="Submit and monitor operational items">
-      <SubNav />
+    <TravelLayout title="Travel Requests" subtitle="Submit and monitor operational items">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-white p-4 border border-gray-200 rounded-xl shadow-sm">
           <div className="relative flex-1 max-w-xs">
@@ -132,19 +123,19 @@ export default function TravelRequests() {
                   <th className="p-4">Staff Member</th>
                   <th className="p-4">Destination Target</th>
                   <th className="p-4">Purpose</th>
-                  <th className="p-4">Category Type</th>
-                  <th className="p-4">Budget Provision</th>
+                  <th className="p-4">Start Date</th>
+                  <th className="p-4">End Date</th>
                   <th className="p-4">Status Code</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
                 {filtered.map((row, idx) => (
                   <tr key={row.id || idx} className="hover:bg-gray-50/40 transition-colors">
-                    <td className="p-4 font-semibold text-gray-900">{row.employee_name || row.employee || `ID: ${row.employee_id}`}</td>
-                    <td className="p-4">{row.destination}</td>
+                    <td className="p-4 font-semibold text-gray-900">{getEmployeeDisplay(row.employee)}</td>
+                    <td className="p-4">{getDestinationDisplay(row.destination)}</td>
                     <td className="p-4 text-gray-500">{row.purpose || "—"}</td>
-                    <td className="p-4"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">{row.type}</span></td>
-                    <td className="p-4 text-gray-900 font-semibold">{formatCurrency(row.amount)}</td>
+                    <td className="p-4 text-gray-600">{row.start_date || "—"}</td>
+                    <td className="p-4 text-gray-600">{row.end_date || "—"}</td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold tracking-wide capitalize ${
                         row.status?.toLowerCase() === "approved" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
@@ -157,7 +148,6 @@ export default function TravelRequests() {
           </div>
         )}
         
-        {/* Modal form container */}
         {showModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
             <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
@@ -196,20 +186,17 @@ export default function TravelRequests() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Jurisdiction Type</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Date</label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                      <select className="w-full border border-gray-200 pl-9 pr-4 py-2.5 bg-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                        <option value="Domestic">Domestic</option>
-                        <option value="International">International</option>
-                      </select>
+                      <Calendar className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                      <input type="date" className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} required />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estimated Amount</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Date</label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                      <input type="number" placeholder="0.00" className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} required />
+                      <Calendar className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                      <input type="date" className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} required />
                     </div>
                   </div>
                 </div>
@@ -230,6 +217,6 @@ export default function TravelRequests() {
           </div>
         )}
       </div>
-    </HRPage>
+    </TravelLayout>
   );
 }

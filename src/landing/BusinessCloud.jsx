@@ -1,14 +1,14 @@
 export default function BusinessCloud() {
   const integrations = [
     { label: "Accounting", color: "#1A2560", letter: "A" },
-    { label: "CRM", color: "#E05C2A", letter: "C" },
+    { label: "CRM", color: "#F97316", letter: "C" },
     { label: "Identity / SSO", color: "#2B6CB0", letter: "ID" },
     { label: "Payments", color: "#2E7D32", letter: "S" },
     { label: "ERP", color: "#1B5E20", letter: "E" },
     { label: "Tax", color: "#BF360C", letter: "T" },
     { label: "Productivity", color: "#4A148C", letter: "⊞" },
     { label: "REST API", color: "#1A2560", letter: "{}" },
-    { label: "Webhooks", color: "#E65100", letter: "⬡" },
+    { label: "Webhooks", color: "#EA580C", letter: "⬡" },
     { label: "Imports / Exports", color: "#0D47A1", letter: "↕" },
   ];
 

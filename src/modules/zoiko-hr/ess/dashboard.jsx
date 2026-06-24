@@ -57,7 +57,7 @@ export default function EssDashboard() {
     const loadData = async () => {
       try {
         const [leaveRes, essRes] = await Promise.allSettled([
-          api.get("/hr/leave/dashboard"),
+          api.get("/hr/leaves/dashboard"),
           api.get("/hr/ess?page=1&per_page=5"),
         ]);
 

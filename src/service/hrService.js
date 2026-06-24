@@ -30,8 +30,8 @@ export const getAllowances = () => fetchList("compensation/allowances");
 export const getBenefits = () => fetchList("compensation/benefits");
 export const getEmployeeBenefits = () => fetchList("compensation/employee-benefits");
 
-export const updateSalaryRevision = (id, payload) => api.put(`/hr/compensation/salary-revisions/${id}`, payload);
-export const deleteSalaryRevision = (id) => api.delete(`/hr/compensation/salary-revisions/${id}`);
+export const updateSalaryRevision = (id, payload) => api.put(`/hr/compensation/revisions/${id}`, payload);
+export const deleteSalaryRevision = (id) => api.delete(`/hr/compensation/revisions/${id}`);
 
 export const createPayGrade = (payload) => api.post("/hr/compensation/pay-grades", payload);
 export const updatePayGrade = (id, payload) => api.put(`/hr/compensation/pay-grades/${id}`, payload);
@@ -424,7 +424,7 @@ export async function exportAttendanceCsv(params = {}) {
     .filter(([_, v]) => v !== undefined && v !== null && v !== "")
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join("&");
-  const response = await fetch(`/api/hr/attendance/export/csv${queryString ? `?${queryString}` : ""}`, {
+  const response = await fetch(`/hr/attendance/export/csv${queryString ? `?${queryString}` : ""}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   const blob = await response.blob();
@@ -441,7 +441,7 @@ export async function exportAttendanceExcel(params = {}) {
     .filter(([_, v]) => v !== undefined && v !== null && v !== "")
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join("&");
-  const response = await fetch(`/api/hr/attendance/export/excel${queryString ? `?${queryString}` : ""}`, {
+  const response = await fetch(`/hr/attendance/export/excel${queryString ? `?${queryString}` : ""}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   const blob = await response.blob();

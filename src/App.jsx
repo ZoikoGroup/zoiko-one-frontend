@@ -123,6 +123,7 @@ import ZoikoHRCompBenefits from "./modules/zoiko-hr/compensation/benefits.jsx";
 
 import ZoikoHRDashboard from "./modules/zoiko-hr/employee-management/dashboard.jsx";
 import ZoikoHREmployees from "./modules/zoiko-hr/employee-management/employees.jsx";
+import ZoikoHRProfile from "./modules/zoiko-hr/employee-management/profile.jsx";
 import ZoikoHROrgChart from "./modules/zoiko-hr/employee-management/organization.jsx";
 import ZoikoHRLifecycle from "./modules/zoiko-hr/employee-management/lifecycle.jsx";
 import ZoikoHRReports from "./modules/zoiko-hr/employee-management/reports.jsx";
@@ -300,6 +301,7 @@ const routeOverrides = {
   // Employee Management submodule routes
   "/zoiko-hr/employee-management": <ZoikoHRDashboard />,
   "/zoiko-hr/employee-management/employees": <ZoikoHREmployees />,
+  "/zoiko-hr/employee-management/employees/:id": <ZoikoHRProfile />,
   "/zoiko-hr/employee-management/organization": <ZoikoHROrgChart />,
   "/zoiko-hr/employee-management/lifecycle": <ZoikoHRLifecycle />,
   "/zoiko-hr/employee-management/reports": <ZoikoHRReports />,

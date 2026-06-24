@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
 import { getEmployeeLifecycle, confirmProbation, promoteEmployee, transferEmployee, resignEmployee, exitEmployee } from "../../../service/hrService";
 import { Clock, UserCheck, TrendingUp, AlertCircle, RefreshCw, FileText, Users, Building2, MapPin } from "lucide-react";
@@ -28,6 +28,7 @@ function SubNav() {
 }
 
 function LifecycleEvent({ event, onAction, actionLabel, actionColor }) {
+  const navigate = useNavigate();
   const getEventIcon = (eventType) => {
     switch (eventType) {
       case "probation_start": return Clock;
@@ -99,7 +100,7 @@ function LifecycleEvent({ event, onAction, actionLabel, actionColor }) {
                 {actionLabel(event.event_type)}
               </button>
             )}
-            <button className="text-xs text-gray-500 hover:text-gray-700">View Details</button>
+            <button onClick={() => navigate(`/zoiko-hr/employee-management/employees/${event.employee_id}`)} className="text-xs text-gray-500 hover:text-gray-700">View Details</button>
           </div>
         </div>
       </div>
@@ -147,23 +148,46 @@ export default function EmployeeLifecycle() {
   };
 
   const handleAction = async (eventId, action, eventType) => {
+    const today = new Date().toISOString().split("T")[0];
+
+    switch (eventType) {
+      case "probation_start":
+        if (!window.confirm("Confirm probation completion for this employee?")) return;
+        break;
+      case "promotion": {
+        const newDesignation = prompt("Enter new designation ID:", "");
+        if (!newDesignation || !window.confirm(`Promote employee to designation ID ${newDesignation}?`)) return;
+        await promoteEmployee({ employee_id: eventId, new_designation_id: parseInt(newDesignation, 10), effective_date: today });
+        load();
+        return;
+      }
+      case "transfer": {
+        const newDept = prompt("Enter new department ID:", "");
+        if (!newDept || !window.confirm(`Transfer employee to department ID ${newDept}?`)) return;
+        await transferEmployee({ employee_id: eventId, new_department_id: parseInt(newDept, 10), effective_date: today });
+        load();
+        return;
+      }
+      case "resignation": {
+        if (!window.confirm("Process resignation for this employee?")) return;
+        break;
+      }
+      case "exit": {
+        if (!window.confirm("Process exit for this employee? This will mark them as terminated.")) return;
+        break;
+      }
+    }
+
     try {
-      let result;
       switch (eventType) {
         case "probation_start":
-          result = await confirmProbation({ employee_id: eventId, confirmation_date: new Date().toISOString().split("T")[0] });
-          break;
-        case "promotion":
-          result = await promoteEmployee({ employee_id: eventId, new_designation_id: 1, effective_date: new Date().toISOString().split("T")[0] });
-          break;
-        case "transfer":
-          result = await transferEmployee({ employee_id: eventId, new_department_id: 1, effective_date: new Date().toISOString().split("T")[0] });
+          await confirmProbation({ employee_id: eventId, confirmation_date: today });
           break;
         case "resignation":
-          result = await resignEmployee({ employee_id: eventId, resignation_date: new Date().toISOString().split("T")[0], last_working_date: new Date().toISOString().split("T")[0] });
+          await resignEmployee({ employee_id: eventId, resignation_date: today, last_working_date: today });
           break;
         case "exit":
-          result = await exitEmployee({ employee_id: eventId, exit_date: new Date().toISOString().split("T")[0], exit_type: "voluntary" });
+          await exitEmployee({ employee_id: eventId, exit_date: today, exit_type: "voluntary" });
           break;
       }
       load();

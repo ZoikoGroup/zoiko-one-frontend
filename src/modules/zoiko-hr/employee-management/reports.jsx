@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
 import { getEmployeeReports, exportEmployeeReports } from "../../../service/hrService";
-import { FileText, Download, Users, UserCheck, Building2, Clock, TrendingUp, AlertCircle, RefreshCw, Filter, Search } from "lucide-react";
+import { FileText, Download, Users, UserCheck, Building2, Clock, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/employee-management" },
@@ -52,7 +52,28 @@ export default function EmployeeReports() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await exportEmployeeReports({ report_type: reportType, format });
+      const result = await exportEmployeeReports({ report_type: reportType, format });
+      const data = Array.isArray(result) ? result : result?.data || result?.items || [];
+      const headers = ["Employee ID", "Name", "Email", "Phone", "Job Title", "Department", "Employment Type", "Status", "Joining Date"];
+      const rows = data.map((r) => [
+        r.employee_code || r.id || "",
+        `${r.first_name || ""} ${r.last_name || ""}`.trim() || r.name || "",
+        r.email || "",
+        r.phone || "",
+        r.job_title || "",
+        r.department_name || r.department?.name || "",
+        r.employment_type || "",
+        r.status || "",
+        r.date_of_joining || "",
+      ]);
+      const csv = [headers.join(","), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${reportType}-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       setError(err.message || "Failed to export report");
     } finally {
@@ -222,18 +243,22 @@ export default function EmployeeReports() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {reports.slice(0, 5).map((record, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-3 py-2 text-xs text-gray-500">{record.employee_id || "-"}</td>
-                      <td className="px-3 py-2 text-sm font-medium text-gray-900">{record.name || "-"}</td>
-                      <td className="px-3 py-2 text-xs text-gray-500">{record.email || "-"}</td>
-                      <td className="px-3 py-2 text-xs text-gray-500">{record.department || "-"}</td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${record.status === "ACTIVE" ? "bg-green-100 text-green-800" : record.status === "INACTIVE" ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-800"}`}>{record.status || "-"}</span>
-                      </td>
-                      <td className="px-3 py-2 text-xs text-gray-500">{record.joining_date || "-"}</td>
-                    </tr>
-                  ))}
+                  {reports.slice(0, 5).map((record, idx) => {
+                    const fullName = `${record.first_name || ""} ${record.last_name || ""}`.trim() || record.name || "-";
+                    const deptName = record.department_name || record.department?.name || record.department || "-";
+                    return (
+                      <tr key={record.id || idx} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-3 py-2 text-xs text-gray-500">{record.employee_code || record.id || "-"}</td>
+                        <td className="px-3 py-2 text-sm font-medium text-gray-900">{fullName}</td>
+                        <td className="px-3 py-2 text-xs text-gray-500">{record.email || "-"}</td>
+                        <td className="px-3 py-2 text-xs text-gray-500">{deptName}</td>
+                        <td className="px-3 py-2">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${record.status === "active" ? "bg-green-100 text-green-800" : record.status === "inactive" || record.status === "terminated" ? "bg-red-100 text-red-800" : record.status === "on_leave" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"}`}>{record.status || "-"}</span>
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-500">{record.date_of_joining || "-"}</td>
+                      </tr>
+                    );
+                  })}
                   {reports.length > 5 && (
                     <tr>
                       <td colSpan={6} className="px-3 py-2 text-center text-xs text-gray-500">

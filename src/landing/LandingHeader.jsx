@@ -1,85 +1,234 @@
-import { ChevronDown, Users, Clock, DollarSign, Grid3x3, ArrowLeftRight, ArrowRight, LayoutGrid, Hexagon, CheckCircle2, BarChart3, SquareDot } from "lucide-react";
+import { useState, useRef } from "react";
+import { ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 
 const NAVY = "#161B33";
 const BODY = "#5B6373";
 const LABEL_GRAY = "#8A93A3";
-const BLUE = "#2B3FE0";
-const ORANGE = "#F0973E";
-const ORANGE_DARK = "#E8894F";
-const ICON_BRIGHT_BLUE = "#3B9CE0";
-const ICON_NAVY = "#1E2A6A";
-const BORDER = "#E6E8EC";
 
-const productColumns = [
-  {
-    label: "PEOPLE",
-    items: [
-      { icon: Users, iconBg: BLUE, title: "Zoiko HR", desc: "Records, onboarding, lifecycle", href: "/products/zoiko-hr" },
-      { icon: Clock, iconBg: BLUE, title: "ZoikoTime", desc: "Time, attendance, schedules", href: "/products/zoikotime" },
-      { icon: DollarSign, iconBg: BLUE, title: "Zoiko Payroll", desc: "Controlled pay runs", href: "/products/payroll" },
-    ],
-  },
-  {
-    label: "MONEY",
-    items: [
-      { icon: Grid3x3, iconBg: ORANGE, title: "Zoiko Billing", desc: "Invoices, subscriptions, revenue", href: "/products/billing" },
-      { icon: ArrowLeftRight, iconBg: ORANGE, title: "Zoiko Spend", desc: "Procurement, POs, vendor AP", href: "/spend" },
-    ],
-    secondLabel: "WORK + SUPPLY",
-    secondItems: [
-      { icon: LayoutGrid, iconBg: ICON_BRIGHT_BLUE, title: "Zoiko Projects", desc: "Delivery, budgets, margin", href: "/projects" },
-      { icon: Hexagon, iconBg: BLUE, title: "Zoiko Inventory", desc: "Stock, receiving, reorder", href: "/inventory" },
-    ],
-  },
-  {
-    label: "CONTROL",
-    items: [
-      { icon: CheckCircle2, iconBg: ICON_NAVY, title: "Zoiko Comply", desc: "Obligations, evidence, audit", href: "/comply" },
-      { icon: BarChart3, iconBg: ICON_NAVY, title: "Zoiko Insights", desc: "Dashboards, risk, forecasts", href: "/insights" },
-    ],
-    secondLabel: "PREMIUM CAPABILITY",
-    secondItems: [
-      { icon: SquareDot, iconBg: ORANGE_DARK, title: "Zoiko Docs Pro", desc: "Jurisdiction-aware documents", href: "/zoiko-docs" },
-    ],
-  },
-];
+const dropdownStyles = `
+  .dropdown-container {
+    position: relative;
+    display: inline-block;
+  }
 
-function ProductRowItem({ icon: Icon, iconBg, title, desc, href }) {
+  .dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #2A2F55;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 2px;
+    user-select: none;
+    font-family: inherit;
+  }
+  .dropdown-trigger:hover { color: #4F46E5; }
+  .dropdown-trigger .chevron {
+    font-size: 11px;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .dropdown-trigger .chevron.open { transform: rotate(180deg); }
+
+  .dropdown-panel {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.13), 0 1px 6px rgba(0,0,0,0.06);
+    padding: 36px 24px 20px;
+    width: 700px;
+    z-index: 200;
+    animation: fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0 20px;
+  }
+
+  .col { display: flex; flex-direction: column; gap: 0; }
+
+  .section-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: #8888aa;
+    margin-bottom: 10px;
+    margin-top: 2px;
+  }
+  .section-label.mt { margin-top: 16px; }
+
+  .product-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    margin-bottom: 2px;
+  }
+  .product-item:hover { background: #f4f4fb; }
+
+  .product-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .product-text { display: flex; flex-direction: column; padding-top: 1px; }
+  .product-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a3e;
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+  .product-desc {
+    font-size: 12px;
+    color: #888899;
+    line-height: 1.4;
+    font-weight: 400;
+    white-space: pre-line;
+  }
+
+  .bg-purple      { background: #5b5bd6; }
+  .bg-dark-purple { background: #2d2a6e; }
+  .bg-orange      { background: #f97316; }
+  .bg-blue-light  { background: #38bdf8; }
+  .bg-navy        { background: #1a1a3e; }
+  .bg-orange-mid  { background: #f59e0b; }
+`;
+
+const IconHR = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="9" cy="7" r="3" fill="white" fillOpacity="0.9"/>
+    <circle cx="16" cy="7" r="3" fill="white" fillOpacity="0.5"/>
+    <path d="M2 19c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" fillOpacity="0.9"/>
+    <path d="M16 13c2.5 0 5 1.5 5 5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" fillOpacity="0.5"/>
+  </svg>
+);
+
+const IconTime = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="8" stroke="white" strokeWidth="2" fill="none"/>
+    <path d="M12 7v5l3 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const IconPayroll = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="8" stroke="white" strokeWidth="2" fill="none" fillOpacity="0.1"/>
+    <text x="12" y="17" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold" fontFamily="Inter,sans-serif">$</text>
+  </svg>
+);
+
+const IconBilling = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <rect x="4" y="3" width="13" height="16" rx="2" fill="white" fillOpacity="0.85"/>
+    <rect x="7" y="7" width="7" height="1.5" rx="0.75" fill="#f97316"/>
+    <rect x="7" y="10" width="7" height="1.5" rx="0.75" fill="#f97316"/>
+    <rect x="7" y="13" width="5" height="1.5" rx="0.75" fill="#f97316"/>
+  </svg>
+);
+
+const IconSpend = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M7 16l5-5 3 3 4-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M4 20h16" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M17 10h3V7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const IconProjects = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <rect x="3" y="3" width="8" height="8" rx="2" fill="white" fillOpacity="0.9"/>
+    <rect x="13" y="3" width="8" height="8" rx="2" fill="white" fillOpacity="0.5"/>
+    <rect x="3" y="13" width="8" height="8" rx="2" fill="white" fillOpacity="0.5"/>
+    <rect x="13" y="13" width="8" height="8" rx="2" fill="white" fillOpacity="0.3"/>
+  </svg>
+);
+
+const IconInventory = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="6" fill="white" fillOpacity="0.9"/>
+    <circle cx="12" cy="12" r="2.5" fill="#5b5bd6"/>
+  </svg>
+);
+
+const IconComply = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M5 12l5 5L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const IconInsights = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <rect x="3"  y="14" width="4" height="6" rx="1" fill="white" fillOpacity="0.6"/>
+    <rect x="10" y="9"  width="4" height="11" rx="1" fill="white" fillOpacity="0.85"/>
+    <rect x="17" y="5"  width="4" height="15" rx="1" fill="white"/>
+  </svg>
+);
+
+const IconDocs = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <rect x="5" y="3" width="11" height="14" rx="2" fill="white" fillOpacity="0.9"/>
+    <rect x="8" y="7"  width="5" height="1.5" rx="0.75" fill="#f97316"/>
+    <rect x="8" y="10" width="5" height="1.5" rx="0.75" fill="#f97316"/>
+    <rect x="8" y="13" width="3" height="1.5" rx="0.75" fill="#f97316"/>
+    <rect x="13" y="10" width="5" height="8" rx="1.5" fill="#f97316" fillOpacity="0.8"/>
+  </svg>
+);
+
+const products = {
+  people: [
+    { name: "Zoiko HR",      desc: "Records,\nonboarding,\nlifecycle",    icon: <IconHR/>,      bg: "bg-purple", href: "/products/zoiko-hr" },
+    { name: "ZoikoTime",     desc: "Time,\nattendance,\nschedules",       icon: <IconTime/>,    bg: "bg-purple", href: "/products/zoikotime" },
+    { name: "Zoiko Payroll", desc: "Controlled pay runs",                  icon: <IconPayroll/>, bg: "bg-dark-purple", href: "/products/payroll" },
+  ],
+  money: [
+    { name: "Zoiko Billing", desc: "Invoices,\nsubscriptions,\nrevenue",   icon: <IconBilling/>, bg: "bg-orange", href: "/products/billing" },
+    { name: "Zoiko Spend",   desc: "Procurement,\nPOs, vendor AP",          icon: <IconSpend/>,   bg: "bg-orange", href: "/products/spend" },
+  ],
+  workSupply: [
+    { name: "Zoiko Projects",   desc: "Delivery,\nbudgets, margin",         icon: <IconProjects/>,   bg: "bg-blue-light", href: "/projects" },
+    { name: "Zoiko Inventory",  desc: "Stock, receiving,\nreorder",          icon: <IconInventory/>,  bg: "bg-purple", href: "/inventory" },
+  ],
+  control: [
+    { name: "Zoiko Comply",   desc: "Obligations,\nevidence, audit",        icon: <IconComply/>,   bg: "bg-dark-purple", href: "/products/comply" },
+    { name: "Zoiko Insights", desc: "Dashboards,\nrisk, forecasts",         icon: <IconInsights/>, bg: "bg-dark-purple", href: "/insights" },
+  ],
+  premium: [
+    { name: "Zoiko Docs Pro", desc: "Jurisdiction-\naware documents",       icon: <IconDocs/>,    bg: "bg-orange", href: "/zoiko-docs" },
+  ],
+};
+
+function ProductItem({ name, desc, icon, bg, href }) {
   return (
-    <Link
-      to={href}
-      style={{
-        display: "flex",
-        gap: 12,
-        alignItems: "flex-start",
-        padding: "8px 6px",
-        borderRadius: 10,
-        cursor: "pointer",
-        textDecoration: "none",
-        transition: "background .15s ease",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F8FA")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-    >
-      <div
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 10,
-          background: iconBg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <Icon size={18} color="#fff" strokeWidth={2.2} />
-      </div>
-      <div>
-        <div style={{ fontWeight: 800, fontSize: 14, color: NAVY, marginBottom: 2 }}>{title}</div>
-        <div style={{ fontSize: 12, color: BODY, lineHeight: 1.4 }}>{desc}</div>
+    <Link className="product-item" to={href}>
+      <div className={`product-icon ${bg}`}>{icon}</div>
+      <div className="product-text">
+        <span className="product-name">{name}</span>
+        <span className="product-desc">{desc}</span>
       </div>
     </Link>
   );
@@ -89,94 +238,90 @@ const navLinks = ["Home", "Platform", "Products", "Solutions", "Pricing", "Resou
 
 export default function LandingHeader() {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
   return (
-    <div className="bg-gradient-to-b from-[#F1EEFC] to-white">
-      <div className="px-4 sm:px-6 lg:px-20 pt-8">
-        <nav className="flex items-center justify-between bg-white rounded-full shadow-[0_2px_20px_rgba(0,0,0,0.06)] px-6 py-3">
-          <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
-            <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />
-          </Link>
-
-          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2A2F55] overflow-visible">
-            {navLinks.map((l) => {
-              if (l === "Home") {
-                return <Link key={l} to="/" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-              }
-              if (l === "Products") {
-                return (
-                  <div key={l} className="relative group">
-                    <span className="hover:text-[#4F46E5] transition-colors cursor-default inline-flex items-center gap-1">
-                      Products <ChevronDown size={13} className="mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
-                    </span>
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                      <div
-                        style={{
-                          background: "#fff",
-                          border: `1px solid ${BORDER}`,
-                          borderRadius: 20,
-                          boxShadow: "0 24px 60px rgba(20,25,50,0.12)",
-                          padding: "28px 32px",
-                          display: "grid",
-                          gridTemplateColumns: "repeat(3, 1fr)",
-                          gap: 40,
-                          minWidth: 800,
-                        }}
-                      >
-                        {productColumns.map((col) => (
-                          <div key={col.label}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: LABEL_GRAY, letterSpacing: "0.08em", marginBottom: 14 }}>{col.label}</div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: col.secondLabel ? 22 : 0 }}>
-                              {col.items.map((item) => (
-                                <ProductRowItem key={item.title} {...item} />
-                              ))}
-                            </div>
-                            {col.secondLabel && (
-                              <>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: LABEL_GRAY, letterSpacing: "0.08em", marginBottom: 14 }}>{col.secondLabel}</div>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                  {col.secondItems.map((item) => (
-                                    <ProductRowItem key={item.title} {...item} />
-                                  ))}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              if (l === "Solutions") {
-                return <Link key={l} to="/solutions" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-              }
-              if (l === "Pricing") {
-                return <Link key={l} to="/pricing" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-              }
-              if (l === "Resources") {
-                return <Link key={l} to="/resources" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-              }
-              if (l === "About") {
-                return <Link key={l} to="/about" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-              }
-              return (
-                <a key={l} href={l === "Platform" ? "/platform" : "/"} className="hover:text-[#4F46E5] transition-colors">
-                  {l}
-                </a>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-4 text-sm font-semibold">
-            <Link to="/login" className="text-[#1E1B4B] no-underline">
-              Sign In
+    <>
+      <style>{dropdownStyles}</style>
+      <div className="bg-gradient-to-b from-[#F1EEFC] to-white">
+        <div className="px-4 sm:px-6 lg:px-20 pt-8">
+          <nav className="flex items-center justify-between bg-white rounded-full shadow-[0_2px_20px_rgba(0,0,0,0.06)] px-6 py-3">
+            <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
+              <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />
             </Link>
-            <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
-              Get a Demo <ArrowRight size={15} />
-            </button>
-          </div>
-        </nav>
+
+            <div className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2A2F55] overflow-visible">
+              {navLinks.map((l) => {
+                if (l === "Home") {
+                  return <Link key={l} to="/" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                }
+                if (l === "Products") {
+                  return (
+                    <div key={l} className="dropdown-container" ref={ref} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+                      <button className="dropdown-trigger">
+                        Products
+                        <span className={`chevron${open ? " open" : ""}`}>&#8964;</span>
+                      </button>
+
+                      {open && (
+                        <div className="dropdown-panel">
+                          <div className="products-grid">
+                            <div className="col">
+                              <div className="section-label">People</div>
+                              {products.people.map((p) => <ProductItem key={p.name} {...p} />)}
+                            </div>
+
+                            <div className="col">
+                              <div className="section-label">Money</div>
+                              {products.money.map((p) => <ProductItem key={p.name} {...p} />)}
+                              <div className="section-label mt">Work + Supply</div>
+                              {products.workSupply.map((p) => <ProductItem key={p.name} {...p} />)}
+                            </div>
+
+                            <div className="col">
+                              <div className="section-label">Control</div>
+                              {products.control.map((p) => <ProductItem key={p.name} {...p} />)}
+                              <div className="section-label mt">Premium Capability</div>
+                              {products.premium.map((p) => <ProductItem key={p.name} {...p} />)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                if (l === "Solutions") {
+                  return <Link key={l} to="/solutions" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                }
+                if (l === "Pricing") {
+                  return <Link key={l} to="/pricing" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                }
+                if (l === "Resources") {
+                  return <Link key={l} to="/resources" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                }
+                if (l === "About") {
+                  return <Link key={l} to="/about" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                }
+                return (
+                  <a key={l} href={l === "Platform" ? "/platform" : "/"} className="hover:text-[#4F46E5] transition-colors">
+                    {l}
+                  </a>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-4 text-sm font-semibold">
+              <Link to="/login" className="text-[#1E1B4B] no-underline">
+                Sign In
+              </Link>
+              <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
+                Get a Demo <ArrowRight size={15} />
+              </button>
+            </div>
+          </nav>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

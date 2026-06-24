@@ -10,8 +10,11 @@ const footerColumns = [
       { label: "ZoikoTime", href: "/zoikotime" },
       { label: "Zoiko Payroll", href: "/payroll" },
       { label: "Zoiko Billing", href: "/billing" },
-      { label: "Zoiko Comply", href: "/comply" },
+      { label: "Zoiko Comply", href: "/products/comply" },
       { label: "Zoiko Insights", href: "/insights" },
+      { label: "Zoiko Inventory", href: "/inventory" },
+      { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
+      { label: "Zoiko Spend", href: "/products/spend" },
     ],
   },
   {

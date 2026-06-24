@@ -118,6 +118,7 @@ export default function LeaveDashboard() {
   const teamOverview = {
     working: Math.max(0, employeeCount - (stats.on_leave_today || 0)),
     onLeave: stats.on_leave_today || 0,
+    wfh: stats.wfh || 0,
     pending: stats.pending_requests || 0,
     total: employeeCount || 50,
   };

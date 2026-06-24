@@ -132,7 +132,30 @@ export default function PerformanceAnalytics() {
               <button onClick={printPage} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-medium">
                 <Printer className="w-4 h-4" /> Print
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+              <button
+                onClick={() => {
+                  const rows = [["Metric","Value"]];
+                  const metrics = [
+                    ["Avg Performance Score", `${d.avg_performance_score ?? 0}%`],
+                    ["Goal Completion", `${d.goal_completion_rate ?? 0}%`],
+                    ["Review Completion", `${d.review_completion_rate ?? 0}%`],
+                    ["Avg Rating", d.avg_rating ? `${d.avg_rating}/5` : "0/5"],
+                    ["Total Reviews", d.total_reviews ?? 0],
+                    ["Completed Reviews", d.completed_reviews ?? 0],
+                    ["Total Goals", d.total_goals ?? 0],
+                    ["Completed Goals", d.completed_goals ?? 0],
+                    ["Feedback Items", d.feedback_count ?? 0],
+                    ["Total Appraisals", d.total_appraisals ?? 0],
+                  ];
+                  metrics.forEach(m => rows.push(m));
+                  const csv = rows.map(r => r.join(",")).join("\n");
+                  const blob = new Blob([csv], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a"); a.href = url; a.download = "performance_analytics.csv"; a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+              >
                 <Download className="w-4 h-4" /> Export CSV
               </button>
             </div>

@@ -1,191 +1,517 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const platformLinks = [
-  "Overview",
-  "How Zoiko One Works",
-  "Security",
-  "Trust Center",
-  "Integrations",
-  "API Documentation",
-  "System Status",
-];
+const navData = {
+  platform: {
+    title: "Platform",
+    links: [
+      "Overview",
+      "How Zoiko One Works",
+      "Security",
+      "Trust Center",
+      "Integrations",
+      "API Documentation",
+      "System Status",
+    ],
+  },
+  products: {
+    title: "Products",
+    links: [
+      { label: "Zoiko HR", href: "/products/zoiko-hr" },
+      { label: "ZoikoTime", href: "/products/zoikotime" },
+      { label: "Zoiko Payroll", href: "/products/payroll" },
+      { label: "Zoiko Billing", href: "/products/billing" },
+      { label: "Zoiko Spend", href: "/products/spend" },
+      { label: "Zoiko Projects", href: "/projects" },
+      { label: "Zoiko Inventory", href: "/inventory" },
+      { label: "Zoiko Comply", href: "/products/comply" },
+      { label: "Zoiko Insights", href: "/insights" },
+      { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
+    ],
+  },
+  solutions: {
+    title: "Solutions",
+    links: [
+      "Services Businesses",
+      "Agencies",
+      "Retail Businesses",
+      "Trades Businesses",
+      "Hospitality",
+      "E-Commerce",
+      "Product Businesses",
+      "Multi-Entity",
+    ],
+  },
+  fivePillars: {
+    title: "Five Pillars",
+    links: [
+      "People — HR, Time, Payroll",
+      "Money — Billing, Spend",
+      "Work — Projects",
+      "Supply — Inventory",
+      "Control — Comply, Insights",
+    ],
+  },
+  resources: {
+    title: "Resources",
+    links: [
+      "Resource Center",
+      "Trust Center",
+      "Security",
+      "Integrations",
+      "API Documentation",
+      "System Status",
+      "Pricing",
+      "Contact",
+    ],
+  },
+  company: {
+    title: "Company",
+    links: [
+      "About Zoiko One",
+      "Leadership",
+      "Careers",
+      "Contact",
+      "Pricing",
+      "Trust Center",
+      "Solutions",
+    ],
+  },
+};
 
-const productLinks = [
-  { label: "Zoiko HR", href: "/products/zoiko-hr" },
-  { label: "ZoikoTime", href: "/products/zoikotime" },
-  { label: "Zoiko Payroll", href: "/products/payroll" },
-  { label: "Zoiko Billing", href: "/products/billing" },
-  { label: "Zoiko Projects", href: "/projects" },
-  { label: "Zoiko Comply", href: "/products/comply" },
-  { label: "Zoiko Insights", href: "/products/insights" },
-  { label: "Zoiko Inventory", href: "/inventory" },
-  { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
-  { label: "Zoiko Spend", href: "/products/spend" },
-];
-
-const solutionLinks = [
-  "Small Business",
-  "Agencies",
-  "Professional Services",
-  "Mid-Market",
-  "Enterprise",
-  "Multi-Entity",
-  "Global Teams",
-];
-
-const ecosystemBrands = [
-  "Zoiko Sema",
-  "Zoiko Local",
-  "ZoikoVertex",
-  "Zoiko Digital",
-  "ZoikoPay",
-  "ZoikoCoreX",
+const ecosystemCards = [
+  { name: "Zoiko One", desc: "Business operations — this platform", active: true },
+  { name: "ZoikoVertex", desc: "CRM, sales, marketing & growth", active: false },
+  { name: "ZoikoSuite", desc: "Accounting & bookkeeping", active: false },
+  { name: "Zoiko Sema", desc: "Communication & collaboration", active: false },
+  { name: "Zoiko Local", desc: "Telephony & business calling", active: false },
+  { name: "Zoiko Digital", desc: "Web, app, cloud & digital services", active: false },
 ];
 
 const legalLinks = [
-  "Privacy",
-  "Terms",
-  "Cookies",
-  "DPA",
-  "Security Overview",
-  "Accessibility",
+  "Privacy Policy",
+  "Terms of Service",
+  "Cookie Policy",
+  "Accessibility Statement",
+  "Acceptable Use",
+  "Trust Center",
+  "Security",
+  "System Status",
+  "Contact",
 ];
 
-function FooterColumn({ heading, links }) {
-  return (
-    <div>
-      <p className="text-[#F5A623] text-xs font-bold tracking-wide uppercase mb-5">
-        {heading}
-      </p>
-      <ul className="space-y-4">
-        {links.map((link) => {
-          const isObj = typeof link === "object";
-          const key = isObj ? link.label : link;
-          const href = isObj ? link.href : "#";
-          const label = isObj ? link.label : link;
-          return (
-            <li key={key}>
-              {isObj ? (
-                <Link
-                  to={href}
-                  className="text-white/90 text-[15px] font-medium hover:text-white transition-colors"
-                >
-                  {label}
-                </Link>
-              ) : (
-                <a
-                  href={href}
-                  className="text-white/90 text-[15px] font-medium hover:text-white transition-colors"
-                >
-                  {label}
-                </a>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
+const getStartedLinks = [
+  "Get a Demo",
+  "Request Pricing",
+  "Explore Products",
+  "Contact Sales",
+  "Sign In",
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-[#1B2A6B] w-full">
-      <div className="max-w-7xl mx-auto px-10 pt-16 pb-10">
-        {/* Top section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Brand block */}
+    <footer style={styles.root}>
+      {/* CTA Banner */}
+      <div style={styles.ctaBannerWrap}>
+        <div style={styles.ctaBanner}>
           <div>
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#F5A623] flex items-center justify-center">
-                <span className="text-white font-bold text-lg">/</span>
-              </div>
-              <span className="text-white font-bold text-xl">
-                Zoiko<span className="text-[#F5A623]">One</span>
-                <sup className="text-xs align-super">™</sup>
-              </span>
-            </div>
-            <p className="text-white/80 text-[15px] leading-relaxed mb-6 max-w-xs">
-              The end-to-end business operations platform. Run people, time,
-              payroll, billing, projects, compliance, and insights in one
-              connected layer.
+            <h2 style={styles.ctaTitle}>
+              Everything your business runs on —<br />connected in one.
+            </h2>
+            <p style={styles.ctaSub}>
+              Run people, money, work, supply, compliance, business intelligence and
+              document workflows through one connected business-operations platform.
             </p>
-            <div className="flex items-center gap-3">
-              <a
-                href="#"
-                className="w-9 h-9 rounded-md bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-white"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
-              </a>
-              <a
-                href="#"
-                className="w-9 h-9 rounded-md bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors"
-              >
-                <span className="text-white font-bold text-sm">X</span>
-              </a>
-              <a
-                href="#"
-                className="w-9 h-9 rounded-md bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-white"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
-              </a>
-            </div>
+            <p style={styles.ctaNote}>
+              Start with one product, one pillar or the full Zoiko One platform.
+            </p>
           </div>
+          <div style={styles.ctaActions}>
+            <button style={styles.btnDemo}>Get a Demo &nbsp;→</button>
+            <button style={styles.btnExplore}>Explore Products</button>
+            <button style={styles.btnPricing}>Pricing</button>
+          </div>
+        </div>
+      </div>
 
-          <FooterColumn heading="Platform" links={platformLinks} />
-          <FooterColumn heading="Products" links={productLinks} />
-          <FooterColumn heading="Solutions" links={solutionLinks} />
+      {/* Main Nav Grid */}
+      <div style={styles.footerMain}>
+        {/* Brand Column */}
+        <div style={styles.brandCol}>
+          <div style={styles.logoWrap}>
+            <div style={styles.logoIcon}>1</div>
+            <span style={styles.logoText}>
+              ZoikoOne<sup style={styles.logoTm}>™</sup>
+            </span>
+          </div>
+          <p style={styles.brandDesc}>
+            The connected business-operations platform for people, money, work,
+            supply and control.
+          </p>
+          <div style={styles.socialIcons}>
+            {["in", "𝕏", "⌥"].map((icon, i) => (
+              <button key={i} style={styles.socialBtn} aria-label={`Social ${i}`}>
+                {icon}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-white/15 my-12" />
+        {/* Nav Columns */}
+        {Object.values(navData).map((col) => (
+          <div key={col.title} style={styles.navCol}>
+            <div style={styles.navColTitle}>{col.title}</div>
+            <ul style={styles.navList}>
+              {col.links.map((link) => (
+                <li key={typeof link === "string" ? link : link.label} style={styles.navItem}>
+                  {typeof link === "string" ? (
+                    <a href="#" style={styles.navLink}>{link}</a>
+                  ) : (
+                    <Link to={link.href} style={styles.navLink}>{link.label}</Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
 
-        {/* Ecosystem brand row */}
-        <div className="flex flex-wrap justify-center gap-x-16 gap-y-4 mb-10">
-          {ecosystemBrands.map((brand) => (
-            <a
-              key={brand}
-              href="#"
-              className="text-white font-bold text-[15px] hover:text-[#F5A623] transition-colors"
-            >
-              {brand}
-            </a>
-          ))}
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-white/15 mb-8" />
-
-        {/* Ecosystem description */}
-        <p className="text-center text-white/80 text-[15px] leading-relaxed max-w-3xl mx-auto mb-8">
-          Zoiko One is part of the Zoiko Business Ecosystem. Zoiko One runs
-          business operations; ZoikoPay powers settlement; ZoikoCoreX records
-          financial truth.
-        </p>
-
-        {/* Legal links */}
-        <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 mb-6">
-          {legalLinks.map((link) => (
-            <a
-              key={link}
-              href="#"
-              className="text-white/80 text-sm font-medium hover:text-white transition-colors"
-            >
+      {/* Get Started */}
+      <div style={styles.getStartedSection}>
+        <div style={styles.sectionLabel}>Get Started</div>
+        <div style={styles.getStartedLinks}>
+          {getStartedLinks.map((link) => (
+            <a key={link} href="#" style={styles.getStartedLink}>
               {link}
             </a>
           ))}
-          <span className="flex items-center gap-1.5 text-white/80 text-sm font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] inline-block" />
-            EN · Global
-          </span>
         </div>
+      </div>
 
-        {/* Copyright */}
-        <p className="text-center text-white/60 text-sm">
-          © 2026 Zoiko Group. All rights reserved. · Zoiko One™
+      {/* Ecosystem */}
+      <div style={styles.ecosystemSection}>
+        <div style={styles.sectionLabel}>The Zoiko Business Ecosystem</div>
+        <p style={styles.ecosystemDesc}>
+          Zoiko One runs business operations. The platforms below are ecosystem siblings
+          they are not Zoiko One products.
         </p>
+        <div style={styles.ecosystemCards}>
+          {ecosystemCards.map((card) => (
+            <div
+              key={card.name}
+              style={{
+                ...styles.ecoCard,
+                ...(card.active ? styles.ecoCardActive : {}),
+              }}
+            >
+              <div style={styles.ecoCardName}>{card.name}</div>
+              <div
+                style={{
+                  ...styles.ecoCardDesc,
+                  ...(card.active ? styles.ecoCardDescActive : {}),
+                }}
+              >
+                {card.desc}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Legal */}
+      <div style={styles.footerLegal}>
+        <div style={styles.legalLinks}>
+          {legalLinks.map((link) => (
+            <a key={link} href="#" style={styles.legalLink}>
+              {link}
+            </a>
+          ))}
+          <button style={styles.langBtn}>🌐 EN · Global</button>
+        </div>
+        <div style={styles.legalBottom}>
+          © 2026 Zoiko Group. All rights reserved. · ZoikoOne™ · Nine core products
+          plus Zoiko Docs Pro (Premium Capability).
+        </div>
       </div>
     </footer>
   );
 }
+
+const styles = {
+  root: {
+    backgroundColor: "#110d2e",
+    color: "#ffffff",
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    width: "100%",
+  },
+
+  /* CTA Banner */
+  ctaBannerWrap: {
+    padding: "28px 28px 0",
+  },
+  ctaBanner: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+    background: "linear-gradient(135deg, #3a2caa 0%, #4a6fd8 60%, #4a99e8 100%)",
+    borderRadius: "18px",
+    padding: "36px 48px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "32px",
+  },
+  ctaTitle: {
+    fontSize: "26px",
+    fontWeight: "700",
+    color: "#ffffff",
+    lineHeight: "1.2",
+    marginBottom: "10px",
+  },
+  ctaSub: {
+    fontSize: "13.5px",
+    color: "rgba(255,255,255,0.88)",
+    marginBottom: "8px",
+    maxWidth: "480px",
+    lineHeight: "1.5",
+  },
+  ctaNote: {
+    fontSize: "12px",
+    color: "rgba(255,255,255,0.6)",
+  },
+  ctaActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    flexShrink: "0",
+  },
+  btnDemo: {
+    background: "linear-gradient(135deg, #f97316, #fb923c)",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "50px",
+    padding: "13px 28px",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  btnExplore: {
+    background: "rgba(255,255,255,0.15)",
+    color: "#ffffff",
+    border: "1.5px solid rgba(255,255,255,0.35)",
+    borderRadius: "50px",
+    padding: "12px 26px",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  btnPricing: {
+    background: "transparent",
+    color: "#ffffff",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    textDecoration: "underline",
+    whiteSpace: "nowrap",
+  },
+
+  /* Nav Grid */
+  footerMain: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "40px 28px 0",
+    display: "grid",
+    gridTemplateColumns: "200px repeat(6, 1fr)",
+    gap: "24px",
+  },
+  brandCol: {},
+  logoWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    marginBottom: "14px",
+  },
+  logoIcon: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "8px",
+    background: "linear-gradient(135deg, #f97316 40%, #3b82f6 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px",
+    color: "#ffffff",
+    fontWeight: "700",
+    fontStyle: "italic",
+  },
+  logoText: {
+    fontSize: "16px",
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  logoTm: {
+    fontSize: "10px",
+    fontWeight: "400",
+  },
+  brandDesc: {
+    fontSize: "12.5px",
+    color: "rgba(255,255,255,0.55)",
+    lineHeight: "1.5",
+    marginBottom: "18px",
+  },
+  socialIcons: {
+    display: "flex",
+    gap: "10px",
+  },
+  socialBtn: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    border: "1.5px solid rgba(255,255,255,0.2)",
+    background: "transparent",
+    color: "rgba(255,255,255,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    cursor: "pointer",
+  },
+  navCol: {},
+  navColTitle: {
+    fontSize: "11.5px",
+    fontWeight: "700",
+    color: "#f97316",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    marginBottom: "14px",
+  },
+  navList: {
+    listStyle: "none",
+    padding: "0",
+    margin: "0",
+  },
+  navItem: {
+    marginBottom: "10px",
+  },
+  navLink: {
+    color: "rgba(255,255,255,0.72)",
+    textDecoration: "none",
+    fontSize: "13px",
+    lineHeight: "1.4",
+    display: "block",
+  },
+
+  /* Get Started */
+  getStartedSection: {
+    borderTop: "1px solid rgba(255,255,255,0.1)",
+    marginTop: "40px",
+    padding: "36px 28px",
+    textAlign: "center",
+    maxWidth: "1100px",
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
+  sectionLabel: {
+    fontSize: "11.5px",
+    fontWeight: "700",
+    color: "#f97316",
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    marginBottom: "18px",
+  },
+  getStartedLinks: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "32px",
+    flexWrap: "wrap",
+  },
+  getStartedLink: {
+    color: "rgba(255,255,255,0.72)",
+    textDecoration: "none",
+    fontSize: "14px",
+  },
+
+  /* Ecosystem */
+  ecosystemSection: {
+    borderTop: "1px solid rgba(255,255,255,0.1)",
+    padding: "36px 28px",
+    maxWidth: "1100px",
+    margin: "0 auto",
+    textAlign: "center",
+  },
+  ecosystemDesc: {
+    fontSize: "13px",
+    color: "rgba(255,255,255,0.55)",
+    marginBottom: "24px",
+  },
+  ecosystemCards: {
+    display: "grid",
+    gridTemplateColumns: "repeat(6, 1fr)",
+    gap: "12px",
+  },
+  ecoCard: {
+    border: "1.5px solid rgba(255,255,255,0.15)",
+    borderRadius: "10px",
+    padding: "14px",
+    textAlign: "left",
+    background: "transparent",
+  },
+  ecoCardActive: {
+    background: "#f97316",
+    borderColor: "#f97316",
+  },
+  ecoCardName: {
+    fontSize: "13px",
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: "5px",
+  },
+  ecoCardDesc: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.65)",
+    lineHeight: "1.35",
+  },
+  ecoCardDescActive: {
+    color: "rgba(255,255,255,0.85)",
+  },
+
+  /* Legal */
+  footerLegal: {
+    borderTop: "1px solid rgba(255,255,255,0.1)",
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "20px 28px 28px",
+  },
+  legalLinks: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "6px 20px",
+    marginBottom: "12px",
+  },
+  legalLink: {
+    fontSize: "12px",
+    color: "rgba(255,255,255,0.5)",
+    textDecoration: "none",
+  },
+  langBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    color: "rgba(255,255,255,0.5)",
+    fontSize: "12px",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+  },
+  legalBottom: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    fontSize: "12px",
+    color: "rgba(255,255,255,0.4)",
+    textAlign: "center",
+  },
+};

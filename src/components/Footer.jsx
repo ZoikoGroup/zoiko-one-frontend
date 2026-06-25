@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const LinkedInIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -48,7 +49,18 @@ const ZoikoLogo = () => (
 
 const navData = {
   PLATFORM: ["Overview", "How Zoiko One Works", "Security", "Trust Center", "Integrations", "API Documentation", "System Status"],
-  PRODUCTS: ["Zoiko HR", "ZoikoTime", "Zoiko Payroll", "Zoiko Billing", "Zoiko Spend", "Zoiko Projects", "Zoiko Inventory", "Zoiko Comply", "Zoiko Insights", "Zoiko Docs Pro"],
+  PRODUCTS: [
+    { label: "Zoiko HR", href: "/products/zoiko-hr" },
+    { label: "ZoikoTime", href: "/products/zoikotime" },
+    { label: "Zoiko Payroll", href: "/products/payroll" },
+    { label: "Zoiko Billing", href: "/products/billing" },
+    { label: "Zoiko Spend", href: "/products/spend" },
+    { label: "Zoiko Projects", href: "/projects" },
+    { label: "Zoiko Inventory", href: "/inventory" },
+    { label: "Zoiko Comply", href: "/products/comply" },
+    { label: "Zoiko Insights", href: "/insights" },
+    { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
+  ],
   SOLUTIONS: ["Services Businesses", "Agencies", "Retail Businesses", "Trades Businesses", "Hospitality", "E-Commerce", "Product Businesses", "Multi-Entity"],
   "FIVE PILLARS": ["People — HR, Time, Payroll", "Money — Billing, Spend", "Work — Projects", "Supply — Inventory", "Control — Comply, Insights"],
   RESOURCES: ["Resource Center", "Trust Center", "Security", "Integrations", "API Documentation", "System Status", "Pricing", "Contact"],
@@ -396,21 +408,38 @@ export default function ZoikoFooter() {
           {Object.entries(navData).map(([section, links]) => (
             <div key={section} style={styles.navCol}>
               <div style={styles.navColTitle}>{section}</div>
-              {links.map((link) => (
-                <a
-                  key={link}
-                  style={{
-                    ...styles.navLink,
-                    color: hoveredLink === `${section}-${link}` ? "white" : "rgba(255,255,255,0.65)",
-                  }}
-                  onMouseEnter={() => setHoveredLink(`${section}-${link}`)}
-                  onMouseLeave={() => setHoveredLink(null)}
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  {link}
-                </a>
-              ))}
+              {links.map((link) => {
+                const label = typeof link === "string" ? link : link.label;
+                const key = `${section}-${label}`;
+                return typeof link === "string" ? (
+                  <a
+                    key={key}
+                    style={{
+                      ...styles.navLink,
+                      color: hoveredLink === key ? "white" : "rgba(255,255,255,0.65)",
+                    }}
+                    onMouseEnter={() => setHoveredLink(key)}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  <Link
+                    key={key}
+                    to={link.href}
+                    style={{
+                      ...styles.navLink,
+                      color: hoveredLink === key ? "white" : "rgba(255,255,255,0.65)",
+                    }}
+                    onMouseEnter={() => setHoveredLink(key)}
+                    onMouseLeave={() => setHoveredLink(null)}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
           ))}
         </div>

@@ -30,7 +30,7 @@ export default function LandingHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b border-gray-200 transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full border-b border-gray-200 transition-all duration-300 rounded-b-xl ${
         scrolled ? "bg-white shadow-md" : "bg-white/95 backdrop-blur-md"
       }`}
     >

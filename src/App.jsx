@@ -21,6 +21,11 @@ import ZoikoComplyPage from "./pages/products/ZoikoComplyPage";
 import ZoikoSpendPage from "./pages/products/ZoikoSpendPage";
 import ZoikoInventoryPage from "./pages/products/ZoikoInventoryPage";
 import ZoikoDocsProPage from "./pages/products/ZoikoDocsProPage";
+import ZoikoHowItWorksPage from "./pages/platform/ZoikoHowItWorksPage";
+import ZoikoSecurityPage from "./pages/platform/ZoikoSecurityPage";
+import ZoikoTrustCenterPage from "./pages/platform/ZoikoTrustCenterPage";
+import ZoikoConnectPage from "./pages/platform/ZoikoConnectPage";
+import ZoikoApiDocsPage from "./pages/platform/ZoikoApiDocsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -181,7 +186,7 @@ import ItemsPage from "./modules/inventory/pages/ItemsPage";
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
 import SecurityPage from "./modules/governance/SecurityPage";
-import TrustPage from "./modules/governance/TrustPage";
+
 import AuditPage from "./modules/governance/AuditPage";
 import CompliancePage from "./modules/governance/CompliancePage";
 
@@ -203,7 +208,7 @@ import SupportCenterPage from "./modules/operations/SupportCenterPage";
 import ZoikoIdPage from "./modules/shared-layers/ZoikoIdPage";
 import ZoikoWorkflowPage from "./modules/shared-layers/ZoikoWorkflowPage";
 import ZoikoHubPage from "./modules/shared-layers/ZoikoHubPage";
-import ZoikoConnectPage from "./modules/shared-layers/ZoikoConnectPage";
+import ZoikoConnectPageModule from "./modules/shared-layers/ZoikoConnectPage";
 import DocumentsPage from "./modules/shared-layers/DocumentsPage";
 import ApprovalsPage from "./modules/shared-layers/ApprovalsPage";
 import ExpensesPage from "./modules/shared-layers/ExpensesPage";
@@ -216,7 +221,7 @@ const routeOverrides = {
   "/shared/id": <ZoikoIdPage />,
   "/shared/workflow": <ZoikoWorkflowPage />,
   "/shared/hub": <ZoikoHubPage />,
-  "/shared/connect": <ZoikoConnectPage />,
+  "/shared/connect": <ZoikoConnectPageModule />,
   "/shared/documents": <DocumentsPage />,
   "/shared/approvals": <ApprovalsPage />,
   "/shared/expenses": <ExpensesPage />,
@@ -454,7 +459,7 @@ const routeOverrides = {
   "/insights/settings": <InsightsSettings />,
   "/roles": <RolesPage />,
   "/security-center": <SecurityPage />,
-  "/trust-center": <TrustPage />,
+
   "/audit-center": <AuditPage />,
   "/compliance-center": <CompliancePage />,
   "/operations/integrations": <IntegrationsPage />,
@@ -486,6 +491,11 @@ export default function App() {
       <Route path="/projects" element={<ZoikoProjectsPage />} />
       <Route path="/inventory" element={<ZoikoInventoryPage />} />
       <Route path="/zoiko-docs" element={<ZoikoDocsProPage />} />
+      <Route path="/how-it-works" element={<ZoikoHowItWorksPage />} />
+      <Route path="/security" element={<ZoikoSecurityPage />} />
+      <Route path="/trust-center" element={<ZoikoTrustCenterPage />} />
+      <Route path="/integrations" element={<ZoikoConnectPage />} />
+      <Route path="/api-documentation" element={<ZoikoApiDocsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

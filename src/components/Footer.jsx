@@ -48,7 +48,7 @@ const ZoikoLogo = () => (
 );
 
 const navData = {
-  PLATFORM: ["Overview", "How Zoiko One Works", "Security", "Trust Center", "Integrations", "API Documentation", "System Status"],
+  PLATFORM: ["Overview", { label: "How Zoiko One Works", href: "/how-it-works" }, { label: "Security", href: "/security" }, { label: "Trust Center", href: "/trust-center" }, { label: "Integrations", href: "/integrations" }, { label: "API Documentation", href: "/api-documentation" }, "System Status"],
   PRODUCTS: [
     { label: "Zoiko HR", href: "/products/zoiko-hr" },
     { label: "ZoikoTime", href: "/products/zoikotime" },
@@ -63,8 +63,8 @@ const navData = {
   ],
   SOLUTIONS: ["Services Businesses", "Agencies", "Retail Businesses", "Trades Businesses", "Hospitality", "E-Commerce", "Product Businesses", "Multi-Entity"],
   "FIVE PILLARS": ["People — HR, Time, Payroll", "Money — Billing, Spend", "Work — Projects", "Supply — Inventory", "Control — Comply, Insights"],
-  RESOURCES: ["Resource Center", "Trust Center", "Security", "Integrations", "API Documentation", "System Status", "Pricing", "Contact"],
-  COMPANY: ["About Zoiko One", "Leadership", "Careers", "Contact", "Pricing", "Trust Center", "Solutions"],
+  RESOURCES: ["Resource Center", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "Integrations", { label: "API Documentation", href: "/api-documentation" }, "System Status", "Pricing", "Contact"],
+  COMPANY: ["About Zoiko One", "Leadership", "Careers", "Contact", "Pricing", { label: "Trust Center", href: "/trust-center" }, "Solutions"],
 };
 
 const ecosystemItems = [
@@ -78,7 +78,7 @@ const ecosystemItems = [
 
 const legalLinks = [
   "Privacy Policy", "Terms of Service", "Cookie Policy", "Accessibility Statement",
-  "Acceptable Use", "Trust Center", "Security", "System Status", "Contact"
+  "Acceptable Use", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "System Status", "Contact"
 ];
 
 const styles = {
@@ -489,21 +489,38 @@ export default function ZoikoFooter() {
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
         <div style={{ ...styles.legalSection, border: "none", paddingTop: "28px" }}>
           <div style={styles.legalLinks}>
-            {legalLinks.map((lnk) => (
-              <a
-                key={lnk}
-                href="#"
-                style={{
-                  ...styles.legalLink,
-                  color: hoveredLink === `legal-${lnk}` ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.5)",
-                }}
-                onMouseEnter={() => setHoveredLink(`legal-${lnk}`)}
-                onMouseLeave={() => setHoveredLink(null)}
-                onClick={(e) => e.preventDefault()}
-              >
-                {lnk}
-              </a>
-            ))}
+            {legalLinks.map((lnk) => {
+              const label = typeof lnk === "string" ? lnk : lnk.label;
+              const href = typeof lnk === "string" ? "#" : lnk.href;
+              return typeof lnk === "string" ? (
+                <a
+                  key={label}
+                  href="#"
+                  style={{
+                    ...styles.legalLink,
+                    color: hoveredLink === `legal-${label}` ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.5)",
+                  }}
+                  onMouseEnter={() => setHoveredLink(`legal-${label}`)}
+                  onMouseLeave={() => setHoveredLink(null)}
+                  onClick={(e) => e.preventDefault()}
+                >
+                  {label}
+                </a>
+              ) : (
+                <Link
+                  key={label}
+                  to={href}
+                  style={{
+                    ...styles.legalLink,
+                    color: hoveredLink === `legal-${label}` ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.5)",
+                  }}
+                  onMouseEnter={() => setHoveredLink(`legal-${label}`)}
+                  onMouseLeave={() => setHoveredLink(null)}
+                >
+                  {label}
+                </Link>
+              );
+            })}
             <div style={styles.langPill}>
               <GlobeIcon />
               EN · Global

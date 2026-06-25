@@ -59,7 +59,10 @@ export default function LoginPage() {
   const { login, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || "/dashboard";
+  // Role-based redirect after successful login
+  const { defaultRedirect } = useAuth();
+  const from = location.state?.from?.pathname || defaultRedirect;
+
 
   const [email, setEmail] = useState(import.meta.env.VITE_DEFAULT_EMAIL || "");
   const [password, setPassword] = useState(import.meta.env.VITE_DEFAULT_PASSWORD || "");

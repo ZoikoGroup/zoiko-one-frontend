@@ -12,7 +12,7 @@ import {
   BarChart3,
   Zap,
 } from "lucide-react";
-import { usePayroll } from "../PayrollContext";
+import { usePayroll } from "./PayrollContext";
 
 const recentActivities = [
   { action: "Payroll run PR-0042 created", time: "2h ago", color: "bg-blue-500" },

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, FileText, Clock, AlertTriangle, ShieldAlert } from "lucide-react";
 
 const problems = [
@@ -24,6 +25,7 @@ const problems = [
 ];
 
 export default function WhatItIs() {
+  const navigate = useNavigate();
   return (
     <section className="bg-[#F8F7FC] py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12 text-center">
@@ -53,7 +55,7 @@ export default function WhatItIs() {
           ))}
         </div>
 
-        <button className="inline-flex items-center gap-2 bg-[#1E1B4B] hover:bg-[#2D2A6B] text-white font-bold px-7 py-3.5 rounded-full text-sm transition-all duration-200 hover:scale-[1.03]">
+        <button onClick={() => navigate("/how-it-works")} className="inline-flex items-center gap-2 bg-[#1E1B4B] hover:bg-[#2D2A6B] text-white font-bold px-7 py-3.5 rounded-full text-sm transition-all duration-200 hover:scale-[1.03]">
           See How Zoiko One Works <ArrowRight size={16} />
         </button>
       </div>

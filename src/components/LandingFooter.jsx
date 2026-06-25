@@ -48,7 +48,7 @@ const footerColumns = [
 
 export default function LandingFooter() {
   return (
-    <footer style={{ background: "#1a1a2e", color: "white" }}>
+    <footer style={{ background: "#240C84", color: "white" }}>
       {/* CTA Banner */}
       <div style={{
         background: "linear-gradient(135deg, #FF6B00 0%, #FF8C38 50%, #FFB347 100%)",

@@ -244,84 +244,82 @@ export default function LandingHeader() {
   return (
     <>
       <style>{dropdownStyles}</style>
-      <div className="bg-gradient-to-b from-[#F1EEFC] to-white">
-        <div className="px-4 sm:px-6 lg:px-20 pt-8">
-          <nav className="flex items-center justify-between bg-white rounded-full shadow-[0_2px_20px_rgba(0,0,0,0.06)] px-6 py-3">
-            <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
-              <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />
-            </Link>
+      <header className="sticky top-0 z-50 bg-gradient-to-b from-[#F1EEFC] to-white border-b border-[#E2E4EF]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+          <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
+            <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />
+          </Link>
 
-            <div className="hidden md:flex items-center gap-7 text-sm font-medium text-[#2A2F55] overflow-visible">
-              {navLinks.map((l) => {
-                if (l === "Home") {
-                  return <Link key={l} to="/" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-                }
-                if (l === "Products") {
-                  return (
-                    <div key={l} className="dropdown-container" ref={ref} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-                      <button className="dropdown-trigger">
-                        Products
-                        <span className={`chevron${open ? " open" : ""}`}>&#8964;</span>
-                      </button>
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[#2A2F55] overflow-visible">
+            {navLinks.map((l) => {
+              if (l === "Home") {
+                return <Link key={l} to="/" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "Products") {
+                return (
+                  <div key={l} className="dropdown-container" ref={ref} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+                    <button className="dropdown-trigger">
+                      Products
+                      <span className={`chevron${open ? " open" : ""}`}>&#8964;</span>
+                    </button>
 
-                      {open && (
-                        <div className="dropdown-panel">
-                          <div className="products-grid">
-                            <div className="col">
-                              <div className="section-label">People</div>
-                              {products.people.map((p) => <ProductItem key={p.name} {...p} />)}
-                            </div>
+                    {open && (
+                      <div className="dropdown-panel">
+                        <div className="products-grid">
+                          <div className="col">
+                            <div className="section-label">People</div>
+                            {products.people.map((p) => <ProductItem key={p.name} {...p} />)}
+                          </div>
 
-                            <div className="col">
-                              <div className="section-label">Money</div>
-                              {products.money.map((p) => <ProductItem key={p.name} {...p} />)}
-                              <div className="section-label mt">Work + Supply</div>
-                              {products.workSupply.map((p) => <ProductItem key={p.name} {...p} />)}
-                            </div>
+                          <div className="col">
+                            <div className="section-label">Money</div>
+                            {products.money.map((p) => <ProductItem key={p.name} {...p} />)}
+                            <div className="section-label mt">Work + Supply</div>
+                            {products.workSupply.map((p) => <ProductItem key={p.name} {...p} />)}
+                          </div>
 
-                            <div className="col">
-                              <div className="section-label">Control</div>
-                              {products.control.map((p) => <ProductItem key={p.name} {...p} />)}
-                              <div className="section-label mt">Premium Capability</div>
-                              {products.premium.map((p) => <ProductItem key={p.name} {...p} />)}
-                            </div>
+                          <div className="col">
+                            <div className="section-label">Control</div>
+                            {products.control.map((p) => <ProductItem key={p.name} {...p} />)}
+                            <div className="section-label mt">Premium Capability</div>
+                            {products.premium.map((p) => <ProductItem key={p.name} {...p} />)}
                           </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                }
-                if (l === "Solutions") {
-                  return <Link key={l} to="/solutions" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-                }
-                if (l === "Pricing") {
-                  return <Link key={l} to="/pricing" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-                }
-                if (l === "Resources") {
-                  return <Link key={l} to="/resources" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-                }
-                if (l === "About") {
-                  return <Link key={l} to="/about" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
-                }
-                return (
-                  <a key={l} href={l === "Platform" ? "/platform" : "/"} className="hover:text-[#4F46E5] transition-colors">
-                    {l}
-                  </a>
+                      </div>
+                    )}
+                  </div>
                 );
-              })}
-            </div>
+              }
+              if (l === "Solutions") {
+                return <Link key={l} to="/solutions" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "Pricing") {
+                return <Link key={l} to="/pricing" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "Resources") {
+                return <Link key={l} to="/resources" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              if (l === "About") {
+                return <Link key={l} to="/about" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+              }
+              return (
+                <a key={l} href={l === "Platform" ? "/platform" : "/"} className="hover:text-[#4F46E5] transition-colors">
+                  {l}
+                </a>
+              );
+            })}
+          </div>
 
-            <div className="flex items-center gap-4 text-sm font-semibold">
-              <Link to="/login" className="text-[#1E1B4B] no-underline">
-                Sign In
-              </Link>
-              <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
-                Get a Demo <ArrowRight size={15} />
-              </button>
-            </div>
-          </nav>
+          <div className="flex items-center gap-4 text-sm font-semibold">
+            <Link to="/login" className="text-[#1E1B4B] no-underline">
+              Sign In
+            </Link>
+            <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
+              Get a Demo <ArrowRight size={15} />
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
     </>
   );
 }

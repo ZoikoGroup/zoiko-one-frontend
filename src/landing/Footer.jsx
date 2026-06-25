@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const navData = {
   platform: {
@@ -16,16 +17,16 @@ const navData = {
   products: {
     title: "Products",
     links: [
-      "Zoiko HR",
-      "ZoikoTime",
-      "Zoiko Payroll",
-      "Zoiko Billing",
-      "Zoiko Spend",
-      "Zoiko Projects",
-      "Zoiko Inventory",
-      "Zoiko Comply",
-      "Zoiko Insights",
-      "Zoiko Docs Pro",
+      { label: "Zoiko HR", href: "/products/zoiko-hr" },
+      { label: "ZoikoTime", href: "/products/zoikotime" },
+      { label: "Zoiko Payroll", href: "/products/payroll" },
+      { label: "Zoiko Billing", href: "/products/billing" },
+      { label: "Zoiko Spend", href: "/products/spend" },
+      { label: "Zoiko Projects", href: "/projects" },
+      { label: "Zoiko Inventory", href: "/inventory" },
+      { label: "Zoiko Comply", href: "/products/comply" },
+      { label: "Zoiko Insights", href: "/insights" },
+      { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
     ],
   },
   solutions: {
@@ -162,10 +163,12 @@ export default function Footer() {
             <div style={styles.navColTitle}>{col.title}</div>
             <ul style={styles.navList}>
               {col.links.map((link) => (
-                <li key={link} style={styles.navItem}>
-                  <a href="#" style={styles.navLink}>
-                    {link}
-                  </a>
+                <li key={typeof link === "string" ? link : link.label} style={styles.navItem}>
+                  {typeof link === "string" ? (
+                    <a href="#" style={styles.navLink}>{link}</a>
+                  ) : (
+                    <Link to={link.href} style={styles.navLink}>{link.label}</Link>
+                  )}
                 </li>
               ))}
             </ul>

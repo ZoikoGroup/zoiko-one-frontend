@@ -9,9 +9,9 @@ const productLinks = [
   { label: "ZoikoTime", href: "/products/zoikotime", desc: "Time, attendance & shifts", color: "#0891B2" },
   { label: "Zoiko Payroll", href: "/payroll", desc: "Pay runs & filings", color: "#059669" },
   { label: "Zoiko Billing", href: "/products/billing", desc: "Invoicing & collections", color: "#D97706" },
-  { label: "Zoiko Comply", href: "/comply", desc: "Compliance & governance", color: "#DC2626" },
+  { label: "Zoiko Comply", href: "/products/comply", desc: "Compliance & governance", color: "#DC2626" },
   { label: "Zoiko Insights", href: "/insights", desc: "Dashboards & analytics", color: "#7C3AED" },
-  { label: "Zoiko Spend", href: "/spend", desc: "Procurement & spend management", color: "#0EA5E9" },
+  { label: "Zoiko Spend", href: "/products/spend", desc: "Procurement & spend management", color: "#0EA5E9" },
   { label: "Zoiko Projects", href: "/projects", desc: "Projects, tasks & delivery", color: "#6366F1" },
   { label: "Zoiko Inventory", href: "/inventory", desc: "Stock & asset tracking", color: "#84CC16" },
   { label: "Zoiko Docs Pro", href: "/zoiko-docs", desc: "Document management & collaboration", color: "#06B6D4" },
@@ -50,7 +50,7 @@ export default function LandingHeader() {
             >
               Products <ChevronDown size={14} className="mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
             </Link>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 w-[480px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-200 p-4 mt-2 z-[100] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-[480px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-200 p-4 mt-2 z-[100] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 before:content-[''] before:absolute before:top-[-8px] before:left-0 before:w-full before:h-[8px]">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3 pl-2">
                 Zoiko One Products
               </p>

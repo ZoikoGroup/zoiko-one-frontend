@@ -2,9 +2,17 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-export default function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+import { useMemo } from "react";
+
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const { isAuthenticated, loading, hasRole, defaultRedirect } = useAuth();
   const location = useLocation();
+
+  const normalizedAllowedRoles = useMemo(() => {
+    if (!allowedRoles) return null;
+    return Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  }, [allowedRoles]);
+
 
   if (loading) {
     return (
@@ -21,5 +29,10 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  if (normalizedAllowedRoles && !hasRole(normalizedAllowedRoles)) {
+    return <Navigate to={defaultRedirect} replace />;
+  }
+
   return children;
 }
+

@@ -16,6 +16,11 @@ import ZoikoHRPage from "./pages/products/ZoikoHRPage";
 import ZoikoPayrollPage from "./pages/products/ZoikoPayrollPage";
 import ZoikoTimePage from "./pages/products/ZoikoTimePage";
 import ZoikoBillingPage from "./pages/products/ZoikoBillingPage";
+import ZoikoProjectsPage from "./pages/products/ZoikoProjectsPage";
+import ZoikoComplyPage from "./pages/products/ZoikoComplyPage";
+import ZoikoSpendPage from "./pages/products/ZoikoSpendPage";
+import ZoikoInventoryPage from "./pages/products/ZoikoInventoryPage";
+import ZoikoDocsProPage from "./pages/products/ZoikoDocsProPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -129,7 +134,12 @@ import ZoikoHRLifecycle from "./modules/zoiko-hr/employee-management/lifecycle.j
 import ZoikoHRReports from "./modules/zoiko-hr/employee-management/reports.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
+
+
 import ZoikoPayrollModule from "./modules/payroll";
+
+
+
 import {
   ZoikoSpendModule,
   PurchaseRequestsPage,
@@ -333,6 +343,10 @@ const routeOverrides = {
   "/zoiko-hr/workforce-planning/reports": <WorkforceReports />,
   "/zoiko-hr/documents": <DocumentsDashboard />,
   "/zoikotime": <ZoikoTimeModule />,
+
+
+
+  /////PayRoll All Modules
   "/payroll": <ZoikoPayrollModule />,
   "/payroll/company-setup": <ZoikoPayrollModule />,
   "/payroll/employees": <ZoikoPayrollModule />,
@@ -344,6 +358,12 @@ const routeOverrides = {
   "/payroll/reports": <ZoikoPayrollModule />,
   "/payroll/audit": <ZoikoPayrollModule />,
   "/payroll/settings": <ZoikoPayrollModule />,
+
+
+
+
+
+  
   "/spend/purchase-requests": <PurchaseRequestsPage />,
   "/spend/purchase-orders": <PosPage />,
   "/spend/vendors": <VendorsPage />,
@@ -478,6 +498,11 @@ export default function App() {
       <Route path="/products/payroll" element={<ZoikoPayrollPage />} />
       <Route path="/products/zoikotime" element={<ZoikoTimePage />} />
       <Route path="/products/billing" element={<ZoikoBillingPage />} />
+      <Route path="/products/comply" element={<ZoikoComplyPage />} />
+      <Route path="/products/spend" element={<ZoikoSpendPage />} />
+      <Route path="/projects" element={<ZoikoProjectsPage />} />
+      <Route path="/inventory" element={<ZoikoInventoryPage />} />
+      <Route path="/zoiko-docs" element={<ZoikoDocsProPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route
@@ -491,16 +516,48 @@ export default function App() {
                     key={route.href}
                     path={route.href}
                     element={
-                      routeOverrides[route.href] ?? (
-                        <PagePlaceholder
-                          title={route.label}
-                          path={route.href}
-                          badge={route.badge}
-                        />
-                      )
+                      <ProtectedRoute
+                        allowedRoles={
+                          route.href.startsWith("/zoiko-hr")
+                            ? ["super_admin", "admin"]
+                            : route.href.startsWith("/zoiko-hr/ess")
+                              ? ["super_admin", "admin", "employee"]
+                              : route.href.startsWith("/zoiko-hr/ess/my-documents")
+                                ? ["super_admin", "admin", "employee"]
+                                : route.href.startsWith("/zoiko-hr/leave/my-leave")
+                                  ? ["super_admin", "admin", "employee"]
+                                  : route.href.startsWith("/zoiko-hr/travel")
+                                    ? ["super_admin", "admin", "employee"]
+                                    : route.href.startsWith("/payroll")
+                                      ? ["super_admin", "admin"]
+                                      : route.href.startsWith("/billing")
+                                        ? ["super_admin", "admin"]
+                                        : route.href.startsWith("/insights")
+                                          ? ["super_admin", "admin"]
+                                          : route.href.startsWith("/roles") ||
+                                              route.href.startsWith("/security-center") ||
+                                              route.href.startsWith("/trust-center") ||
+                                              route.href.startsWith("/audit-center") ||
+                                              route.href.startsWith("/compliance-center") ||
+                                              route.href.startsWith("/operations") ||
+                                              route.href.startsWith("/admin-profile")
+                                            ? ["super_admin"]
+                                            : ["super_admin", "admin", "employee"]
+                        }
+                      >
+                        {routeOverrides[route.href] ?? (
+                          <PagePlaceholder
+                            title={route.label}
+                            path={route.href}
+                            badge={route.badge}
+                          />
+                        )}
+                      </ProtectedRoute>
                     }
                   />
                 ))}
+
+
                 <Route
                   path="/zoiko-hr/assets/maintenance"
                   element={<AssetMaintenance />}

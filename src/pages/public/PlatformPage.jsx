@@ -439,54 +439,6 @@ function PlatformFAQ() {
   );
 }
 
-// ─── 9. BOTTOM CTA BANNER ──────────────────────────────────────────────────────
-function BottomCTA() {
-  const navigate = useNavigate();
-  return (
-    <section style={{ ...wrap, paddingBottom: "80px" }}>
-      <div style={{
-        background: `linear-gradient(135deg, ${BLUE} 0%, #1e40af 100%)`,
-        borderRadius: "24px", padding: "64px 48px",
-        textAlign: "center",
-        boxShadow: "0 16px 48px rgba(26,58,140,0.35)",
-        position: "relative", overflow: "hidden",
-      }}>
-        <div style={{
-          position: "absolute", top: "-60px", left: "-60px",
-          width: "240px", height: "240px", borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)",
-        }} />
-        <div style={{
-          position: "absolute", bottom: "-40px", right: "-40px",
-          width: "200px", height: "200px", borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)",
-        }} />
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{
-            fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: "800",
-            color: "white", margin: "0 0 14px 0", letterSpacing: "-0.5px",
-          }}>
-            Run your business from one connected platform.
-          </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.8)", margin: "0 0 36px 0", lineHeight: "1.7" }}>
-            Bring people, money, work, supply, control, documents, approvals, workflows, insights and AI assistance into one governed operating system.
-          </p>
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => navigate("/get-demo")} style={{
-              padding: "14px 28px", borderRadius: "50px", border: "none",
-              background: ORANGE, color: "white", fontSize: "15px",
-              fontWeight: "700", cursor: "pointer", fontFamily: FF,
-              boxShadow: "0 6px 20px rgba(232,133,10,0.5)",
-            }}>Get a Demo →</button>
-            <button style={ghostBtnWhite}>Explore Products</button>
-            <button style={ghostBtnWhite}>Request Pricing</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── ROOT ──────────────────────────────────────────────────────────────────────
 export default function PlatformPage() {
   useEffect(() => {
@@ -504,7 +456,6 @@ export default function PlatformPage() {
       <Governance />
       <MoneyArchitecture />
       <PlatformFAQ />
-      <BottomCTA />
       <Footer />
     </div>
   );

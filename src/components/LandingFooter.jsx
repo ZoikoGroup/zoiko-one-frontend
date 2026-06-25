@@ -10,8 +10,11 @@ const footerColumns = [
       { label: "ZoikoTime", href: "/zoikotime" },
       { label: "Zoiko Payroll", href: "/payroll" },
       { label: "Zoiko Billing", href: "/billing" },
-      { label: "Zoiko Comply", href: "/comply" },
+      { label: "Zoiko Comply", href: "/products/comply" },
       { label: "Zoiko Insights", href: "/insights" },
+      { label: "Zoiko Inventory", href: "/inventory" },
+      { label: "Zoiko Docs Pro", href: "/zoiko-docs" },
+      { label: "Zoiko Spend", href: "/products/spend" },
     ],
   },
   {
@@ -45,7 +48,7 @@ const footerColumns = [
 
 export default function LandingFooter() {
   return (
-    <footer style={{ background: "#1a1a2e", color: "white" }}>
+    <footer style={{ background: "#240C84", color: "white" }}>
       {/* CTA Banner */}
       <div style={{
         background: "linear-gradient(135deg, #FF6B00 0%, #FF8C38 50%, #FFB347 100%)",

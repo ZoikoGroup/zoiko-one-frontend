@@ -100,9 +100,12 @@ export default function DesignationStructure() {
   useEffect(() => {
     let mounted = true;
     getDesignations()
-      .then((res) => { 
-        // Unpack response.data wrapper safely
-        if (mounted) setRecords(Array.isArray(res?.data) ? res.data : []); 
+      .then((res) => {
+        // api wrapper returns parsed JSON body directly (not axios-style { data })
+        // Handle both shapes defensively: array | { data: array }
+        if (!mounted) return;
+        const next = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        setRecords(next);
       })
       .catch(() => {})
       .finally(() => { if (mounted) setLoading(false); });

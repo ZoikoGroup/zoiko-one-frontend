@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { sections } from "../navigation";
+import useFilteredNavigation from "../hooks/useFilteredNavigation";
+import { ROLE_LABELS } from "../config/roles";
+import { useAuth } from "../context/AuthContext";
+
 import SearchBar from "./SearchBar.jsx";
 import logo from "../assets/logo.png";
 
@@ -105,8 +108,11 @@ function MenuItem({ item, pathname }) {
 
 export default function Sidebar({ open, onClose }) {
   const { pathname } = useLocation();
+  const { role } = useAuth();
+  const filteredSections = useFilteredNavigation(role);
 
   return (
+
     <div>
       <div className={`fixed inset-0 z-30 bg-slate-950/40 transition-opacity ${open ? "opacity-100" : "pointer-events-none opacity-0"}`} onClick={onClose} />
       <aside
@@ -116,15 +122,17 @@ export default function Sidebar({ open, onClose }) {
           <div className="flex flex-col gap-2">
             <Link to="/"><img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain self-start" /></Link>
             <span className="self-start rounded-full bg-[#FF7A00]/10 border border-[#FF7A00]/25 px-2.5 py-0.5 text-xs font-semibold text-[#FF7A00]">
-              Super Admin
+              {ROLE_LABELS[role] ?? ""}
             </span>
+
           </div>
           <button type="button" onClick={onClose} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden">
             X
           </button>
         </div>
         <SearchBar />
-        {sections.map((section) => (
+        {filteredSections.map((section) => (
+
           <div key={section.title} className="mb-8">
             <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">{section.title}</p>
             <div className="space-y-2">

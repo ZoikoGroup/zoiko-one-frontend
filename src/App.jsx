@@ -186,6 +186,17 @@ import ItemsPage from "./modules/inventory/pages/ItemsPage";
 
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
+
+// Super Admin modules
+import SuperAdminDashboardPage from "./modules/super-admin/DashboardPage";
+import SuperAdminOrganizationsPage from "./modules/super-admin/OrganizationsPage";
+import SuperAdminProductsPage from "./modules/super-admin/ProductsPage";
+import SuperAdminSubscriptionsPage from "./modules/super-admin/SubscriptionsPage";
+import SuperAdminPlatformUsersPage from "./modules/super-admin/PlatformUsersPage";
+import SuperAdminAnalyticsPage from "./modules/super-admin/AnalyticsPage";
+import SuperAdminAuditLogsPage from "./modules/super-admin/AuditLogsPage";
+import SuperAdminSystemHealthPage from "./modules/super-admin/SystemHealthPage";
+import SuperAdminPlatformSettingsPage from "./modules/super-admin/PlatformSettingsPage";
 import SecurityPage from "./modules/governance/SecurityPage";
 import TrustPage from "./modules/governance/TrustPage";
 import AuditPage from "./modules/governance/AuditPage";
@@ -214,6 +225,7 @@ import DocumentsPage from "./modules/shared-layers/DocumentsPage";
 import ApprovalsPage from "./modules/shared-layers/ApprovalsPage";
 import ExpensesPage from "./modules/shared-layers/ExpensesPage";
 import AiAssistancePage from "./modules/shared-layers/AiAssistancePage";
+import UserManagementPage from "./modules/settings/UserManagementPage";
 
 const routeOverrides = {
   "/dashboard": <DashboardPage />,
@@ -481,6 +493,18 @@ const routeOverrides = {
   "/operations/system-monitoring": <SystemMonitoringPage />,
   "/operations/support-center": <SupportCenterPage />,
   "/admin-profile": <AdminProfilePage />,
+  "/settings/user-management": <UserManagementPage />,
+
+  // Super Admin route overrides
+  "/super-admin/dashboard": <SuperAdminDashboardPage />,
+  "/super-admin/organizations": <SuperAdminOrganizationsPage />,
+  "/super-admin/products": <SuperAdminProductsPage />,
+  "/super-admin/subscriptions": <SuperAdminSubscriptionsPage />,
+  "/super-admin/users": <SuperAdminPlatformUsersPage />,
+  "/super-admin/analytics": <SuperAdminAnalyticsPage />,
+  "/super-admin/audit-logs": <SuperAdminAuditLogsPage />,
+  "/super-admin/system-health": <SuperAdminSystemHealthPage />,
+  "/super-admin/settings": <SuperAdminPlatformSettingsPage />,
 };
 
 export default function App() {
@@ -511,51 +535,51 @@ export default function App() {
           <ProtectedRoute>
             <SuperAdminShell>
               <Routes>
-                {flatRoutes.map((route) => (
-                  <Route
-                    key={route.href}
-                    path={route.href}
-                    element={
-                      <ProtectedRoute
-                        allowedRoles={
-                          route.href.startsWith("/zoiko-hr")
-                            ? ["super_admin", "admin"]
-                            : route.href.startsWith("/zoiko-hr/ess")
-                              ? ["super_admin", "admin", "employee"]
-                              : route.href.startsWith("/zoiko-hr/ess/my-documents")
-                                ? ["super_admin", "admin", "employee"]
-                                : route.href.startsWith("/zoiko-hr/leave/my-leave")
-                                  ? ["super_admin", "admin", "employee"]
-                                  : route.href.startsWith("/zoiko-hr/travel")
-                                    ? ["super_admin", "admin", "employee"]
-                                    : route.href.startsWith("/payroll")
+                  {flatRoutes.map((route) => (
+                    <Route
+                      key={route.href}
+                      path={route.href}
+                      element={
+                        <ProtectedRoute
+                          allowedRoles={
+                            route.href.startsWith("/super-admin/")
+                              ? ["super_admin"]
+                              : route.href.startsWith("/zoiko-hr/ess") ||
+                                route.href.startsWith("/zoiko-hr/leave") ||
+                                route.href.startsWith("/zoiko-hr/travel")
+                                ? ["super_admin", "admin", "hr_admin", "employee"]
+                                : route.href.startsWith("/zoiko-hr")
+                                  ? ["super_admin", "admin", "hr_admin"]
+                                  : route.href.startsWith("/payroll")
+                                    ? ["super_admin", "admin"]
+                                    : route.href.startsWith("/billing")
                                       ? ["super_admin", "admin"]
-                                      : route.href.startsWith("/billing")
+                                      : route.href.startsWith("/insights")
                                         ? ["super_admin", "admin"]
-                                        : route.href.startsWith("/insights")
-                                          ? ["super_admin", "admin"]
-                                          : route.href.startsWith("/roles") ||
-                                              route.href.startsWith("/security-center") ||
-                                              route.href.startsWith("/trust-center") ||
-                                              route.href.startsWith("/audit-center") ||
-                                              route.href.startsWith("/compliance-center") ||
-                                              route.href.startsWith("/operations") ||
-                                              route.href.startsWith("/admin-profile")
-                                            ? ["super_admin"]
-                                            : ["super_admin", "admin", "employee"]
-                        }
-                      >
-                        {routeOverrides[route.href] ?? (
-                          <PagePlaceholder
-                            title={route.label}
-                            path={route.href}
-                            badge={route.badge}
-                          />
-                        )}
-                      </ProtectedRoute>
-                    }
-                  />
-                ))}
+                                        : route.href.startsWith("/roles") ||
+                                            route.href.startsWith("/security-center") ||
+                                            route.href.startsWith("/trust-center") ||
+                                            route.href.startsWith("/audit-center") ||
+                                            route.href.startsWith("/compliance-center") ||
+                                            route.href.startsWith("/operations") ||
+                                            route.href.startsWith("/admin-profile")
+                                ? ["super_admin"]
+                                : route.href.startsWith("/settings/")
+                                  ? ["super_admin", "admin"]
+                                  : ["super_admin", "admin", "employee"]
+                          }
+                        >
+                          {routeOverrides[route.href] ?? (
+                            <PagePlaceholder
+                              title={route.label}
+                              path={route.href}
+                              badge={route.badge}
+                            />
+                          )}
+                        </ProtectedRoute>
+                      }
+                    />
+                  ))}
 
 
                 <Route

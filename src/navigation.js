@@ -56,6 +56,12 @@ import {
   Save,
   UserRoundCheck,
   Wrench,
+  Settings,
+  Server,
+  Database,
+  HardDrive,
+  FileText as FileTextIcon,
+  Globe as GlobeIcon,
 } from "lucide-react";
 
 // Shared Layers – first‑class section
@@ -86,6 +92,22 @@ const superAdmin = {
       icon: User,
       dp: true,
     },
+  ],
+};
+
+// Super Admin Dashboard Section
+const superAdminDashboard = {
+  title: "SUPER ADMIN",
+  items: [
+    { label: "Dashboard", href: "/super-admin/dashboard", icon: LayoutDashboard },
+    { label: "Organizations", href: "/super-admin/organizations", icon: Building2 },
+    { label: "Products", href: "/super-admin/products", icon: Package },
+    { label: "Subscriptions", href: "/super-admin/subscriptions", icon: CreditCard },
+    { label: "Platform Users", href: "/super-admin/users", icon: Users },
+    { label: "Analytics", href: "/super-admin/analytics", icon: TrendingUp },
+    { label: "Audit Logs", href: "/super-admin/audit-logs", icon: FileTextIcon },
+    { label: "System Health", href: "/super-admin/system-health", icon: Server },
+    { label: "Platform Settings", href: "/super-admin/settings", icon: Settings },
   ],
 };
 // Platform Command collapsible section
@@ -382,6 +404,14 @@ const platformGovernance = {
   ],
 };
 
+// Settings (Organization Admin)
+const settings = {
+  title: "SETTINGS",
+  items: [
+    { label: "User Management", href: "/settings/user-management", icon: Users },
+  ],
+};
+
 // Shared Layers collapsible section
 const sharedLayersSection = {
   title: "SHARED LAYERS",
@@ -404,11 +434,13 @@ const sharedLayersSection = {
 };
 
 export const sections = [
+  superAdminDashboard,
   superAdmin,
   platformCommand,
   platformGovernance,
   products,
   sharedLayersSection,
+  settings,
   infrastructure,
   platformOperations,
 ];

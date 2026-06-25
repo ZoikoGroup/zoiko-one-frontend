@@ -20,6 +20,7 @@ import ZoikoProjectsPage from "./pages/products/ZoikoProjectsPage";
 import ZoikoComplyPage from "./pages/products/ZoikoComplyPage";
 import ZoikoSpendPage from "./pages/products/ZoikoSpendPage";
 import ZoikoInventoryPage from "./pages/products/ZoikoInventoryPage";
+import ZoikoDocsProPage from "./pages/products/ZoikoDocsProPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -486,6 +487,7 @@ export default function App() {
       <Route path="/products/spend" element={<ZoikoSpendPage />} />
       <Route path="/projects" element={<ZoikoProjectsPage />} />
       <Route path="/inventory" element={<ZoikoInventoryPage />} />
+      <Route path="/zoiko-docs" element={<ZoikoDocsProPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

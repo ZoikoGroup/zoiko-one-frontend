@@ -31,7 +31,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Target 'HrDashBoard.jsx' directly
 import ZoikoHRModule from "./modules/zoiko-hr/HrDashBoard.jsx";
 
-// Sub-module imports pointing explicitly to their component files inside each directory
+// Sub-module imports
 import ZoikoHRLeaveDashboard from "./modules/zoiko-hr/leave/dashboard.jsx";
 import ZoikoHRLeaveMyLeave from "./modules/zoiko-hr/leave/my-leave.jsx";
 import ZoikoHRLeaveRequests from "./modules/zoiko-hr/leave/leave-requests.jsx";
@@ -102,8 +102,6 @@ import CompanyDocuments from "./modules/zoiko-hr/documents/company-documents.jsx
 import ApprovalWorkflow from "./modules/zoiko-hr/documents/approvals.jsx";
 import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 
-
-
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
 import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
 import ZoikoHRAttendanceLeaves from "./modules/zoiko-hr/attendance/leave-management.jsx";
@@ -116,11 +114,6 @@ import WorkforcePlans from "./modules/zoiko-hr/workforce-planning/plans.jsx";
 import HeadcountPlanning from "./modules/zoiko-hr/workforce-planning/headcount.jsx";
 import Succession from "./modules/zoiko-hr/workforce-planning/succession.jsx";
 import WorkforceReports from "./modules/zoiko-hr/workforce-planning/reports.jsx";
-
-
-
-
-
 
 import ZoikoHRCompDashboard from "./modules/zoiko-hr/compensation/dashboard.jsx";
 import ZoikoHRCompSalaryStructures from "./modules/zoiko-hr/compensation/salary-structures.jsx";
@@ -139,11 +132,7 @@ import ZoikoHRLifecycle from "./modules/zoiko-hr/employee-management/lifecycle.j
 import ZoikoHRReports from "./modules/zoiko-hr/employee-management/reports.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
-
-
 import ZoikoPayrollModule from "./modules/payroll";
-
-
 
 import {
   ZoikoSpendModule,
@@ -203,7 +192,6 @@ import SuperAdminAuditLogsPage from "./modules/super-admin/AuditLogsPage";
 import SuperAdminSystemHealthPage from "./modules/super-admin/SystemHealthPage";
 import SuperAdminPlatformSettingsPage from "./modules/super-admin/PlatformSettingsPage";
 import SecurityPage from "./modules/governance/SecurityPage";
-
 import AuditPage from "./modules/governance/AuditPage";
 import CompliancePage from "./modules/governance/CompliancePage";
 
@@ -232,6 +220,45 @@ import ExpensesPage from "./modules/shared-layers/ExpensesPage";
 import AiAssistancePage from "./modules/shared-layers/AiAssistancePage";
 import UserManagementPage from "./modules/settings/UserManagementPage";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// EMPLOYEE WORKSPACE — src/pages/Peoples/Employees/
+// Filenames use capital E prefix: Employee_ (except EmployeeProfile.jsx)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Profile folder
+import EmployeeProfilePage       from "./pages/Peoples/Employees/Profile/EmployeeProfile.jsx";
+import EmployeeBankDetails       from "./pages/Peoples/Employees/Profile/Employee_BankDetails.jsx";
+import EmployeeAssetDetails      from "./pages/Peoples/Employees/Profile/Employee_AssetDetails.jsx";
+import EmployeeEmergencyContacts from "./pages/Peoples/Employees/Profile/Employee_EmergencyContacts.jsx";
+import EmployeeSecuritySettings  from "./pages/Peoples/Employees/Profile/Employee_settings.jsx";
+
+// ESS folder
+import EmployeeEssDashboard  from "./pages/Peoples/Employees/ESS/Employee_EssDashboard.jsx";
+import EmployeeEssAttendance from "./pages/Peoples/Employees/ESS/Employee_EssAttendance.jsx";
+import EmployeeEssRequests   from "./pages/Peoples/Employees/ESS/Employee_EssRequests.jsx";
+import EmployeeEssSettings   from "./pages/Peoples/Employees/ESS/Employee_EssSettings.jsx";
+
+// Leaves folder
+import EmployeeMyLeave       from "./pages/Peoples/Employees/Leaves/Employee_MyLeave.jsx";
+import EmployeeApplyLeave    from "./pages/Peoples/Employees/Leaves/Employee_ApplyLeave.jsx";
+import EmployeeLeaveCalendar from "./pages/Peoples/Employees/Leaves/Employee_LeaveCalendar.jsx";
+import EmployeeLeaveHistory  from "./pages/Peoples/Employees/Leaves/Employee_LeaveHistory.jsx";
+import EmployeeLeaveTypes    from "./pages/Peoples/Employees/Leaves/Employee_LeaveTypes.jsx";
+
+// Documents folder
+import EmployeeMyFiles        from "./pages/Peoples/Employees/Documents/Employee_MyFiles.jsx";
+import EmployeePayslips       from "./pages/Peoples/Employees/Documents/Employee_Payslips.jsx";
+import EmployeeOfferContracts from "./pages/Peoples/Employees/Documents/Employee_OfferContracts.jsx";
+import EmployeeTaxCompliance  from "./pages/Peoples/Employees/Documents/Employee_TaxCompliance.jsx";
+import EmployeeUploadRequest  from "./pages/Peoples/Employees/Documents/Employee_UploadRequest.jsx";
+
+// Travel folder — files must be named Employee_TravelDashboard.jsx etc.
+import EmployeeTravelDashboard  from "./pages/Peoples/Employees/Travel/Employee_TravelDashboard.jsx";
+import EmployeeTravelRequests   from "./pages/Peoples/Employees/Travel/Employee_TravelRequests.jsx";
+import EmployeeTravelApprovals  from "./pages/Peoples/Employees/Travel/Employee_TravelApprovals.jsx";
+import EmployeeTravelExpenses   from "./pages/Peoples/Employees/Travel/Employee_TravelExpenses.jsx";
+import EmployeeTravelSettings   from "./pages/Peoples/Employees/Travel/Employee_TravelSettings.jsx";
+
 const routeOverrides = {
   "/dashboard": <DashboardPage />,
   "/organizations": <OrganizationsPage />,
@@ -245,19 +272,19 @@ const routeOverrides = {
   "/shared/expenses": <ExpensesPage />,
   "/shared/ai-assistance": <AiAssistancePage />,
   "/zoiko-hr": <ZoikoHRModule />,
-  // Departments submodule routes
+  // Departments
   "/zoiko-hr/departments": <ZoikoHRDepartmentsDashboard />,
   "/zoiko-hr/departments/list": <ZoikoHRDepartmentsDepartmentList />,
   "/zoiko-hr/departments/structure": <ZoikoHRDepartmentsDepartmentStructure />,
   "/zoiko-hr/departments/reports": <ZoikoHRDepartmentsReports />,
   "/zoiko-hr/departments/settings": <ZoikoHRDepartmentsSettings />,
-  // Designations submodule routes
+  // Designations
   "/zoiko-hr/designations": <ZoikoHRDesignationsDashboard />,
   "/zoiko-hr/designations/list": <ZoikoHRDesignationList />,
   "/zoiko-hr/designations/levels": <ZoikoHRDesignationStructure />,
   "/zoiko-hr/designations/reports": <ZoikoHRDesignationReports />,
   "/zoiko-hr/designations/settings": <ZoikoHRDesignationSettings />,
-  // Leave submodule routes
+  // Leave
   "/zoiko-hr/leave": <ZoikoHRLeaveDashboard />,
   "/zoiko-hr/leave/my-leave": <ZoikoHRLeaveMyLeave />,
   "/zoiko-hr/leave/requests": <ZoikoHRLeaveRequests />,
@@ -265,7 +292,7 @@ const routeOverrides = {
   "/zoiko-hr/leave/leave-types": <ZoikoHRLeaveLeaveTypes />,
   "/zoiko-hr/leave/reports": <ZoikoHRLeaveReports />,
   "/zoiko-hr/leave/settings": <ZoikoHRLeaveSettings />,
-  // Attendance submodule routes
+  // Attendance
   "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
   "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
   "/zoiko-hr/attendance/leaves": <ZoikoHRAttendanceLeaves />,
@@ -282,7 +309,7 @@ const routeOverrides = {
   "/zoiko-hr/onboarding/orientation": <ZoikoHROnboardingOrientation />,
   "/zoiko-hr/onboarding/reports": <ZoikoHROnboardingReports />,
   "/zoiko-hr/onboarding/settings": <ZoikoHROnboardingSettings />,
-  // Assets submodule routes
+  // Assets
   "/zoiko-hr/assets": <AssetsDashboard />,
   "/zoiko-hr/assets/my-assets": <MyAssets />,
   "/zoiko-hr/assets/catalog": <AssetCatalog />,
@@ -290,15 +317,13 @@ const routeOverrides = {
   "/zoiko-hr/assets/maintenance": <AssetMaintenance />,
   "/zoiko-hr/assets/reports": <AssetReports />,
   "/zoiko-hr/assets/settings": <AssetSettings />,
-
-
-
-  
+  // Learning
   "/zoiko-hr/learning": <ZoikoHRLearning />,
   "/zoiko-hr/learning/courses": <ZoikoHRLearning />,
   "/zoiko-hr/learning/training-programs": <ZoikoHRLearning />,
   "/zoiko-hr/learning/assessments": <ZoikoHRLearning />,
   "/zoiko-hr/learning/reports": <ZoikoHRLearning />,
+  // Compensation
   "/zoiko-hr/compensation": <ZoikoHRCompDashboard />,
   "/zoiko-hr/compensation/salary-structures": <ZoikoHRCompSalaryStructures />,
   "/zoiko-hr/compensation/pay-grades": <ZoikoHRCompPayGrades />,
@@ -307,7 +332,7 @@ const routeOverrides = {
   "/zoiko-hr/compensation/revisions": <ZoikoHRCompRevisions />,
   "/zoiko-hr/compensation/allowances": <ZoikoHRCompAllowances />,
   "/zoiko-hr/compensation/benefits": <ZoikoHRCompBenefits />,
-    // ESS submodule routes
+  // ESS (HR admin view)
   "/zoiko-hr/ess": <EssDashboard />,
   "/zoiko-hr/ess/profile": <EssProfile />,
   "/zoiko-hr/ess/leave": <EssLeaveManagement />,
@@ -315,55 +340,43 @@ const routeOverrides = {
   "/zoiko-hr/ess/my-documents": <EssMyDocuments />,
   "/zoiko-hr/ess/requests": <EssRequests />,
   "/zoiko-hr/ess/settings": <EssSettings />,
-
-  // Travel submodule routes
+  // Travel (HR admin view)
   "/zoiko-hr/travel": <TravelDashboard />,
   "/zoiko-hr/travel/requests": <TravelRequests />,
   "/zoiko-hr/travel/approvals": <TravelApprovals />,
   "/zoiko-hr/travel/expenses": <TravelExpenses />,
   "/zoiko-hr/travel/settings": <TravelSettings />,
-  // Compliance submodule routes
- 
-
-  // Employee Management submodule routes
+  // Employee Management
   "/zoiko-hr/employee-management": <ZoikoHRDashboard />,
   "/zoiko-hr/employee-management/employees": <ZoikoHREmployees />,
   "/zoiko-hr/employee-management/employees/:id": <ZoikoHRProfile />,
   "/zoiko-hr/employee-management/organization": <ZoikoHROrgChart />,
   "/zoiko-hr/employee-management/lifecycle": <ZoikoHRLifecycle />,
   "/zoiko-hr/employee-management/reports": <ZoikoHRReports />,
-
-  
-  // Recruitment submodule routes
+  // Recruitment
   "/zoiko-hr/recruitment/job-requisitions": <JobRequisitions />,
   "/zoiko-hr/recruitment/candidates": <Candidates />,
   "/zoiko-hr/recruitment/interviews": <Interviews />,
   "/zoiko-hr/recruitment/offers": <OfferManagement />,
-
-  // Performance submodule routes
+  // Performance
   "/zoiko-hr/performance/goals": <GoalsOKRs />,
   "/zoiko-hr/performance/reviews": <PerformanceReviews />,
   "/zoiko-hr/performance/appraisals": <Appraisals />,
   "/zoiko-hr/performance/analytics": <PerformanceAnalytics />,
-
-  // Documents submodule routes
+  // Documents
+  "/zoiko-hr/documents": <DocumentsDashboard />,
   "/zoiko-hr/documents/employee-documents": <EmployeeDocuments />,
   "/zoiko-hr/documents/company-documents": <CompanyDocuments />,
   "/zoiko-hr/documents/approvals": <ApprovalWorkflow />,
   "/zoiko-hr/documents/settings": <DocumentsSettings />,
-
-  // Workforce Planning submodule routes
+  // Workforce Planning
   "/zoiko-hr/workforce-planning": <WorkforceDashboard />,
   "/zoiko-hr/workforce-planning/plans": <WorkforcePlans />,
   "/zoiko-hr/workforce-planning/headcount": <HeadcountPlanning />,
   "/zoiko-hr/workforce-planning/succession": <Succession />,
   "/zoiko-hr/workforce-planning/reports": <WorkforceReports />,
-  "/zoiko-hr/documents": <DocumentsDashboard />,
   "/zoikotime": <ZoikoTimeModule />,
-
-
-
-  /////PayRoll All Modules
+  // Payroll
   "/payroll": <ZoikoPayrollModule />,
   "/payroll/company-setup": <ZoikoPayrollModule />,
   "/payroll/employees": <ZoikoPayrollModule />,
@@ -375,12 +388,7 @@ const routeOverrides = {
   "/payroll/reports": <ZoikoPayrollModule />,
   "/payroll/audit": <ZoikoPayrollModule />,
   "/payroll/settings": <ZoikoPayrollModule />,
-
-
-
-
-
-  
+  // Spend
   "/spend/purchase-requests": <PurchaseRequestsPage />,
   "/spend/purchase-orders": <PosPage />,
   "/spend/vendors": <VendorsPage />,
@@ -389,6 +397,7 @@ const routeOverrides = {
   "/spend/spend-policy": <SpendPolicyPage />,
   "/spend/approvals": <SpendApprovalsPage />,
   "/spend/payment-preparation": <PaymentPreparationPage />,
+  // Billing
   "/billing": <ZoikoBillingModule />,
   "/billing/invoices": <InvoicingPage />,
   "/billing/invoice-schedules": <InvoiceSchedulesPage />,
@@ -398,67 +407,18 @@ const routeOverrides = {
   "/billing/credit-notes": <CreditNotesPage />,
   "/billing/dunning": <DunningPage />,
   "/billing/reports": <ReportsPage />,
-  // Zoiko Inventory routes
+  // Inventory
   "/inventory/items": <ItemsPage />,
-  "/inventory/locations": (
-    <PagePlaceholder
-      title="Locations"
-      path="/inventory/locations"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/stock": (
-    <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />
-  ),
-  "/inventory/receiving": (
-    <PagePlaceholder
-      title="Receiving"
-      path="/inventory/receiving"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/goods-issue": (
-    <PagePlaceholder
-      title="Goods Issue"
-      path="/inventory/goods-issue"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/transfers": (
-    <PagePlaceholder
-      title="Transfers"
-      path="/inventory/transfers"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/stock-counts": (
-    <PagePlaceholder
-      title="Stock Counts"
-      path="/inventory/stock-counts"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/reorder": (
-    <PagePlaceholder
-      title="Reorder"
-      path="/inventory/reorder"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/assets": (
-    <PagePlaceholder
-      title="Assets"
-      path="/inventory/assets"
-      badge="Inventory"
-    />
-  ),
-  "/inventory/reports": (
-    <PagePlaceholder
-      title="Reports"
-      path="/inventory/reports"
-      badge="Inventory"
-    />
-  ),
+  "/inventory/locations": <PagePlaceholder title="Locations" path="/inventory/locations" badge="Inventory" />,
+  "/inventory/stock": <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />,
+  "/inventory/receiving": <PagePlaceholder title="Receiving" path="/inventory/receiving" badge="Inventory" />,
+  "/inventory/goods-issue": <PagePlaceholder title="Goods Issue" path="/inventory/goods-issue" badge="Inventory" />,
+  "/inventory/transfers": <PagePlaceholder title="Transfers" path="/inventory/transfers" badge="Inventory" />,
+  "/inventory/stock-counts": <PagePlaceholder title="Stock Counts" path="/inventory/stock-counts" badge="Inventory" />,
+  "/inventory/reorder": <PagePlaceholder title="Reorder" path="/inventory/reorder" badge="Inventory" />,
+  "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
+  "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
+  // Comply
   "/comply": <ComplyDashboard />,
   "/comply/policies": <ComplyPolicies />,
   "/comply/audits": <ComplyAudits />,
@@ -470,6 +430,7 @@ const routeOverrides = {
   "/comply/risk-management": <ComplyRiskManagement />,
   "/comply/controls": <ComplyControls />,
   "/comply/training": <ComplyTraining />,
+  // Insights
   "/insights": <InsightsDashboard />,
   "/insights/workforce": <WorkforceInsights />,
   "/insights/payroll": <PayrollInsights />,
@@ -486,11 +447,12 @@ const routeOverrides = {
   "/insights/performance": <PerformanceInsights />,
   "/insights/recruitment": <RecruitmentInsights />,
   "/insights/settings": <InsightsSettings />,
+  // Governance
   "/roles": <RolesPage />,
   "/security-center": <SecurityPage />,
-
   "/audit-center": <AuditPage />,
   "/compliance-center": <CompliancePage />,
+  // Operations
   "/operations/integrations": <IntegrationsPage />,
   "/operations/api-management": <ApiManagementPage />,
   "/operations/feature-flags": <FeatureFlagsPage />,
@@ -499,8 +461,7 @@ const routeOverrides = {
   "/operations/support-center": <SupportCenterPage />,
   "/admin-profile": <AdminProfilePage />,
   "/settings/user-management": <UserManagementPage />,
-
-  // Super Admin route overrides
+  // Super Admin
   "/super-admin/dashboard": <SuperAdminDashboardPage />,
   "/super-admin/organizations": <SuperAdminOrganizationsPage />,
   "/super-admin/products": <SuperAdminProductsPage />,
@@ -510,6 +471,44 @@ const routeOverrides = {
   "/super-admin/audit-logs": <SuperAdminAuditLogsPage />,
   "/super-admin/system-health": <SuperAdminSystemHealthPage />,
   "/super-admin/settings": <SuperAdminPlatformSettingsPage />,
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EMPLOYEE WORKSPACE — /employee/* routes (role: employee only)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Profile
+  "/employee/profile":                    <EmployeeProfilePage />,
+  "/employee/profile/bank-details":       <EmployeeBankDetails />,
+  "/employee/profile/assets":             <EmployeeAssetDetails />,
+  "/employee/profile/emergency-contacts": <EmployeeEmergencyContacts />,
+  "/employee/profile/settings":           <EmployeeSecuritySettings />,
+
+  // ESS
+  "/employee/ess":            <EmployeeEssDashboard />,
+  "/employee/ess/attendance": <EmployeeEssAttendance />,
+  "/employee/ess/requests":   <EmployeeEssRequests />,
+  "/employee/ess/settings":   <EmployeeEssSettings />,
+
+  // Leaves
+  "/employee/leaves":          <EmployeeMyLeave />,
+  "/employee/leaves/apply":    <EmployeeApplyLeave />,
+  "/employee/leaves/calendar": <EmployeeLeaveCalendar />,
+  "/employee/leaves/history":  <EmployeeLeaveHistory />,
+  "/employee/leaves/types":    <EmployeeLeaveTypes />,
+
+  // Documents
+  "/employee/documents/my-files":       <EmployeeMyFiles />,
+  "/employee/documents/payslips":       <EmployeePayslips />,
+  "/employee/documents/contracts":      <EmployeeOfferContracts />,
+  "/employee/documents/tax":            <EmployeeTaxCompliance />,
+  "/employee/documents/upload-request": <EmployeeUploadRequest />,
+
+  // Travel
+  "/employee/travel":           <EmployeeTravelDashboard />,
+  "/employee/travel/requests":  <EmployeeTravelRequests />,
+  "/employee/travel/approvals": <EmployeeTravelApprovals />,
+  "/employee/travel/expenses":  <EmployeeTravelExpenses />,
+  "/employee/travel/settings":  <EmployeeTravelSettings />,
 };
 
 export default function App() {
@@ -545,15 +544,17 @@ export default function App() {
           <ProtectedRoute>
             <SuperAdminShell>
               <Routes>
-                  {flatRoutes.map((route) => (
-                    <Route
-                      key={route.href}
-                      path={route.href}
-                      element={
-                        <ProtectedRoute
-                          allowedRoles={
-                            route.href.startsWith("/super-admin/")
-                              ? ["super_admin"]
+                {flatRoutes.map((route) => (
+                  <Route
+                    key={route.href}
+                    path={route.href}
+                    element={
+                      <ProtectedRoute
+                        allowedRoles={
+                          route.href.startsWith("/super-admin/")
+                            ? ["super_admin"]
+                            : route.href.startsWith("/employee/")
+                              ? ["employee"]
                               : route.href.startsWith("/zoiko-hr/ess") ||
                                 route.href.startsWith("/zoiko-hr/leave") ||
                                 route.href.startsWith("/zoiko-hr/travel")
@@ -573,86 +574,38 @@ export default function App() {
                                             route.href.startsWith("/compliance-center") ||
                                             route.href.startsWith("/operations") ||
                                             route.href.startsWith("/admin-profile")
-                                ? ["super_admin"]
-                                : route.href.startsWith("/settings/")
-                                  ? ["super_admin", "admin"]
-                                  : ["super_admin", "admin", "employee"]
-                          }
-                        >
-                          {routeOverrides[route.href] ?? (
-                            <PagePlaceholder
-                              title={route.label}
-                              path={route.href}
-                              badge={route.badge}
-                            />
-                          )}
-                        </ProtectedRoute>
-                      }
-                    />
-                  ))}
+                                          ? ["super_admin"]
+                                          : route.href.startsWith("/settings/")
+                                            ? ["super_admin", "admin"]
+                                            : ["super_admin", "admin", "employee"]
+                        }
+                      >
+                        {routeOverrides[route.href] ?? (
+                          <PagePlaceholder
+                            title={route.label}
+                            path={route.href}
+                            badge={route.badge}
+                          />
+                        )}
+                      </ProtectedRoute>
+                    }
+                  />
+                ))}
 
-
-                <Route
-                  path="/zoiko-hr/assets/maintenance"
-                  element={<AssetMaintenance />}
-                />
-                <Route
-                  path="/zoiko-hr/assets/reports"
-                  element={<AssetReports />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/candidates/:id"
-                  element={<Candidates />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/open-positions"
-                  element={<Navigate to="/zoiko-hr/recruitment/job-requisitions" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/job-requisitions/open-positions"
-                  element={<Navigate to="/zoiko-hr/recruitment/job-requisitions" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/interview-pipeline"
-                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/interviews/interview-pipeline"
-                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/hiring-schedule"
-                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/interviews/hiring-schedule"
-                  element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/reports"
-                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/analytics"
-                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/analytics/reports"
-                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
-                />
-                <Route
-                  path="/zoiko-hr/recruitment/settings"
-                  element={<Navigate to="/zoiko-hr/recruitment" replace />}
-                />
-                <Route
-                  path="*"
-                  element={
-                    <PagePlaceholder
-                      title="Not Found"
-                      description="This page is not available yet."
-                    />
-                  }
-                />
+                <Route path="/zoiko-hr/assets/maintenance" element={<AssetMaintenance />} />
+                <Route path="/zoiko-hr/assets/reports" element={<AssetReports />} />
+                <Route path="/zoiko-hr/recruitment/candidates/:id" element={<Candidates />} />
+                <Route path="/zoiko-hr/recruitment/open-positions" element={<Navigate to="/zoiko-hr/recruitment/job-requisitions" replace />} />
+                <Route path="/zoiko-hr/recruitment/job-requisitions/open-positions" element={<Navigate to="/zoiko-hr/recruitment/job-requisitions" replace />} />
+                <Route path="/zoiko-hr/recruitment/interview-pipeline" element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />} />
+                <Route path="/zoiko-hr/recruitment/interviews/interview-pipeline" element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />} />
+                <Route path="/zoiko-hr/recruitment/hiring-schedule" element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />} />
+                <Route path="/zoiko-hr/recruitment/interviews/hiring-schedule" element={<Navigate to="/zoiko-hr/recruitment/interviews" replace />} />
+                <Route path="/zoiko-hr/recruitment/reports" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
+                <Route path="/zoiko-hr/recruitment/analytics" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
+                <Route path="/zoiko-hr/recruitment/analytics/reports" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
+                <Route path="/zoiko-hr/recruitment/settings" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
+                <Route path="*" element={<PagePlaceholder title="Not Found" description="This page is not available yet." />} />
               </Routes>
             </SuperAdminShell>
           </ProtectedRoute>

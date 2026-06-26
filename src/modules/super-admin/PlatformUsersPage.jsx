@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import PageHeader from "../../components/PageHeader";
-import { Search, Users, ChevronLeft, ChevronRight, Building2, Shield, UserCheck } from "lucide-react";
+import { AlertTriangle, Search, Users, ChevronLeft, ChevronRight, Building2, Shield, UserCheck } from "lucide-react";
 import { superAdminService } from "../../service/superAdminService";
 
 const ROLE_COLORS = {
@@ -20,10 +20,12 @@ export default function PlatformUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
+      setError(null);
       const params = { page, page_size: pageSize };
       if (search) params.search = search;
       if (roleFilter) params.role = roleFilter;
@@ -32,6 +34,7 @@ export default function PlatformUsersPage() {
       setTotal(data.total || 0);
     } catch (e) {
       console.error("Failed to load users", e);
+      setError(e.message || "Failed to load users.");
     } finally {
       setLoading(false);
     }
@@ -44,6 +47,14 @@ export default function PlatformUsersPage() {
   return (
     <div className="space-y-6 font-sans">
       <PageHeader title="Platform Users" description="View all users across every organization on the platform." />
+
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadUsers} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">

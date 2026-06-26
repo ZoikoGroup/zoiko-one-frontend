@@ -202,6 +202,11 @@ import SuperAdminAnalyticsPage from "./modules/super-admin/AnalyticsPage";
 import SuperAdminAuditLogsPage from "./modules/super-admin/AuditLogsPage";
 import SuperAdminSystemHealthPage from "./modules/super-admin/SystemHealthPage";
 import SuperAdminPlatformSettingsPage from "./modules/super-admin/PlatformSettingsPage";
+import NotificationCenter from "./modules/super-admin/NotificationCenter";
+import SecurityCenter from "./modules/super-admin/SecurityCenter";
+import SupportCenter from "./modules/super-admin/SupportCenter";
+import PendingOrganizationsPage from "./modules/super-admin/PendingOrganizationsPage";
+import OrganizationDetailPage from "./modules/super-admin/OrganizationDetailPage";
 import SecurityPage from "./modules/governance/SecurityPage";
 
 import AuditPage from "./modules/governance/AuditPage";
@@ -510,6 +515,11 @@ const routeOverrides = {
   "/super-admin/audit-logs": <SuperAdminAuditLogsPage />,
   "/super-admin/system-health": <SuperAdminSystemHealthPage />,
   "/super-admin/settings": <SuperAdminPlatformSettingsPage />,
+  "/super-admin/notifications": <NotificationCenter />,
+  "/super-admin/security-events": <SecurityCenter />,
+  "/super-admin/support-tickets": <SupportCenter />,
+  "/super-admin/approvals": <PendingOrganizationsPage />,
+  "/super-admin/organizations/:orgId": <OrganizationDetailPage />,
 };
 
 export default function App() {

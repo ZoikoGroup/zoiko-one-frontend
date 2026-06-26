@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../components/PageHeader";
-import { Settings, Plus, Save, X, Edit3, Trash2, Eye } from "lucide-react";
+import { AlertTriangle, Settings, Plus, Save, X, Edit3, Trash2, Eye } from "lucide-react";
 import { superAdminService } from "../../service/superAdminService";
 
 export default function PlatformSettingsPage() {
   const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [editingSetting, setEditingSetting] = useState(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ key: "", value: "", description: "", category: "general" });
@@ -15,10 +16,12 @@ export default function PlatformSettingsPage() {
 
   const loadSettings = async () => {
     try {
+      setError(null);
       const data = await superAdminService.getSettings();
       setSettings(data || []);
     } catch (e) {
       console.error("Failed to load settings", e);
+      setError(e.message || "Failed to load settings.");
     } finally {
       setLoading(false);
     }
@@ -59,6 +62,14 @@ export default function PlatformSettingsPage() {
 
   return (
     <div className="space-y-6 font-sans">
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadSettings} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
+
       <PageHeader
         title="Platform Settings"
         description="Global platform configuration settings."

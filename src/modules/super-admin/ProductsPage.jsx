@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../components/PageHeader";
-import { Package, CheckCircle, XCircle, RefreshCw, Building2, ToggleLeft, ToggleRight } from "lucide-react";
+import { AlertTriangle, Package, CheckCircle, XCircle, RefreshCw, Building2, ToggleLeft, ToggleRight } from "lucide-react";
 import { superAdminService } from "../../service/superAdminService";
 
 export default function SuperAdminProductsPage() {
@@ -10,6 +10,7 @@ export default function SuperAdminProductsPage() {
   const [organizations, setOrganizations] = useState([]);
   const [orgSearch, setOrgSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -23,6 +24,7 @@ export default function SuperAdminProductsPage() {
 
   const loadData = async () => {
     try {
+      setError(null);
       const [prods, orgs] = await Promise.all([
         superAdminService.getProducts(),
         superAdminService.getOrganizations({ page: 1, page_size: 100 }),
@@ -31,6 +33,7 @@ export default function SuperAdminProductsPage() {
       setOrganizations(orgs.organizations || []);
     } catch (e) {
       console.error("Failed to load products", e);
+      setError(e.message || "Failed to load products.");
     } finally {
       setLoading(false);
     }
@@ -75,10 +78,24 @@ export default function SuperAdminProductsPage() {
     <div className="space-y-6 font-sans">
       <PageHeader title="Products" description="Manage Zoiko products and their enablement across organizations." />
 
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadData} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Products List */}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-bold text-slate-800 mb-4">Zoiko Products</h3>
+          {products.length === 0 ? (
+            <div className="text-center py-12 text-slate-400">
+              <Package className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              No products found
+            </div>
+          ) : (
           <div className="space-y-3">
             {products.map((p) => (
               <div key={p.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
@@ -110,6 +127,7 @@ export default function SuperAdminProductsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Per-Organization Product Enablement */}

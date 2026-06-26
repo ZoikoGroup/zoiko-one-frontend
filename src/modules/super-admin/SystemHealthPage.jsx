@@ -26,15 +26,18 @@ export default function SystemHealthPage() {
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => { loadHealth(); }, []);
 
   const loadHealth = async () => {
     try {
+      setError(null);
       const data = await superAdminService.getSystemHealth();
       setHealth(data);
     } catch (e) {
       console.error("Failed to load system health", e);
+      setError(e.message || "Failed to load system health.");
     } finally {
       setLoading(false);
     }
@@ -43,10 +46,12 @@ export default function SystemHealthPage() {
   const runCheck = async () => {
     setChecking(true);
     try {
+      setError(null);
       const data = await superAdminService.runHealthCheck();
       setHealth(data);
     } catch (e) {
       console.error("Failed to run health check", e);
+      setError(e.message || "Failed to run health check.");
     } finally {
       setChecking(false);
     }
@@ -59,6 +64,14 @@ export default function SystemHealthPage() {
 
   return (
     <div className="space-y-6 font-sans">
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadHealth} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
+
       <PageHeader
         title="System Health"
         description="Monitor platform components including API, database, storage, and background jobs."

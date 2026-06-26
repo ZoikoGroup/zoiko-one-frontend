@@ -11,7 +11,7 @@ const navData = {
       { label: "Trust Center", href: "/trust-center" },
       { label: "Integrations", href: "/integrations" },
       { label: "API Documentation", href: "/api-documentation" },
-      "System Status",
+      { label: "System Status", href: "/system-status" },
     ],
   },
   products: {
@@ -60,7 +60,7 @@ const navData = {
       { label: "Security", href: "/security" },
       "Integrations",
       { label: "API Documentation", href: "/api-documentation" },
-      "System Status",
+      { label: "System Status", href: "/system-status" },
       "Pricing",
       "Contact",
     ],

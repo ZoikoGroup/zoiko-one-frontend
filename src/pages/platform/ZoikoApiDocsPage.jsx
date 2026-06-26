@@ -196,31 +196,24 @@ const S = {
   /* ── HERO ── */
   hero: {
     position: "relative",
-    minHeight: "88vh",
+    minHeight: "85vh",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    padding: "80px 80px 60px",
+    justifyContent: "center",
+    padding: "80px 24px",
     overflow: "hidden",
     backgroundColor: "#f5f4f2",
     background: "linear-gradient(120deg, rgba(255,195,130,0.45) 0%, rgba(250,248,245,0.98) 38%, rgba(250,248,245,0.98) 62%, rgba(170,205,240,0.45) 100%)",
-    gap: 60,
   },
+  heroInner: { position: "relative", zIndex: 1, maxWidth: 1200, textAlign: "left" },
+  heroGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center" },
   blobTR: {
     position: "absolute", inset: 0,
     background: "radial-gradient(ellipse at 12% 55%, rgba(255,175,90,0.25) 0%, transparent 42%), radial-gradient(ellipse at 88% 45%, rgba(140,190,235,0.28) 0%, transparent 42%), radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.7) 0%, transparent 55%)",
     pointerEvents: "none",
   },
-  heroLeft: { flex: 1, position: "relative", zIndex: 1, maxWidth: 480 },
-  breadcrumb: {
-    display: "inline-flex", alignItems: "center", gap: 8,
-    background: "rgba(255,255,255,0.92)",
-    borderRadius: 999, padding: "6px 16px",
-    marginBottom: 28, fontSize: 14, fontWeight: 500, color: "#555",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-    fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
-  },
-  breadcrumbSep: { color: "#ccc", margin: "0 2px" },
-  breadcrumbActive: { color: "#1a1a4e", fontWeight: 600 },
+  heroLeft: { position: "relative", zIndex: 1, maxWidth: 480 },
   badge: {
     display: "inline-flex", alignItems: "center", gap: 8,
     background: "rgba(255,255,255,0.92)",
@@ -262,7 +255,7 @@ const S = {
     padding: "13px 26px", fontSize: 15, fontWeight: 600, cursor: "pointer",
     fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
   },
-  heroRight: { flex: 1, position: "relative", zIndex: 1, display: "flex", justifyContent: "center" },
+  heroRight: { position: "relative", zIndex: 1, display: "flex", justifyContent: "center" },
 
   /* Code card */
   codeCard: {
@@ -380,52 +373,47 @@ export default function ZoikoApiDocsPage() {
       <section style={S.hero}>
         <div style={S.blobTR} />
 
-        {/* Left */}
-        <div style={S.heroLeft}>
-          {/* Breadcrumb */}
-          <div style={S.breadcrumb}>
-            <span>Home</span>
-            <span style={S.breadcrumbSep}>/</span>
-            <span>Platform</span>
-            <span style={S.breadcrumbSep}>/</span>
-            <span style={S.breadcrumbActive}>API Documentation</span>
-          </div>
-
+        <div style={S.heroInner}>
           {/* Badge */}
           <div style={S.badge}>
             <span style={S.badgePill}>Developers</span>
             <span style={S.badgePath}>/developers/api</span>
           </div>
 
-          <h1 style={S.heroH1}>
-            Build on the Zoiko<br />
-            One <span style={S.heroBlue}>API.</span>
-          </h1>
-          <p style={S.heroSub}>
-            Connect business operations programmatically — with a
-            permission-aware, governed API that protects security,
-            privacy, workflows and platform integrity.
-          </p>
-          <div style={S.heroActions}>
-            <button style={S.btnOrange}>View API Reference &nbsp;→</button>
-            <button style={S.btnOutline}>Access Sandbox</button>
-          </div>
-        </div>
-
-        {/* Right — Code card */}
-        <div style={S.heroRight}>
-          <div style={S.codeCard}>
-            {codeLines.map((line, i) => (
-              <div key={i} style={S.codeLine}>
-                {line.parts ? (
-                  line.parts.map((p, j) => (
-                    <span key={j} style={{ color: p.c }}>{p.t}</span>
-                  ))
-                ) : (
-                  <span style={{ color: line.color || "#e2e8ff" }}>{line.text}</span>
-                )}
+          <div style={S.heroGrid}>
+            {/* Left */}
+            <div style={S.heroLeft}>
+              <h1 style={S.heroH1}>
+                Build on the Zoiko<br />
+                One <span style={S.heroBlue}>API.</span>
+              </h1>
+              <p style={S.heroSub}>
+                Connect business operations programmatically — with a
+                permission-aware, governed API that protects security,
+                privacy, workflows and platform integrity.
+              </p>
+              <div style={S.heroActions}>
+                <button style={S.btnOrange}>View API Reference &nbsp;→</button>
+                <button style={S.btnOutline}>Access Sandbox</button>
               </div>
-            ))}
+            </div>
+
+            {/* Right — Code card */}
+            <div style={S.heroRight}>
+              <div style={S.codeCard}>
+                {codeLines.map((line, i) => (
+                  <div key={i} style={S.codeLine}>
+                    {line.parts ? (
+                      line.parts.map((p, j) => (
+                        <span key={j} style={{ color: p.c }}>{p.t}</span>
+                      ))
+                    ) : (
+                      <span style={{ color: line.color || "#e2e8ff" }}>{line.text}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>

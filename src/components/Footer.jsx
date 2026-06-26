@@ -48,7 +48,7 @@ const ZoikoLogo = () => (
 );
 
 const navData = {
-  PLATFORM: ["Overview", { label: "How Zoiko One Works", href: "/how-it-works" }, { label: "Security", href: "/security" }, { label: "Trust Center", href: "/trust-center" }, { label: "Integrations", href: "/integrations" }, { label: "API Documentation", href: "/api-documentation" }, "System Status"],
+  PLATFORM: ["Overview", { label: "How Zoiko One Works", href: "/how-it-works" }, { label: "Security", href: "/security" }, { label: "Trust Center", href: "/trust-center" }, { label: "Integrations", href: "/integrations" }, { label: "API Documentation", href: "/api-documentation" }, { label: "System Status", href: "/system-status" }],
   PRODUCTS: [
     { label: "Zoiko HR", href: "/products/zoiko-hr" },
     { label: "ZoikoTime", href: "/products/zoikotime" },
@@ -63,7 +63,7 @@ const navData = {
   ],
   SOLUTIONS: ["Services Businesses", "Agencies", "Retail Businesses", "Trades Businesses", "Hospitality", "E-Commerce", "Product Businesses", "Multi-Entity"],
   "FIVE PILLARS": ["People — HR, Time, Payroll", "Money — Billing, Spend", "Work — Projects", "Supply — Inventory", "Control — Comply, Insights"],
-  RESOURCES: ["Resource Center", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "Integrations", { label: "API Documentation", href: "/api-documentation" }, "System Status", "Pricing", "Contact"],
+  RESOURCES: ["Resource Center", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "Integrations", { label: "API Documentation", href: "/api-documentation" }, { label: "System Status", href: "/system-status" }, "Pricing", "Contact"],
   COMPANY: ["About Zoiko One", "Leadership", "Careers", "Contact", "Pricing", { label: "Trust Center", href: "/trust-center" }, "Solutions"],
 };
 
@@ -78,7 +78,7 @@ const ecosystemItems = [
 
 const legalLinks = [
   "Privacy Policy", "Terms of Service", "Cookie Policy", "Accessibility Statement",
-  "Acceptable Use", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "System Status", "Contact"
+  "Acceptable Use", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, { label: "System Status", href: "/system-status" }, "Contact"
 ];
 
 const styles = {

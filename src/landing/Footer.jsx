@@ -6,11 +6,11 @@ const navData = {
     title: "Platform",
     links: [
       "Overview",
-      "How Zoiko One Works",
-      "Security",
-      "Trust Center",
-      "Integrations",
-      "API Documentation",
+      { label: "How Zoiko One Works", href: "/how-it-works" },
+      { label: "Security", href: "/security" },
+      { label: "Trust Center", href: "/trust-center" },
+      { label: "Integrations", href: "/integrations" },
+      { label: "API Documentation", href: "/api-documentation" },
       "System Status",
     ],
   },
@@ -56,10 +56,10 @@ const navData = {
     title: "Resources",
     links: [
       "Resource Center",
-      "Trust Center",
-      "Security",
+      { label: "Trust Center", href: "/trust-center" },
+      { label: "Security", href: "/security" },
       "Integrations",
-      "API Documentation",
+      { label: "API Documentation", href: "/api-documentation" },
       "System Status",
       "Pricing",
       "Contact",
@@ -73,7 +73,7 @@ const navData = {
       "Careers",
       "Contact",
       "Pricing",
-      "Trust Center",
+      { label: "Trust Center", href: "/trust-center" },
       "Solutions",
     ],
   },
@@ -94,8 +94,8 @@ const legalLinks = [
   "Cookie Policy",
   "Accessibility Statement",
   "Acceptable Use",
-  "Trust Center",
-  "Security",
+  { label: "Trust Center", href: "/trust-center" },
+  { label: "Security", href: "/security" },
   "System Status",
   "Contact",
 ];
@@ -222,9 +222,11 @@ export default function Footer() {
       <div style={styles.footerLegal}>
         <div style={styles.legalLinks}>
           {legalLinks.map((link) => (
-            <a key={link} href="#" style={styles.legalLink}>
-              {link}
-            </a>
+            typeof link === "string" ? (
+              <a key={link} href="#" style={styles.legalLink}>{link}</a>
+            ) : (
+              <Link key={link.label} to={link.href} style={styles.legalLink}>{link.label}</Link>
+            )
           ))}
           <button style={styles.langBtn}>🌐 EN · Global</button>
         </div>

@@ -14,7 +14,7 @@ export const ROLE_LABELS = {
 
 // Default landing after role-based redirect
 export const ROLE_DEFAULT_REDIRECT = {
-  [ROLES.SUPER_ADMIN]: "/dashboard",
+  [ROLES.SUPER_ADMIN]: "/super-admin/dashboard",
   [ROLES.ADMIN]: "/zoiko-hr",
   [ROLES.HR_ADMIN]: "/zoiko-hr",
   [ROLES.EMPLOYEE]: "/employee/ess",

@@ -58,6 +58,7 @@ import {
   Workflow,
   Save,
   UserRoundCheck,
+  ThumbsUp,
   Wrench,
   Settings,
   Server,
@@ -111,31 +112,19 @@ const superAdminDashboard = {
   items: [
     { label: "Dashboard", href: "/super-admin/dashboard", icon: LayoutDashboard },
     { label: "Organizations", href: "/super-admin/organizations", icon: Building2 },
-    { label: "Products", href: "/super-admin/products", icon: Package },
+    { label: "Approvals", href: "/super-admin/approvals", icon: ThumbsUp },
+    // { label: "Products", href: "/super-admin/products", icon: Package },
     { label: "Subscriptions", href: "/super-admin/subscriptions", icon: CreditCard },
     { label: "Platform Users", href: "/super-admin/users", icon: Users },
     { label: "Analytics", href: "/super-admin/analytics", icon: TrendingUp },
     { label: "Audit Logs", href: "/super-admin/audit-logs", icon: FileTextIcon },
     { label: "System Health", href: "/super-admin/system-health", icon: Server },
     { label: "Platform Settings", href: "/super-admin/settings", icon: Settings },
+    { label: "Notification Center", href: "/super-admin/notifications", icon: Bell },
+    { label: "Security Center", href: "/super-admin/security-events", icon: Shield },
+    { label: "Support Center", href: "/super-admin/support-tickets", icon: MessageSquare },
   ],
 };
-// Platform Command collapsible section
-const platformCommand = {
-  title: "PLATFORM COMMAND",
-  items: [
-    {
-      label: "Platform Command",
-      icon: SlidersHorizontal,
-      children: [
-        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "Organizations", href: "/organizations", icon: ShieldCheck, badge: "3" },
-        { label: "Plans & Subscriptions", href: "/subscriptions", icon: CreditCard },
-      ],
-    },
-  ],
-};
-
 // Products (including Zoiko HR and other products)
 const products = {
   title: "PRODUCTS",
@@ -499,7 +488,7 @@ const platformGovernance = {
 const settings = {
   title: "SETTINGS",
   items: [
-    { label: "User Management", href: "/settings/user-management", icon: Users },
+    // { label: "User Management", href: "/settings/user-management", icon: Users },
   ],
 };
 
@@ -527,7 +516,6 @@ const sharedLayersSection = {
 export const sections = [
   superAdminDashboard,
   superAdmin,
-  platformCommand,
   platformGovernance,
   products,
   // Employee-only workspace section (filtered to role=employee by useFilteredNavigation)

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Check, X, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import { Check, X, Clock, RefreshCw, AlertCircle, Eye } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDocuments, updateDocumentStatus } from "../../../service/hrService";
+import { API_BASE_URL } from "../../../service/api";
 
 // ── Shared inline helpers ─────────────────────────────────────────────────────
 const STATUS_META = {
@@ -56,8 +57,8 @@ export default function Approvals() {
     try {
       const res = await getDocuments();
       setDocs(Array.isArray(res?.data) ? res.data : []);
-    } catch {
-      showToast("error", "Failed to load documents.");
+    } catch (err) {
+      showToast("error", err?.message || "Failed to load documents.");
     } finally {
       setLoading(false);
     }
@@ -72,8 +73,8 @@ export default function Approvals() {
       await updateDocumentStatus(id, status);
       showToast("success", `Document ${status === "approved" ? "approved" : "rejected"} successfully.`);
       load();
-    } catch {
-      showToast("error", `Failed to ${status} document. Please try again.`);
+    } catch (err) {
+      showToast("error", err?.message || `Failed to ${status} document.`);
     } finally {
       setProcessingId(null);
     }
@@ -148,7 +149,24 @@ export default function Approvals() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-slate-900 truncate">{d.title}</p>
-                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                          
+                          {/* Employee Name & Details */}
+                          {(d.employee_name || d.uploader_name) && (
+                            <p className="text-xs text-slate-600 mt-1">
+                              <strong>Employee:</strong> {d.employee_name || d.uploader_name}
+                              {d.uploader_name && d.employee_name !== d.uploader_name && ` (Uploaded by: ${d.uploader_name})`}
+                            </p>
+                          )}
+                          
+                          {/* Document File details */}
+                          {(d.file_name || d.file_size) && (
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              {d.file_name && <span className="mr-2 font-medium">{d.file_name}</span>}
+                              {d.file_size && <span>({(d.file_size / 1024).toFixed(1)} KB)</span>}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
                             <CategoryPill category={d.category} />
                             <StatusBadge status={d.status} />
                             <span className="text-xs text-slate-400">Uploaded {fmtDate(d.created_at)}</span>
@@ -159,6 +177,16 @@ export default function Approvals() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        {d.file_path && (
+                          <a
+                            href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors mr-1"
+                          >
+                            <Eye className="w-4 h-4" /> View
+                          </a>
+                        )}
                         <button
                           onClick={() => setConfirm({ id: d.id, name: d.title, action: "rejected" })}
                           disabled={processingId === d.id}
@@ -194,18 +222,38 @@ export default function Approvals() {
                     <thead className="bg-gray-50 text-xs uppercase text-gray-400">
                       <tr>
                         <th className="text-left px-6 py-3 font-semibold">Document</th>
+                        <th className="text-left px-6 py-3 font-semibold">Employee</th>
                         <th className="text-left px-6 py-3 font-semibold">Category</th>
                         <th className="text-left px-6 py-3 font-semibold">Decision</th>
                         <th className="text-left px-6 py-3 font-semibold">Date</th>
+                        <th className="text-center px-6 py-3 font-semibold">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {resolved.map(d => (
                         <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="px-6 py-3 font-medium text-slate-800">{d.title}</td>
+                          <td className="px-6 py-3">
+                            <div>
+                              <p className="font-medium text-slate-800">{d.title}</p>
+                              {d.file_name && <p className="text-xs text-slate-400 mt-0.5">{d.file_name}</p>}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-slate-600">{d.employee_name || d.uploader_name || "—"}</td>
                           <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
                           <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
                           <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.updated_at || d.created_at)}</td>
+                          <td className="px-6 py-3 text-center">
+                            {d.file_path && (
+                              <a
+                                href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> View
+                              </a>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

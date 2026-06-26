@@ -26,6 +26,7 @@ import ZoikoSecurityPage from "./pages/platform/ZoikoSecurityPage";
 import ZoikoTrustCenterPage from "./pages/platform/ZoikoTrustCenterPage";
 import ZoikoConnectPage from "./pages/platform/ZoikoConnectPage";
 import ZoikoApiDocsPage from "./pages/platform/ZoikoApiDocsPage";
+import ZoikoSystemStatusPage from "./pages/platform/ZoikoSystemStatusPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -191,6 +192,11 @@ import SuperAdminAnalyticsPage from "./modules/super-admin/AnalyticsPage";
 import SuperAdminAuditLogsPage from "./modules/super-admin/AuditLogsPage";
 import SuperAdminSystemHealthPage from "./modules/super-admin/SystemHealthPage";
 import SuperAdminPlatformSettingsPage from "./modules/super-admin/PlatformSettingsPage";
+import NotificationCenter from "./modules/super-admin/NotificationCenter";
+import SecurityCenter from "./modules/super-admin/SecurityCenter";
+import SupportCenter from "./modules/super-admin/SupportCenter";
+import PendingOrganizationsPage from "./modules/super-admin/PendingOrganizationsPage";
+import OrganizationDetailPage from "./modules/super-admin/OrganizationDetailPage";
 import SecurityPage from "./modules/governance/SecurityPage";
 import AuditPage from "./modules/governance/AuditPage";
 import CompliancePage from "./modules/governance/CompliancePage";
@@ -536,6 +542,7 @@ export default function App() {
       <Route path="/trust-center" element={<ZoikoTrustCenterPage />} />
       <Route path="/integrations" element={<ZoikoConnectPage />} />
       <Route path="/api-documentation" element={<ZoikoApiDocsPage />} />
+      <Route path="/system-status" element={<ZoikoSystemStatusPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../components/PageHeader";
-import { BarChart3, TrendingUp, Users, Building2, CreditCard, Package } from "lucide-react";
+import { AlertTriangle, BarChart3, TrendingUp, Users, Building2, CreditCard, Package } from "lucide-react";
 import { superAdminService } from "../../service/superAdminService";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
@@ -9,6 +9,7 @@ const COLORS = ["#FF7A00", "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444"
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadAnalytics();
@@ -16,10 +17,12 @@ export default function AnalyticsPage() {
 
   const loadAnalytics = async () => {
     try {
+      setError(null);
       const data = await superAdminService.getAnalytics();
       setAnalytics(data);
     } catch (e) {
       console.error("Failed to load analytics", e);
+      setError(e.message || "Failed to load analytics.");
     } finally {
       setLoading(false);
     }
@@ -30,6 +33,14 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6 font-sans">
       <PageHeader title="Analytics" description="Platform-wide analytics and growth metrics." />
+
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadAnalytics} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Organization Growth */}

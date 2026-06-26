@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../components/PageHeader";
-import { CreditCard, Building2, CheckCircle2, Edit3, X, Save } from "lucide-react";
+import { AlertTriangle, CreditCard, Building2, CheckCircle2, Edit3, X, Save } from "lucide-react";
 import { superAdminService } from "../../service/superAdminService";
 
 const PLAN_COLORS = {
@@ -21,6 +21,7 @@ const STATUS_COLORS = {
 export default function SuperAdminSubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [editingSub, setEditingSub] = useState(null);
   const [editForm, setEditForm] = useState({ plan_type: "", status: "", max_users: 15, max_storage_gb: 5 });
 
@@ -28,10 +29,12 @@ export default function SuperAdminSubscriptionsPage() {
 
   const loadSubscriptions = async () => {
     try {
+      setError(null);
       const data = await superAdminService.getSubscriptions();
       setSubscriptions(data || []);
     } catch (e) {
       console.error("Failed to load subscriptions", e);
+      setError(e.message || "Failed to load subscriptions.");
     } finally {
       setLoading(false);
     }
@@ -63,6 +66,14 @@ export default function SuperAdminSubscriptionsPage() {
   return (
     <div className="space-y-6 font-sans">
       <PageHeader title="Subscriptions" description="Manage subscription plans across all organizations." />
+
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadSubscriptions} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
         <h3 className="text-lg font-bold text-slate-800 mb-6">Organization Subscriptions</h3>

@@ -247,10 +247,10 @@ export default function SuperAdminOrganizationsPage() {
                       </td>
                       <td className="py-4 px-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          o.subscription_plan === "enterprise" ? "bg-indigo-50 text-indigo-600 border border-indigo-100" :
-                          o.subscription_plan === "professional" ? "bg-blue-50 text-blue-600 border border-blue-100" :
-                          o.subscription_plan === "basic" ? "bg-[#FF7A00]/5 text-[#FF7A00] border border-[#FF7A00]/10" :
-                          o.subscription_plan === "trial" ? "bg-purple-50 text-purple-600 border border-purple-100" :
+                          o.subscription_plan?.toUpperCase() === "ENTERPRISE" ? "bg-indigo-50 text-indigo-600 border border-indigo-100" :
+                          o.subscription_plan?.toUpperCase() === "PROFESSIONAL" ? "bg-blue-50 text-blue-600 border border-blue-100" :
+                          o.subscription_plan?.toUpperCase() === "BASIC" ? "bg-[#FF7A00]/5 text-[#FF7A00] border border-[#FF7A00]/10" :
+                          o.subscription_plan?.toUpperCase() === "TRIAL" ? "bg-purple-50 text-purple-600 border border-purple-100" :
                           "bg-slate-50 text-slate-600 border border-slate-100"
                         }`}>
                           {o.subscription_plan}

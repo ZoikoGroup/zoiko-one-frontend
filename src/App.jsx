@@ -26,6 +26,7 @@ import ZoikoSecurityPage from "./pages/platform/ZoikoSecurityPage";
 import ZoikoTrustCenterPage from "./pages/platform/ZoikoTrustCenterPage";
 import ZoikoConnectPage from "./pages/platform/ZoikoConnectPage";
 import ZoikoApiDocsPage from "./pages/platform/ZoikoApiDocsPage";
+import ZoikoSystemStatusPage from "./pages/platform/ZoikoSystemStatusPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -537,6 +538,7 @@ export default function App() {
       <Route path="/trust-center" element={<ZoikoTrustCenterPage />} />
       <Route path="/integrations" element={<ZoikoConnectPage />} />
       <Route path="/api-documentation" element={<ZoikoApiDocsPage />} />
+      <Route path="/system-status" element={<ZoikoSystemStatusPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

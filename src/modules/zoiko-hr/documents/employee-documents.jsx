@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Trash2, Plus, Upload, Search, X, Check, RefreshCw, FileText } from "lucide-react";
+import { Trash2, Plus, Upload, Search, X, Check, RefreshCw, FileText, Eye } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDocuments, uploadDocument, deleteDocument } from "../../../service/hrService";
+import { API_BASE_URL } from "../../../service/api";
+import { useAuth } from "../../../context/AuthContext";
 
 // ── Shared inline helpers ─────────────────────────────────────────────────────
 const STATUS_META = {
@@ -45,7 +47,7 @@ const fmtDate = (iso) => {
 };
 
 // ── Upload modal ──────────────────────────────────────────────────────────────
-function UploadModal({ onClose, onUploaded }) {
+function UploadModal({ onClose, onUploaded, user }) {
   const [file, setFile]         = useState(null);
   const [name, setName]         = useState("");
   const [category, setCategory] = useState("employee");
@@ -65,6 +67,7 @@ function UploadModal({ onClose, onUploaded }) {
       formData.append("title", name || file.name);
       formData.append("category", category);
       if (description) formData.append("description", description);
+      if (user?.id) formData.append("employee_id", user.id);
       await uploadDocument(formData);
       onUploaded();
       onClose();
@@ -177,6 +180,7 @@ function UploadModal({ onClose, onUploaded }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function EmployeeDocuments() {
+  const { user } = useAuth();
   const [docs, setDocs]           = useState([]);
   const [loading, setLoading]     = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -312,16 +316,29 @@ export default function EmployeeDocuments() {
                         <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
                         <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.created_at)}</td>
                         <td className="px-6 py-3 text-center">
-                          <button
-                            onClick={() => setConfirmDelete({ id: d.id, name: d.title })}
-                            disabled={deletingId === d.id}
-                            className="p-2 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-40"
-                            title="Delete document"
-                          >
-                            {deletingId === d.id
-                              ? <RefreshCw className="w-4 h-4 animate-spin" />
-                              : <Trash2 className="w-4 h-4" />}
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            {d.file_path && (
+                              <a
+                                href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-lg text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors"
+                                title="View document"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </a>
+                            )}
+                            <button
+                              onClick={() => setConfirmDelete({ id: d.id, name: d.title })}
+                              disabled={deletingId === d.id}
+                              className="p-2 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-40"
+                              title="Delete document"
+                            >
+                              {deletingId === d.id
+                                ? <RefreshCw className="w-4 h-4 animate-spin" />
+                                : <Trash2 className="w-4 h-4" />}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -337,7 +354,7 @@ export default function EmployeeDocuments() {
       </div>
 
       {/* Upload modal */}
-      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUploaded={load} />}
+      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUploaded={load} user={user} />}
 
       {/* Delete confirm */}
       {confirmDelete && (

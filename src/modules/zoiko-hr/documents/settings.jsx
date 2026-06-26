@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Edit2, Save, X, RefreshCw, Check, Search, Settings as SettingsIcon, Shield } from "lucide-react";
+import { Edit2, Save, X, RefreshCw, Check, Search, Settings as SettingsIcon, Shield, Eye } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDocuments, updateDocument, updateDocumentStatus } from "../../../service/hrService";
+import { API_BASE_URL } from "../../../service/api";
 
 // ── Shared inline helpers ─────────────────────────────────────────────────────
 const STATUS_META = {
@@ -98,8 +99,8 @@ export default function Settings() {
       await updateDocumentStatus(id, newStatus);
       setDocs(prev => prev.map(d => d.id === id ? { ...d, status: newStatus } : d));
       showToast("success", `Status updated to "${newStatus}".`);
-    } catch {
-      showToast("error", "Failed to update status.");
+    } catch (err) {
+      showToast("error", err?.message || "Failed to update status.");
     } finally {
       setSaving(null);
     }
@@ -176,6 +177,17 @@ export default function Settings() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5">
                       <div className="min-w-0 space-y-1.5">
                         <p className="font-semibold text-slate-900 truncate">{d.title}</p>
+                        {(d.employee_name || d.uploader_name) && (
+                          <p className="text-xs text-slate-600">
+                            <strong>Employee:</strong> {d.employee_name || d.uploader_name}
+                          </p>
+                        )}
+                        {(d.file_name || d.file_size) && (
+                          <p className="text-xs text-slate-400">
+                            {d.file_name && <span className="mr-2 font-medium">{d.file_name}</span>}
+                            {d.file_size && <span>({(d.file_size / 1024).toFixed(1)} KB)</span>}
+                          </p>
+                        )}
                         <div className="flex flex-wrap items-center gap-2">
                           <CategoryPill category={d.category} />
                           <StatusBadge status={d.status} />
@@ -184,6 +196,16 @@ export default function Settings() {
                         {d.description && <p className="text-xs text-slate-400 line-clamp-1">{d.description}</p>}
                       </div>
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        {d.file_path && (
+                          <a
+                            href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                          >
+                            <Eye className="w-4 h-4" /> View
+                          </a>
+                        )}
                         <select
                           value={d.status}
                           onChange={e => handleStatusChange(d.id, e.target.value)}

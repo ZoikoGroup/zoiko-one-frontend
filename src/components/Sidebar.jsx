@@ -131,9 +131,9 @@ export default function Sidebar({ open, onClose }) {
           </button>
         </div>
         <SearchBar />
-        {filteredSections.map((section) => (
+        {filteredSections.map((section, idx) => (
 
-          <div key={section.title} className="mb-8">
+          <div key={`${section.title}-${idx}`} className="mb-8">
             <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">{section.title}</p>
             <div className="space-y-2">
               {section.items.map((item) => (

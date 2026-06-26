@@ -9,6 +9,7 @@ import { superAdminService } from "../../service/superAdminService";
 export default function SuperAdminDashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadStats();
@@ -16,10 +17,12 @@ export default function SuperAdminDashboardPage() {
 
   const loadStats = async () => {
     try {
+      setError(null);
       const data = await superAdminService.getDashboardStats();
       setStats(data);
     } catch (e) {
       console.error("Failed to load dashboard stats", e);
+      setError(e.message || "Unable to load dashboard statistics.");
     } finally {
       setLoading(false);
     }
@@ -39,6 +42,14 @@ export default function SuperAdminDashboardPage() {
   return (
     <div className="space-y-6 font-sans">
       <PageHeader title="Super Admin Dashboard" description="Comprehensive platform overview across all organizations and products." />
+
+      {error && (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={loadStats} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((s, idx) => (

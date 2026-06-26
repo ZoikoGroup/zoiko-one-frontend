@@ -4,11 +4,11 @@ import { AlertTriangle, CreditCard, Building2, CheckCircle2, Edit3, X, Save } fr
 import { superAdminService } from "../../service/superAdminService";
 
 const PLAN_COLORS = {
-  trial: "bg-purple-50 text-purple-600 border border-purple-100",
-  free: "bg-slate-50 text-slate-600 border border-slate-100",
-  basic: "bg-[#FF7A00]/5 text-[#FF7A00] border border-[#FF7A00]/10",
-  professional: "bg-blue-50 text-blue-600 border border-blue-100",
-  enterprise: "bg-indigo-50 text-indigo-600 border border-indigo-100",
+  TRIAL: "bg-purple-50 text-purple-600 border border-purple-100",
+  FREE: "bg-slate-50 text-slate-600 border border-slate-100",
+  BASIC: "bg-[#FF7A00]/5 text-[#FF7A00] border border-[#FF7A00]/10",
+  PROFESSIONAL: "bg-blue-50 text-blue-600 border border-blue-100",
+  ENTERPRISE: "bg-indigo-50 text-indigo-600 border border-indigo-100",
 };
 
 const STATUS_COLORS = {
@@ -107,7 +107,7 @@ export default function SuperAdminSubscriptionsPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${PLAN_COLORS[s.plan_type] || PLAN_COLORS.free}`}>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${PLAN_COLORS[s.plan_type] || PLAN_COLORS.FREE}`}>
                         {s.plan_type}
                       </span>
                     </td>
@@ -145,11 +145,11 @@ export default function SuperAdminSubscriptionsPage() {
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Plan Type</label>
                 <select value={editForm.plan_type} onChange={(e) => setEditForm(f => ({ ...f, plan_type: e.target.value }))}
                   className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-4 text-sm text-slate-700 outline-none focus:border-[#FF7A00]">
-                  <option value="trial">Trial</option>
-                  <option value="free">Free</option>
-                  <option value="basic">Basic</option>
-                  <option value="professional">Professional</option>
-                  <option value="enterprise">Enterprise</option>
+                  <option value="TRIAL">Trial</option>
+                  <option value="FREE">Free</option>
+                  <option value="BASIC">Basic</option>
+                  <option value="PROFESSIONAL">Professional</option>
+                  <option value="ENTERPRISE">Enterprise</option>
                 </select>
               </div>
               <div>

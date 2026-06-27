@@ -6,12 +6,14 @@ import { User, Edit, Trash2, Plus, Search, ChevronDown, Eye, EyeOff, RefreshCw, 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Organization Admin" },
   { value: "hr_admin", label: "HR Admin" },
+  { value: "manager", label: "Manager" },
   { value: "employee", label: "Employee" },
 ];
 
 const ROLE_BADGES = {
   admin: "bg-purple-100 text-purple-800",
   hr_admin: "bg-blue-100 text-blue-800",
+  manager: "bg-yellow-100 text-yellow-800",
   employee: "bg-green-100 text-green-800",
 };
 

@@ -2,6 +2,7 @@ export const ROLES = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
   HR_ADMIN: "hr_admin",
+  MANAGER: "manager",
   EMPLOYEE: "employee",
 };
 
@@ -9,6 +10,7 @@ export const ROLE_LABELS = {
   [ROLES.SUPER_ADMIN]: "Super Admin",
   [ROLES.ADMIN]: "Organization Admin",
   [ROLES.HR_ADMIN]: "HR Admin",
+  [ROLES.MANAGER]: "Manager",
   [ROLES.EMPLOYEE]: "Employee",
 };
 
@@ -66,9 +68,10 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/settings/",
   ],
 
-  // HR Admin - only HR-related modules
+  // HR Admin - only HR-related modules + user management
   [ROLES.HR_ADMIN]: [
     "/zoiko-hr",
+    "/settings/",
   ],
 
   // Employee - allowed: Zoiko HR ESS + My Leave + My Documents + Travel

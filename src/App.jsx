@@ -587,7 +587,7 @@ export default function App() {
                                             route.href.startsWith("/admin-profile")
                                 ? ["super_admin"]
                                 : route.href.startsWith("/settings/")
-                                  ? ["super_admin", "admin"]
+                                  ? ["super_admin", "admin", "hr_admin"]
                                   : ["super_admin", "admin", "employee"]
                           }
                         >

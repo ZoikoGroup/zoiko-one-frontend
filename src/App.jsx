@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import SuperAdminShell from "./components/SuperAdminShell";
 import { flatRoutes } from "./navigation";
 import PagePlaceholder from "./components/PagePlaceholder";
@@ -27,6 +28,12 @@ import ZoikoTrustCenterPage from "./pages/platform/ZoikoTrustCenterPage";
 import ZoikoConnectPage from "./pages/platform/ZoikoConnectPage";
 import ZoikoApiDocsPage from "./pages/platform/ZoikoApiDocsPage";
 import ZoikoSystemStatusPage from "./pages/platform/ZoikoSystemStatusPage";
+import ZoikoEcosystemPage from "./pages/public/eco-system/ZoikoEcosystemPage";
+import ZoikoVertexPage from "./pages/public/eco-system/ZoikoVertexPage";
+import ZoikoSuitePage from "./pages/public/eco-system/ZoikoSuitePage";
+import ZoikoSemaPage from "./pages/public/eco-system/ZoikoSemaPage";
+import ZoikoLocalPage from "./pages/public/eco-system/ZoikoLocalPage";
+import ZoikoDigitalPage from "./pages/public/eco-system/ZoikoDigitalPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Target 'HrDashBoard.jsx' directly
@@ -517,9 +524,17 @@ const routeOverrides = {
   "/employee/travel/settings":  <EmployeeTravelSettings />,
 };
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/products" element={<ZoikoProductsPage />} />
       <Route path="/platform" element={<PlatformPage />} />
@@ -545,6 +560,12 @@ export default function App() {
       <Route path="/system-status" element={<ZoikoSystemStatusPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/eco-system" element={<ZoikoEcosystemPage />} />
+      <Route path="/vertex" element={<ZoikoVertexPage />} />
+      <Route path="/suite" element={<ZoikoSuitePage />} />
+      <Route path="/sema" element={<ZoikoSemaPage />} />
+      <Route path="/local" element={<ZoikoLocalPage />} />
+      <Route path="/digital" element={<ZoikoDigitalPage />} />
       <Route
         path="/*"
         element={
@@ -619,5 +640,6 @@ export default function App() {
         }
       />
     </Routes>
+    </>
   );
 }

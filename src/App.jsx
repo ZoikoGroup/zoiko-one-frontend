@@ -602,31 +602,12 @@ export default function App() {
                                             route.href.startsWith("/compliance-center") ||
                                             route.href.startsWith("/operations") ||
                                             route.href.startsWith("/admin-profile")
-<<<<<<< HEAD
                                 ? ["super_admin"]
                                 : route.href.startsWith("/settings/")
                                   ? ["super_admin", "admin", "hr_admin"]
                                   : ["super_admin", "admin", "employee"]
                           }
                         >
-                          {routeOverrides[route.href] ?? (
-                            <PagePlaceholder
-                              title={route.label}
-                              path={route.href}
-                              badge={route.badge}
-                            />
-                          )}
-                        </ProtectedRoute>
-                      }
-                    />
-                  ))}
-=======
-                                          ? ["super_admin"]
-                                          : route.href.startsWith("/settings/")
-                                            ? ["super_admin", "admin"]
-                                            : ["super_admin", "admin", "employee"]
-                        }
-                      >
                         {routeOverrides[route.href] ?? (
                           <PagePlaceholder
                             title={route.label}
@@ -638,7 +619,6 @@ export default function App() {
                     }
                   />
                 ))}
->>>>>>> edcd8e8662bbbbf8fa94bbcd5c7175c95346c1cb
 
                 <Route path="/zoiko-hr/assets/maintenance" element={<AssetMaintenance />} />
                 <Route path="/zoiko-hr/assets/reports" element={<AssetReports />} />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 const navData = {
@@ -80,12 +80,12 @@ const navData = {
 };
 
 const ecosystemCards = [
-  { name: "Zoiko One", desc: "Business operations — this platform", active: true },
-  { name: "ZoikoVertex", desc: "CRM, sales, marketing & growth", active: false },
-  { name: "ZoikoSuite", desc: "Accounting & bookkeeping", active: false },
-  { name: "Zoiko Sema", desc: "Communication & collaboration", active: false },
-  { name: "Zoiko Local", desc: "Telephony & business calling", active: false },
-  { name: "Zoiko Digital", desc: "Web, app, cloud & digital services", active: false },
+  { name: "Zoiko One", desc: "Business operations — this platform", href: "/eco-system" },
+  { name: "ZoikoVertex", desc: "CRM, sales, marketing & growth", href: "/vertex" },
+  { name: "ZoikoSuite", desc: "Accounting & bookkeeping", href: "/suite" },
+  { name: "Zoiko Sema", desc: "Communication & collaboration", href: "/sema" },
+  { name: "Zoiko Local", desc: "Telephony & business calling", href: "/local" },
+  { name: "Zoiko Digital", desc: "Web, app, cloud & digital services", href: "/digital" },
 ];
 
 const legalLinks = [
@@ -107,6 +107,59 @@ const getStartedLinks = [
   "Contact Sales",
   "Sign In",
 ];
+
+function EcoFooterCard({ card }) {
+  const [hovered, setHovered] = useState(false);
+  const linkable = !!card.href;
+
+  const content = (
+    <div
+      style={{
+        border: "1.5px solid rgba(255,255,255,0.15)",
+        borderRadius: "10px",
+        padding: "14px",
+        textAlign: "left",
+        background: linkable
+          ? hovered
+            ? "linear-gradient(135deg,#3b2fb0 0%,#4a3fc0 40%,#3a6fd8 100%)"
+            : "#f97316"
+          : hovered
+            ? "rgba(255,255,255,0.08)"
+            : "transparent",
+        borderColor: hovered ? (linkable ? "transparent" : "rgba(255,255,255,0.35)") : undefined,
+        cursor: linkable ? "pointer" : "default",
+        transition: "background 0.2s, border-color 0.2s",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={{
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#ffffff",
+        marginBottom: "5px",
+      }}>
+        {card.name}
+      </div>
+      <div style={{
+        fontSize: "11px",
+        color: linkable ? "rgba(255,255,255,0.85)" : hovered ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.65)",
+        lineHeight: "1.35",
+        transition: "color 0.2s",
+      }}>
+        {card.desc}
+      </div>
+    </div>
+  );
+
+  return linkable ? (
+    <Link to={card.href} style={{ textDecoration: "none", display: "block" }}>
+      {content}
+    </Link>
+  ) : (
+    content
+  );
+}
 
 export default function Footer() {
   return (
@@ -197,23 +250,7 @@ export default function Footer() {
         </p>
         <div style={styles.ecosystemCards}>
           {ecosystemCards.map((card) => (
-            <div
-              key={card.name}
-              style={{
-                ...styles.ecoCard,
-                ...(card.active ? styles.ecoCardActive : {}),
-              }}
-            >
-              <div style={styles.ecoCardName}>{card.name}</div>
-              <div
-                style={{
-                  ...styles.ecoCardDesc,
-                  ...(card.active ? styles.ecoCardDescActive : {}),
-                }}
-              >
-                {card.desc}
-              </div>
-            </div>
+            <EcoFooterCard key={card.name} card={card} />
           ))}
         </div>
       </div>

@@ -27,6 +27,7 @@ import {
   History,
   LayoutDashboard,
   Layers,
+  Lock,
   MapPin,
   MessageSquare,
   MinusCircle,
@@ -40,6 +41,7 @@ import {
   Search,
   Send,
   Shield,
+  ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
@@ -49,6 +51,7 @@ import {
   Undo2,
   User,
   UserCheck,
+  UserCircle,
   UserPlus,
   Users,
   WalletCards,
@@ -63,6 +66,13 @@ import {
   HardDrive,
   FileText as FileTextIcon,
   Globe as GlobeIcon,
+  FolderOpen,
+  FileSignature,
+  UploadCloud,
+  Landmark,
+  Laptop,
+  ListFilter,
+  Plus,
 } from "lucide-react";
 
 // Shared Layers – first‑class section
@@ -231,6 +241,13 @@ const products = {
               { label: "Requests",           href: "/zoiko-hr/ess/requests",          icon: ClipboardList },
               { label: "Settings",           href: "/zoiko-hr/ess/settings",          icon: SlidersHorizontal },
             ]},
+            { label: "Documents",          icon: FolderOpen, children: [
+              { label: "My Files",           href: "/zoiko-hr/ess/documents/my-files",        icon: FolderOpen },
+              { label: "Payslips",           href: "/zoiko-hr/ess/documents/payslips",        icon: Receipt },
+              { label: "Offer & Contracts",  href: "/zoiko-hr/ess/documents/contracts",       icon: FileSignature },
+              { label: "Tax & Compliance",   href: "/zoiko-hr/ess/documents/tax",             icon: ShieldCheck },
+              { label: "Upload Request",     href: "/zoiko-hr/ess/documents/upload-request",  icon: UploadCloud },
+            ]},
             { label: "Travel",             icon: Plane, children: [
               { label: "Dashboard",          href: "/zoiko-hr/travel",                icon: LayoutDashboard },
               { label: "Travel Requests",    href: "/zoiko-hr/travel/requests",       icon: Plane },
@@ -320,12 +337,12 @@ const products = {
           icon: FileCheck2,
           badge: "Comply",
           children: [
-  { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
-  { label: "Policy Library", href: "/comply/policies", icon: FileCheck2 },
-  { label: "Tracking & Audits", href: "/comply/audits", icon: Search },
-  { label: "Violations & Actions", href: "/comply/incidents", icon: Activity },
-  { label: "Risks & Settings", href: "/comply/settings", icon: SlidersHorizontal },
-],
+            { label: "Dashboard & Reports", href: "/comply", icon: LayoutDashboard },
+            { label: "Policy Library", href: "/comply/policies", icon: FileCheck2 },
+            { label: "Tracking & Audits", href: "/comply/audits", icon: Search },
+            { label: "Violations & Actions", href: "/comply/incidents", icon: Activity },
+            { label: "Risks & Settings", href: "/comply/settings", icon: SlidersHorizontal },
+          ],
         },
         {
           label: "Zoiko Insights",
@@ -343,6 +360,80 @@ const products = {
             { label: "Settings", href: "/insights/settings", icon: SlidersHorizontal },
           ],
         },
+      ],
+    },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMPLOYEE WORKSPACE
+// Shown only to employees (filtered via ROLE_ALLOWED_PREFIXES in roles.js).
+// Covers the 5 subfolders under src/pages/Peoples/Employees/
+// ─────────────────────────────────────────────────────────────────────────────
+const employeeWorkspace = {
+  title: "MY WORKSPACE",
+  items: [
+    // ── Profile ────────────────────────────────────────────────────────────
+    {
+      label: "Profile",
+      icon: UserCircle,
+      children: [
+        { label: "My Profile",          href: "/employee/profile",                    icon: UserCircle },
+        { label: "Bank Details",        href: "/employee/profile/bank-details",       icon: Landmark },
+        { label: "Asset Details",       href: "/employee/profile/assets",             icon: Laptop },
+        { label: "Emergency Contacts",  href: "/employee/profile/emergency-contacts", icon: ShieldAlert },
+        { label: "Security Settings",   href: "/employee/profile/settings",           icon: Lock },
+      ],
+    },
+
+    // ── ESS ────────────────────────────────────────────────────────────────
+    {
+      label: "ESS",
+      icon: LayoutDashboard,
+      children: [
+        { label: "Dashboard",   href: "/employee/ess",            icon: LayoutDashboard },
+        { label: "Attendance",  href: "/employee/ess/attendance", icon: Clock },
+        { label: "Requests",    href: "/employee/ess/requests",   icon: ClipboardList },
+        { label: "Settings",    href: "/employee/ess/settings",   icon: SlidersHorizontal },
+      ],
+    },
+
+    // ── Leaves ─────────────────────────────────────────────────────────────
+    {
+      label: "Leaves",
+      icon: Calendar,
+      children: [
+        { label: "My Leave",        href: "/employee/leaves",          icon: CalendarCheck },
+        { label: "Apply Leave",     href: "/employee/leaves/apply",    icon: Plus },
+        { label: "Leave Calendar",  href: "/employee/leaves/calendar", icon: CalendarDays },
+        { label: "Leave History",   href: "/employee/leaves/history",  icon: History },
+        { label: "Leave Types",     href: "/employee/leaves/types",    icon: ListFilter },
+      ],
+    },
+
+    // ── Documents ──────────────────────────────────────────────────────────
+    {
+      label: "Documents",
+      icon: FolderOpen,
+      children: [
+        { label: "My Files",          href: "/employee/documents/my-files",       icon: FolderOpen },
+        { label: "Payslips",          href: "/employee/documents/payslips",        icon: Receipt },
+        { label: "Offer & Contracts", href: "/employee/documents/contracts",       icon: FileSignature },
+        { label: "Tax & Compliance",  href: "/employee/documents/tax",             icon: ShieldCheck },
+        { label: "Upload Request",    href: "/employee/documents/upload-request",  icon: UploadCloud },
+      ],
+    },
+
+    // ── Travel ─────────────────────────────────────────────────────────────
+    {
+      label: "Travel",
+      icon: Plane,
+      children: [
+        { label: "Dashboard",        href: "/employee/travel",           icon: LayoutDashboard },
+        { label: "Travel Requests",  href: "/employee/travel/requests",  icon: Plane },
+        { label: "Approvals",        href: "/employee/travel/approvals", icon: ClipboardCheck },
+        { label: "Expenses",         href: "/employee/travel/expenses",  icon: Receipt },
+        { label: "Settings",         href: "/employee/travel/settings",  icon: SlidersHorizontal },
       ],
     },
   ],
@@ -427,6 +518,8 @@ export const sections = [
   superAdmin,
   platformGovernance,
   products,
+  // Employee-only workspace section (filtered to role=employee by useFilteredNavigation)
+  employeeWorkspace,
   sharedLayersSection,
   settings,
   infrastructure,

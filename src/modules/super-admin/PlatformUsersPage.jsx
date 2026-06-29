@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import PageHeader from "../../components/PageHeader";
-import { AlertTriangle, Search, Users, ChevronLeft, ChevronRight, Building2, Shield, UserCheck } from "lucide-react";
+import {
+  AlertTriangle, Search, Users, ChevronLeft, ChevronRight,
+  Building2, Shield, UserCheck, CheckCircle,
+  XCircle, Lock, Unlock, Clock, Eye, Edit3,
+} from "lucide-react";
 import { superAdminService } from "../../service/superAdminService";
 
 const ROLE_COLORS = {
@@ -12,6 +16,12 @@ const ROLE_COLORS = {
   employee: "bg-slate-50 text-slate-600 border border-slate-100",
 };
 
+const STATUS_BADGES = {
+  active: "bg-emerald-50 text-emerald-700 border border-emerald-100",
+  locked: "bg-amber-50 text-amber-700 border border-amber-100",
+  deactivated: "bg-red-50 text-red-700 border border-red-100",
+};
+
 export default function PlatformUsersPage() {
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -21,6 +31,7 @@ export default function PlatformUsersPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionMsg, setActionMsg] = useState(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -33,7 +44,6 @@ export default function PlatformUsersPage() {
       setUsers(data.users || []);
       setTotal(data.total || 0);
     } catch (e) {
-      console.error("Failed to load users", e);
       setError(e.message || "Failed to load users.");
     } finally {
       setLoading(false);
@@ -42,17 +52,42 @@ export default function PlatformUsersPage() {
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
+  useEffect(() => {
+    if (actionMsg) {
+      const t = setTimeout(() => setActionMsg(null), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [actionMsg]);
+
+  const doAction = async (label, fn) => {
+    setError(null);
+    try {
+      await fn();
+      setActionMsg(`${label} successful`);
+      await loadUsers();
+    } catch (e) {
+      setError(`${label} failed: ${e.message}`);
+    }
+  };
+
   const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div className="space-y-6 font-sans">
-      <PageHeader title="Platform Users" description="View all users across every organization on the platform." />
+      <PageHeader title="Platform Users" description="User Lifecycle Management — manage users across every organization." />
 
       {error && (
         <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 flex-shrink-0" />
           <span>{error}</span>
           <button onClick={loadUsers} className="ml-auto text-red-600 underline hover:text-red-800 text-xs font-semibold">Retry</button>
+        </div>
+      )}
+
+      {actionMsg && (
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 text-sm flex items-center gap-3">
+          <CheckCircle className="h-5 w-5 flex-shrink-0" />
+          <span>{actionMsg}</span>
         </div>
       )}
 
@@ -103,8 +138,8 @@ export default function PlatformUsersPage() {
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Role</th>
                     <th className="py-3 px-4">Organization</th>
-                    <th className="py-3 px-4">Job Title</th>
                     <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -126,13 +161,79 @@ export default function PlatformUsersPage() {
                         </span>
                       </td>
                       <td className="py-4 px-4 text-slate-600">{u.organization_name}</td>
-                      <td className="py-4 px-4 text-slate-500">{u.job_title || "-"}</td>
                       <td className="py-4 px-4">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          u.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"
-                        }`}>
-                          {u.is_active ? "Active" : "Inactive"}
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGES[u.status] || STATUS_BADGES.active}`}>
+                          {u.status === "locked" ? "Locked" : u.status === "deactivated" ? "Deactivated" : "Active"}
                         </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex gap-1.5 flex-wrap">
+                          <button
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                            title="View User"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                            title="Edit User"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                          {u.is_active && u.status !== "locked" && u.status !== "deactivated" && (
+                            <button
+                              onClick={() => doAction("Disable", () => superAdminService.disableUser(u.id))}
+                              className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition"
+                              title="Disable User"
+                            >
+                              <XCircle className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {(!u.is_active || u.status === "deactivated") && (
+                            <button
+                              onClick={() => doAction("Enable", () => superAdminService.enableUser(u.id))}
+                              className="p-1.5 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition"
+                              title="Enable User"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {u.status !== "locked" && u.is_active && (
+                            <button
+                              onClick={() => doAction("Lock", () => superAdminService.lockUser(u.id))}
+                              className="p-1.5 rounded-lg border border-amber-200 text-amber-600 hover:bg-amber-50 transition"
+                              title="Lock User"
+                            >
+                              <Lock className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {u.status === "locked" && (
+                            <button
+                              onClick={() => doAction("Unlock", () => superAdminService.unlockUser(u.id))}
+                              className="p-1.5 rounded-lg border border-amber-200 text-amber-600 hover:bg-amber-50 transition"
+                              title="Unlock User"
+                            >
+                              <Unlock className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={async () => {
+                              try {
+                                const hist = await superAdminService.getUserAuditHistory(u.id);
+                                alert(`Audit History for ${u.first_name} ${u.last_name} (${u.email}):\n\n` +
+                                  (hist.history || []).map(h =>
+                                    `[${h.created_at}] ${h.action} by ${h.performed_by_email}\n  ${JSON.stringify(h.details)}`
+                                  ).join("\n\n") || "No history found");
+                              } catch (e) {
+                                setError("Failed to load audit history: " + e.message);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                            title="View Audit History"
+                          >
+                            <Clock className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

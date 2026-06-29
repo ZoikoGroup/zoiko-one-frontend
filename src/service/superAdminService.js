@@ -24,12 +24,19 @@ export const superAdminService = {
   getOrganizationSubscription: (orgId) => api.get(`/super-admin/subscriptions/${orgId}`),
   updateSubscription: (orgId, data) => api.put(`/super-admin/subscriptions/${orgId}`, data),
 
-  // Platform Users
+  // Platform Users - User Lifecycle Management
   getUsers: (params) => api.get("/super-admin/users", { params }),
   inviteUser: (data) => api.post("/super-admin/users/invite", data),
   disableUser: (id) => api.put(`/super-admin/users/${id}/disable`),
   enableUser: (id) => api.put(`/super-admin/users/${id}/enable`),
-  resetUserPassword: (id, data) => api.put(`/super-admin/users/${id}/reset-password`, data),
+  lockUser: (id) => api.put(`/super-admin/users/${id}/lock`),
+  unlockUser: (id) => api.put(`/super-admin/users/${id}/unlock`),
+  resetUserPassword: (id, options = {}) => {
+    const params = {};
+    if (options.send_email) params.send_email = true;
+    return api.post(`/super-admin/users/${id}/reset-password`, null, { params });
+  },
+  getUserAuditHistory: (id) => api.get(`/super-admin/users/${id}/audit-history`),
 
   // Audit Logs
   getAuditLogs: (params) => api.get("/super-admin/audit-logs", { params }),
@@ -72,14 +79,16 @@ export const superAdminService = {
   // Login Activity
   getLoginActivity: (params) => api.get("/super-admin/login-activity", { params }),
 
-  // Approval Workflow
-  getPendingOrganizations: (params) => api.get("/super-admin/organizations/pending", { params }),
-  getApprovedOrganizations: (params) => api.get("/super-admin/organizations/approved", { params }),
-  getRejectedOrganizations: (params) => api.get("/super-admin/organizations/rejected", { params }),
-  getSuspendedOrganizations: (params) => api.get("/super-admin/organizations/suspended", { params }),
-  getOrganizationDetail: (orgId) => api.get(`/super-admin/organizations/${orgId}/details`),
-  approveOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/approve`),
-  rejectOrganization: (orgId, data) => api.put(`/super-admin/organizations/${orgId}/reject`, data),
-  reactivateOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/reactivate`),
-  getApprovalHistory: (orgId) => api.get(`/super-admin/organizations/${orgId}/approval-history`),
+   // Approval Workflow
+   getPendingOrganizations: (params) => api.get("/super-admin/organizations/pending", { params }),
+   getApprovedOrganizations: (params) => api.get("/super-admin/organizations/approved", { params }),
+   getRejectedOrganizations: (params) => api.get("/super-admin/organizations/rejected", { params }),
+   getSuspendedOrganizations: (params) => api.get("/super-admin/organizations/suspended", { params }),
+   getDeactivatedOrganizations: (params) => api.get("/super-admin/organizations/deactivated", { params }),
+   getOrganizationDetail: (orgId) => api.get(`/super-admin/organizations/${orgId}/details`),
+   approveOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/approve`),
+   rejectOrganization: (orgId, data) => api.put(`/super-admin/organizations/${orgId}/reject`, data),
+   reactivateOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/reactivate`),
+   getApprovalHistory: (orgId) => api.get(`/super-admin/organizations/${orgId}/approval-history`),
+   updateOrganizationStatus: (orgId, data) => api.put(`/super-admin/organizations/${orgId}/status`, data),
 };

@@ -1,25 +1,49 @@
 export const ROLES = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
+  HR_ADMIN: "hr_admin",
+  MANAGER: "manager",
   EMPLOYEE: "employee",
 };
 
 export const ROLE_LABELS = {
   [ROLES.SUPER_ADMIN]: "Super Admin",
-  [ROLES.ADMIN]: "HR Admin",
+  [ROLES.ADMIN]: "Organization Admin",
+  [ROLES.HR_ADMIN]: "HR Admin",
+  [ROLES.MANAGER]: "Manager",
   [ROLES.EMPLOYEE]: "Employee",
 };
 
 // Default landing after role-based redirect
 export const ROLE_DEFAULT_REDIRECT = {
-  [ROLES.SUPER_ADMIN]: "/dashboard",
+  [ROLES.SUPER_ADMIN]: "/super-admin/dashboard",
   [ROLES.ADMIN]: "/zoiko-hr",
-  [ROLES.EMPLOYEE]: "/zoiko-hr/ess",
+  [ROLES.HR_ADMIN]: "/zoiko-hr",
+  [ROLES.MANAGER]: "/zoiko-hr",
+  [ROLES.EMPLOYEE]: "/employee/ess",
+};
+
+// Define who can create which roles (fixes the UserManagementPage bug)
+export const ROLE_CREATION_RULES = {
+  [ROLES.SUPER_ADMIN]: [ROLES.ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.ADMIN]: [ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.HR_ADMIN]: [ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.MANAGER]: [ROLES.EMPLOYEE],
+  [ROLES.EMPLOYEE]: [],
 };
 
 // Route-prefix access matrix (authoritative for both guards and sidebar filtering)
 export const ROLE_ALLOWED_PREFIXES = {
   [ROLES.SUPER_ADMIN]: [
+    "/super-admin/dashboard",
+    "/super-admin/organizations",
+    "/super-admin/products",
+    "/super-admin/subscriptions",
+    "/super-admin/users",
+    "/super-admin/analytics",
+    "/super-admin/audit-logs",
+    "/super-admin/system-health",
+    "/super-admin/settings",
     "/dashboard",
     "/organizations",
     "/subscriptions",
@@ -39,9 +63,10 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/compliance-center",
     "/operations",
     "/admin-profile",
+    "/settings/",
   ],
 
-  // HR Admin (Admin) - allowed: full Zoiko HR + Payroll/Billing/Insights
+  // Organization Admin - allowed: full Zoiko HR + Payroll/Billing/Insights/Spend/Inventory/ZoikoTime + Settings
   [ROLES.ADMIN]: [
     "/zoiko-hr",
     "/payroll",
@@ -50,19 +75,62 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/insights",
     "/zoikotime",
     "/inventory",
+    "/settings/",
   ],
 
-  // Employee - allowed: Zoiko HR ESS + My Leave + My Documents + Travel
+  // HR Admin - only HR-related modules + user management
+  [ROLES.HR_ADMIN]: [
+    "/zoiko-hr",
+    "/settings/",
+  ],
+
+  // Manager - typical access includes HR dashboard, approval pipelines, and standard employee modules
+  [ROLES.MANAGER]: [
+    "/zoiko-hr",
+    "/employee/profile",
+    "/employee/ess",
+    "/employee/leaves",
+    "/employee/documents",
+    "/employee/travel",
+  ],
+
+  // Employee - Peoples/Employees subfolders: Profile, ESS, Leaves, Documents, Travel
   [ROLES.EMPLOYEE]: [
-    "/zoiko-hr/ess",
-    "/zoiko-hr/leave/my-leave",
-    "/zoiko-hr/leave/", // keep leave tree visible (even if only some leaves are intended)
-    "/zoiko-hr/ess/my-documents",
-    "/zoiko-hr/travel",
-    "/zoiko-hr/travel/requests",
-    "/zoiko-hr/travel/expenses",
+    // ── Profile ──────────────────────────────────────────────
+    "/employee/profile",
+    "/employee/profile/bank-details",
+    "/employee/profile/assets",
+    "/employee/profile/emergency-contacts",
+    "/employee/profile/settings",
+
+    // ── ESS ──────────────────────────────────────────────────
+    "/employee/ess",
+    "/employee/ess/attendance",
+    "/employee/ess/requests",
+    "/employee/ess/settings",
+
+    // ── Leaves ───────────────────────────────────────────────
+    "/employee/leaves",
+    "/employee/leaves/apply",
+    "/employee/leaves/calendar",
+    "/employee/leaves/history",
+    "/employee/leaves/types",
+
+    // ── Documents ────────────────────────────────────────────
+    "/employee/documents",
+    "/employee/documents/my-files",
+    "/employee/documents/payslips",
+    "/employee/documents/contracts",
+    "/employee/documents/tax",
+    "/employee/documents/upload-request",
+
+    // ── Travel ───────────────────────────────────────────────
+    "/employee/travel",
+    "/employee/travel/requests",
+    "/employee/travel/approvals",
+    "/employee/travel/expenses",
+    "/employee/travel/settings",
   ],
 };
 
 export const VALID_ROLES = Object.values(ROLES);
-

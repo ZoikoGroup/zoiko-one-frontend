@@ -19,32 +19,39 @@ import PayrollDashboard from "./PayrollDashboard";
 import Employees        from "./Employees";
 import PayrollRuns      from "./PayrollRuns";
 
-// ── Inline placeholder for pages not yet built ────────────────────────────────
-function ComingSoon({ title }) {
+// ── Route map ─────────────────────────────────────────────────────────────────
+function PayrollPlaceholder({ title, description }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center p-10">
-      <div className="h-14 w-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-4">
-        <LayoutDashboard size={24} className="text-emerald-500" />
+    <div className="space-y-6 font-sans p-6">
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+        <p className="text-sm text-slate-500 mt-1">{description || "Manage payroll settings and configuration."}</p>
       </div>
-      <h2 className="text-xl font-bold text-slate-800 mb-1">{title}</h2>
-      <p className="text-sm text-slate-400">This section is coming soon.</p>
+      <div className="bg-white rounded-2xl border border-slate-200 p-8">
+        <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
+          <div className="h-12 w-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-3">
+            <LayoutDashboard size={20} className="text-slate-400" />
+          </div>
+          <h3 className="text-base font-semibold text-slate-600">{title}</h3>
+          <p className="text-sm text-slate-400 mt-1">Feature module ready for implementation.</p>
+        </div>
+      </div>
     </div>
   );
 }
 
-// ── Route map ─────────────────────────────────────────────────────────────────
 const pageMap = {
   "/payroll":               <PayrollDashboard />,
-  "/payroll/company-setup": <ComingSoon title="Company Setup" />,
+  "/payroll/company-setup": <PayrollPlaceholder title="Company Setup" description="Configure payroll company settings, tax rules, and payroll frequencies." />,
   "/payroll/employees":     <Employees />,
   "/payroll/payroll-runs":  <PayrollRuns />,
-  "/payroll/exceptions":    <ComingSoon title="Exceptions" />,
-  "/payroll/approvals":     <ComingSoon title="Approvals" />,
-  "/payroll/payments":      <ComingSoon title="Payments" />,
-  "/payroll/payslips":      <ComingSoon title="Payslips" />,
-  "/payroll/reports":       <ComingSoon title="Reports" />,
-  "/payroll/audit":         <ComingSoon title="Audit & Compliance" />,
-  "/payroll/settings":      <ComingSoon title="Settings" />,
+  "/payroll/exceptions":    <PayrollPlaceholder title="Exceptions" description="View and resolve payroll exceptions and anomalies." />,
+  "/payroll/approvals":     <PayrollPlaceholder title="Approvals" description="Review and approve payroll runs and changes." />,
+  "/payroll/payments":      <PayrollPlaceholder title="Payments" description="Manage payroll payment processing and disbursements." />,
+  "/payroll/payslips":      <PayrollPlaceholder title="Payslips" description="Generate and distribute employee payslips." />,
+  "/payroll/reports":       <PayrollPlaceholder title="Reports" description="Access payroll reports and analytics." />,
+  "/payroll/audit":         <PayrollPlaceholder title="Audit & Compliance" description="Audit payroll transactions and ensure compliance." />,
+  "/payroll/settings":      <PayrollPlaceholder title="Settings" description="Configure payroll preferences and system settings." />,
 };
 
 // ── Sidebar nav items ─────────────────────────────────────────────────────────

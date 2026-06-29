@@ -120,6 +120,7 @@ export default function SuperAdminOrganizationsPage() {
       ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
       REJECTED: "bg-red-50 text-red-700 border-red-200",
       SUSPENDED: "bg-slate-50 text-slate-700 border-slate-200",
+      DEACTIVATED: "bg-purple-50 text-purple-700 border-purple-200",
     };
     return (
       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${map[status] || "bg-slate-50 text-slate-600"}`}>
@@ -196,6 +197,7 @@ export default function SuperAdminOrganizationsPage() {
               <option value="active">Approved</option>
               <option value="rejected">Rejected</option>
               <option value="suspended">Suspended</option>
+              <option value="deactivated">Deactivated</option>
             </select>
             <div className="relative max-w-sm w-full">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -416,6 +418,14 @@ export default function SuperAdminOrganizationsPage() {
                     <button onClick={() => { setWorkflowOrg(null); handleDelete(workflowOrg.id); }}
                       className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
                       <XCircle className="h-4 w-4" /> Delete Registration
+                    </button>
+                  </>
+                )}
+                {workflowOrg.status === "DEACTIVATED" && (
+                  <>
+                    <button onClick={() => navigate(`/super-admin/organizations/${workflowOrg.id}`)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">
+                      <Eye className="h-4 w-4" /> View Details
                     </button>
                   </>
                 )}

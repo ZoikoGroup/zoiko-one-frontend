@@ -2,7 +2,24 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import SuperAdminShell from "./components/SuperAdminShell";
 import { flatRoutes } from "./navigation";
-import PagePlaceholder from "./components/PagePlaceholder";
+import { AlertTriangle } from "lucide-react";
+
+function PagePlaceholderFallback({ title, path, badge }) {
+  return (
+    <div className="space-y-6 font-sans">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
+      </div>
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <p className="text-sm text-slate-600">Route: <span className="font-semibold text-slate-800">{path ?? "unknown"}</span></p>
+        {badge && <p className="mt-2 text-sm text-slate-600">Badge: <span className="font-semibold text-[#FF7A00]">{badge}</span></p>}
+        <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-100 p-4 text-sm text-slate-500">
+          Module page ready for implementation.
+        </div>
+      </div>
+    </div>
+  );
+}
 import HomePage from "./pages/public/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
@@ -184,6 +201,7 @@ import PerformanceInsights from "./modules/insights/performance-insights.jsx";
 import RecruitmentInsights from "./modules/insights/recruitment-insights.jsx";
 import InsightsSettings from "./modules/insights/settings.jsx";
 import ItemsPage from "./modules/inventory/pages/ItemsPage";
+import InventoryModule from "./modules/inventory/index.jsx";
 
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
@@ -420,15 +438,15 @@ const routeOverrides = {
   "/billing/reports": <ReportsPage />,
   // Inventory
   "/inventory/items": <ItemsPage />,
-  "/inventory/locations": <PagePlaceholder title="Locations" path="/inventory/locations" badge="Inventory" />,
-  "/inventory/stock": <PagePlaceholder title="Stock" path="/inventory/stock" badge="Inventory" />,
-  "/inventory/receiving": <PagePlaceholder title="Receiving" path="/inventory/receiving" badge="Inventory" />,
-  "/inventory/goods-issue": <PagePlaceholder title="Goods Issue" path="/inventory/goods-issue" badge="Inventory" />,
-  "/inventory/transfers": <PagePlaceholder title="Transfers" path="/inventory/transfers" badge="Inventory" />,
-  "/inventory/stock-counts": <PagePlaceholder title="Stock Counts" path="/inventory/stock-counts" badge="Inventory" />,
-  "/inventory/reorder": <PagePlaceholder title="Reorder" path="/inventory/reorder" badge="Inventory" />,
-  "/inventory/assets": <PagePlaceholder title="Assets" path="/inventory/assets" badge="Inventory" />,
-  "/inventory/reports": <PagePlaceholder title="Reports" path="/inventory/reports" badge="Inventory" />,
+  "/inventory/locations": <InventoryModule />,
+  "/inventory/stock": <InventoryModule />,
+  "/inventory/receiving": <InventoryModule />,
+  "/inventory/goods-issue": <InventoryModule />,
+  "/inventory/transfers": <InventoryModule />,
+  "/inventory/stock-counts": <InventoryModule />,
+  "/inventory/reorder": <InventoryModule />,
+  "/inventory/assets": <InventoryModule />,
+  "/inventory/reports": <InventoryModule />,
   // Comply
   "/comply": <ComplyDashboard />,
   "/comply/policies": <ComplyPolicies />,
@@ -482,6 +500,10 @@ const routeOverrides = {
   "/super-admin/audit-logs": <SuperAdminAuditLogsPage />,
   "/super-admin/system-health": <SuperAdminSystemHealthPage />,
   "/super-admin/settings": <SuperAdminPlatformSettingsPage />,
+  "/super-admin/approvals": <PendingOrganizationsPage />,
+  "/super-admin/notifications": <NotificationCenter />,
+  "/super-admin/security-events": <SecurityCenter />,
+  "/super-admin/support-tickets": <SupportCenter />,
 
   // ─────────────────────────────────────────────────────────────────────────
   // EMPLOYEE WORKSPACE — /employee/* routes (role: employee only)
@@ -600,14 +622,14 @@ export default function App() {
                                             route.href.startsWith("/compliance-center") ||
                                             route.href.startsWith("/operations") ||
                                             route.href.startsWith("/admin-profile")
-                                          ? ["super_admin"]
-                                          : route.href.startsWith("/settings/")
-                                            ? ["super_admin", "admin"]
-                                            : ["super_admin", "admin", "employee"]
-                        }
-                      >
+                                ? ["super_admin"]
+                                : route.href.startsWith("/settings/")
+                                  ? ["super_admin", "admin", "hr_admin"]
+                                  : ["super_admin", "admin", "employee"]
+                          }
+                        >
                         {routeOverrides[route.href] ?? (
-                          <PagePlaceholder
+                          <PagePlaceholderFallback
                             title={route.label}
                             path={route.href}
                             badge={route.badge}
@@ -631,7 +653,13 @@ export default function App() {
                 <Route path="/zoiko-hr/recruitment/analytics" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
                 <Route path="/zoiko-hr/recruitment/analytics/reports" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
                 <Route path="/zoiko-hr/recruitment/settings" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
-                <Route path="*" element={<PagePlaceholder title="Not Found" description="This page is not available yet." />} />
+                <Route path="*" element={
+  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-10">
+    <AlertTriangle className="h-12 w-12 text-slate-300 mb-4" />
+    <h2 className="text-xl font-bold text-slate-800 mb-1">Not Found</h2>
+    <p className="text-sm text-slate-400">This page is not available yet.</p>
+  </div>
+} />
               </Routes>
             </SuperAdminShell>
           </ProtectedRoute>

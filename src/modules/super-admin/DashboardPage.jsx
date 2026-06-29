@@ -50,6 +50,7 @@ export default function SuperAdminDashboardPage() {
     { title: "Approved", value: stats?.active_organizations ?? 0, icon: CheckCircle, color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/25" },
     { title: "Rejected", value: stats?.rejected_organizations ?? "—", icon: XCircle, color: "text-red-600 bg-red-500/10 border-red-500/25" },
     { title: "Suspended", value: stats?.suspended_organizations ?? 0, icon: ShieldAlert, color: "text-slate-600 bg-slate-500/10 border-slate-500/25" },
+    { title: "Deactivated", value: stats?.deactivated_organizations ?? 0, icon: ShieldAlert, color: "text-purple-600 bg-purple-500/10 border-purple-500/25" },
     { title: "Total Users", value: stats?.total_users ?? 0, icon: Users, color: "text-purple-600 bg-purple-500/10 border-purple-500/25" },
     { title: "Revenue", value: `$${stats?.total_revenue ?? 0}`, icon: DollarSign, color: "text-yellow-600 bg-yellow-500/10 border-yellow-500/25" },
     { title: "Open Tickets", value: stats?.open_support_tickets ?? 0, icon: MessageSquare, color: "text-orange-600 bg-orange-500/10 border-orange-500/25" },
@@ -117,6 +118,7 @@ export default function SuperAdminDashboardPage() {
                       reg.status === "PENDING" ? "bg-amber-50 text-amber-700" :
                       reg.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700" :
                       reg.status === "REJECTED" ? "bg-red-50 text-red-700" :
+                      reg.status === "DEACTIVATED" ? "bg-purple-50 text-purple-700" :
                       "bg-slate-50 text-slate-600"
                     }`}>{reg.status}</span>
                   </div>

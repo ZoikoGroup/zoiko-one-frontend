@@ -624,21 +624,12 @@ export default function App() {
                                             route.href.startsWith("/compliance-center") ||
                                             route.href.startsWith("/operations") ||
                                             route.href.startsWith("/admin-profile")
-<<<<<<< HEAD
                                 ? ["super_admin"]
                                 : route.href.startsWith("/settings/")
                                   ? ["super_admin", "admin", "hr_admin"]
                                   : ["super_admin", "admin", "employee"]
                           }
                         >
-=======
-                                          ? ["super_admin"]
-                                          : route.href.startsWith("/settings/")
-                                            ? ["super_admin", "admin"]
-                                            : ["super_admin", "admin", "employee"]
-                        }
-                      >
->>>>>>> 85a12bdc4afd88c382bdbc98c66abf1362264ec4
                         {routeOverrides[route.href] ?? (
                           <PagePlaceholderFallback
                             title={route.label}

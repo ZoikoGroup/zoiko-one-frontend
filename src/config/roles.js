@@ -2,6 +2,7 @@ export const ROLES = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
   HR_ADMIN: "hr_admin",
+  MANAGER: "manager",
   EMPLOYEE: "employee",
 };
 
@@ -9,6 +10,7 @@ export const ROLE_LABELS = {
   [ROLES.SUPER_ADMIN]: "Super Admin",
   [ROLES.ADMIN]: "Organization Admin",
   [ROLES.HR_ADMIN]: "HR Admin",
+  [ROLES.MANAGER]: "Manager",
   [ROLES.EMPLOYEE]: "Employee",
 };
 
@@ -66,9 +68,10 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/settings/",
   ],
 
-  // HR Admin - only HR-related modules
+  // HR Admin - only HR-related modules + user management
   [ROLES.HR_ADMIN]: [
     "/zoiko-hr",
+    "/settings/",
   ],
 
   // Employee - Peoples/Employees subfolders: Profile, ESS, Leaves, Documents, Travel
@@ -110,4 +113,19 @@ export const ROLE_ALLOWED_PREFIXES = {
   ],
 };
 
+<<<<<<< HEAD
+// Role-based user creation permissions
+// Maps each role to the list of roles they are allowed to create
+export const ROLE_CREATION_RULES = {
+  [ROLES.SUPER_ADMIN]: [ROLES.ADMIN],
+  [ROLES.ADMIN]: [ROLES.ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.HR_ADMIN]: [ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.MANAGER]: [],
+  [ROLES.EMPLOYEE]: [],
+};
+
 export const VALID_ROLES = Object.values(ROLES);
+
+=======
+export const VALID_ROLES = Object.values(ROLES);
+>>>>>>> edcd8e8662bbbbf8fa94bbcd5c7175c95346c1cb

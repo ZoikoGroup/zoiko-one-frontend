@@ -2,16 +2,20 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUsers, createUser, updateUser, deactivateUser, activateUser, resetPassword } from "../../service/userService";
 import { User, Edit, Trash2, Plus, Search, ChevronDown, Eye, EyeOff, RefreshCw, Unlock, CheckCircle, X } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { ROLE_CREATION_RULES, ROLE_LABELS } from "../../config/roles";
 
-const ROLE_OPTIONS = [
+const ALL_ROLE_OPTIONS = [
   { value: "admin", label: "Organization Admin" },
   { value: "hr_admin", label: "HR Admin" },
+  { value: "manager", label: "Manager" },
   { value: "employee", label: "Employee" },
 ];
 
 const ROLE_BADGES = {
   admin: "bg-purple-100 text-purple-800",
   hr_admin: "bg-blue-100 text-blue-800",
+  manager: "bg-yellow-100 text-yellow-800",
   employee: "bg-green-100 text-green-800",
 };
 
@@ -28,6 +32,10 @@ const initialForm = {
 
 export default function UserManagementPage() {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const allowedRoles = ROLE_CREATION_RULES[role] || [];
+  const canCreateUsers = allowedRoles.length > 0;
+  const ROLE_OPTIONS = ALL_ROLE_OPTIONS.filter((r) => allowedRoles.includes(r.value));
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -276,9 +284,13 @@ export default function UserManagementPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Add User
-              </button>
+              {canCreateUsers ? (
+                <button onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Add User
+                </button>
+              ) : (
+                <span className="px-4 py-2 text-sm text-gray-400 italic">You do not have permission to create users.</span>
+              )}
             </div>
           </div>
 

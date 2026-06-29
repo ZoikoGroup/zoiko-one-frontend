@@ -484,11 +484,11 @@ const platformGovernance = {
   ],
 };
 
-// Settings (Organization Admin)
+// Administration
 const settings = {
-  title: "SETTINGS",
+  title: "ADMINISTRATION",
   items: [
-    // { label: "User Management", href: "/settings/user-management", icon: Users },
+    { label: "User Management", href: "/settings/user-management", icon: Users },
   ],
 };
 

@@ -19,7 +19,17 @@ export const ROLE_DEFAULT_REDIRECT = {
   [ROLES.SUPER_ADMIN]: "/super-admin/dashboard",
   [ROLES.ADMIN]: "/zoiko-hr",
   [ROLES.HR_ADMIN]: "/zoiko-hr",
+  [ROLES.MANAGER]: "/zoiko-hr",
   [ROLES.EMPLOYEE]: "/employee/ess",
+};
+
+// Define who can create which roles (fixes the UserManagementPage bug)
+export const ROLE_CREATION_RULES = {
+  [ROLES.SUPER_ADMIN]: [ROLES.ADMIN],
+  [ROLES.ADMIN]: [ROLES.ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.HR_ADMIN]: [ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.MANAGER]: [],
+  [ROLES.EMPLOYEE]: [],
 };
 
 // Route-prefix access matrix (authoritative for both guards and sidebar filtering)
@@ -74,6 +84,16 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/settings/",
   ],
 
+  // Manager - typical access includes HR dashboard, approval pipelines, and standard employee modules
+  [ROLES.MANAGER]: [
+    "/zoiko-hr",
+    "/employee/profile",
+    "/employee/ess",
+    "/employee/leaves",
+    "/employee/documents",
+    "/employee/travel",
+  ],
+
   // Employee - Peoples/Employees subfolders: Profile, ESS, Leaves, Documents, Travel
   [ROLES.EMPLOYEE]: [
     // ── Profile ──────────────────────────────────────────────
@@ -113,19 +133,4 @@ export const ROLE_ALLOWED_PREFIXES = {
   ],
 };
 
-<<<<<<< HEAD
-// Role-based user creation permissions
-// Maps each role to the list of roles they are allowed to create
-export const ROLE_CREATION_RULES = {
-  [ROLES.SUPER_ADMIN]: [ROLES.ADMIN],
-  [ROLES.ADMIN]: [ROLES.ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
-  [ROLES.HR_ADMIN]: [ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
-  [ROLES.MANAGER]: [],
-  [ROLES.EMPLOYEE]: [],
-};
-
 export const VALID_ROLES = Object.values(ROLES);
-
-=======
-export const VALID_ROLES = Object.values(ROLES);
->>>>>>> edcd8e8662bbbbf8fa94bbcd5c7175c95346c1cb

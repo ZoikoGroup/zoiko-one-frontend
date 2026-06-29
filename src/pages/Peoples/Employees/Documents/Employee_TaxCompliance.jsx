@@ -1,50 +1,124 @@
-export default function TaxCompliance() {
-  const taxDocs = [
-    { name: "Form 16 – FY 2025-26",     year: "2025-26", type: "Form 16",   status: "Available" },
-    { name: "Form 16 – FY 2024-25",     year: "2024-25", type: "Form 16",   status: "Available" },
-    { name: "Investment Declaration",    year: "2025-26", type: "IT Filing", status: "Submitted" },
-    { name: "Proof Submission Receipt",  year: "2025-26", type: "Proof",     status: "Available" },
-    { name: "TDS Certificate Q1",        year: "2025-26", type: "TDS",       status: "Available" },
-    { name: "TDS Certificate Q4",        year: "2024-25", type: "TDS",       status: "Available" },
-  ];
+import { useEffect, useMemo, useState } from "react";
+import HRPage from "../../../../components/HRPage";
+import { getDocuments } from "../../../../service/employee";
 
-  const statusColor = {
-    Available: { color: "#059669", bg: "#ECFDF5" },
-    Submitted: { color: "#4F46E5", bg: "#EEF2FF" },
-    Pending:   { color: "#D97706", bg: "#FFFBEB" },
-  };
+const statusColor = {
+  Available: { color: "text-emerald-700", bg: "bg-emerald-50" },
+  Submitted: { color: "text-indigo-700", bg: "bg-indigo-50" },
+  Pending: { color: "text-amber-700", bg: "bg-amber-50" },
+};
+
+function resolveStatusColor(status) {
+  return statusColor[status] || { color: "text-gray-700", bg: "bg-gray-100" };
+}
+
+function normalizeStatus(s) {
+  const t = String(s || "").toLowerCase();
+  if (t.includes("available") || t.includes("generated") || t.includes("ready")) return "Available";
+  if (t.includes("submit") || t.includes("filed") || t.includes("done")) return "Submitted";
+  if (t.includes("pending") || t.includes("processing")) return "Pending";
+  return "Available";
+}
+
+export default function TaxCompliance() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rawDocs, setRawDocs] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getDocuments({ category: "tax" });
+        const data = res?.data || res?.items || [];
+        if (mounted) setRawDocs(Array.isArray(data) ? data : []);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.message || "Failed to load tax documents");
+        setRawDocs([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const taxDocs = useMemo(() => {
+    return rawDocs.map((d) => {
+      const name = d.title || d.name || d.document_type || d.id || "Tax Document";
+      const year = d.year || d.financial_year || d.fy || (d.created_at ? String(d.created_at).slice(0, 7) : "-");
+      const type = d.type || d.document_type || d.category || "Tax";
+      const status = normalizeStatus(d.status || d.document_status);
+      const id = d.id || d.document_id || name;
+      return { id, name, year, type, status };
+    });
+  }, [rawDocs]);
+
+  if (loading) {
+    return (
+      <HRPage title="Tax & Compliance" subtitle="Access your Form 16, TDS certificates, and investment declarations.">
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <span className="ml-3 text-gray-500">Loading tax documents...</span>
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
-    <div style={{ padding: "32px", background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{ marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", margin: "0 0 6px 0" }}>Tax & Compliance</h1>
-        <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>Access your Form 16, TDS certificates, and investment declarations.</p>
-      </div>
+    <HRPage title="Tax & Compliance" subtitle="Access your Form 16, TDS certificates, and investment declarations.">
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>
+      )}
 
-      {/* Info Banner */}
-      <div style={{ padding: "16px 20px", borderRadius: "10px", background: "#EEF2FF", border: "1px solid #C7D2FE", marginBottom: "24px", display: "flex", alignItems: "center", gap: "12px" }}>
-        <span style={{ fontSize: "18px" }}>ℹ️</span>
-        <p style={{ fontSize: "13px", color: "#3730A3", margin: 0 }}>Form 16 for FY 2025-26 will be available by July 15, 2026. Please consult your tax advisor for filing.</p>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {taxDocs.map((d, i) => (
-          <div key={i} style={{ padding: "18px 24px", borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ fontSize: "15px", fontWeight: "700", color: "#111827", margin: "0 0 4px 0" }}>{d.name}</p>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <span style={{ fontSize: "12px", color: "#9CA3AF" }}>FY {d.year}</span>
-                <span style={{ fontSize: "12px", color: "#9CA3AF" }}>·</span>
-                <span style={{ fontSize: "12px", fontWeight: "600", color: "#6B7280" }}>{d.type}</span>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 10px", borderRadius: "999px", color: statusColor[d.status].color, background: statusColor[d.status].bg }}>{d.status}</span>
-              <button style={{ padding: "7px 14px", background: "#F3F4F6", color: "#374151", border: "none", borderRadius: "7px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>Download</button>
-            </div>
+      {!error && (
+        <>
+          {/* Info Banner */}
+          <div className="mb-6 px-5 py-4 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center gap-3">
+            <span className="text-lg">&#x2139;&#xFE0F;</span>
+            <p className="text-sm text-indigo-800 m-0">
+              Form 16 for FY 2025-26 will be available by July 15, 2026. Please consult your tax advisor for filing.
+            </p>
           </div>
-        ))}
-      </div>
-    </div>
+
+          {/* Document List */}
+          <div className="space-y-3">
+            {taxDocs.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">No tax documents found.</div>
+            ) : (
+              taxDocs.map((d) => {
+                const sc = resolveStatusColor(d.status);
+                return (
+                  <div
+                    key={d.id}
+                    className="px-6 py-4.5 rounded-xl bg-white border border-gray-200 flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 m-0 mb-1">{d.name}</p>
+                      <div className="flex gap-2 items-center text-xs text-gray-400">
+                        <span>FY {d.year}</span>
+                        <span>&middot;</span>
+                        <span className="font-semibold text-gray-500">{d.type}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2.5 items-center">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${sc.color} ${sc.bg}`}>
+                        {d.status}
+                      </span>
+                      <button className="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 border-none rounded-lg text-xs font-semibold cursor-pointer">
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
+    </HRPage>
   );
 }

@@ -133,4 +133,13 @@ export const ROLE_ALLOWED_PREFIXES = {
   ],
 };
 
+// Role-based user creation permissions
+export const ROLE_CREATION_RULES = {
+  [ROLES.SUPER_ADMIN]: [ROLES.ADMIN],
+  [ROLES.ADMIN]: [ROLES.ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.HR_ADMIN]: [ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
+  [ROLES.MANAGER]: [],
+  [ROLES.EMPLOYEE]: [],
+};
+
 export const VALID_ROLES = Object.values(ROLES);

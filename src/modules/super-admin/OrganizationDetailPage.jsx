@@ -26,6 +26,8 @@ export default function OrganizationDetailPage() {
   const [actionLoading, setActionLoading] = useState(null);
   const [rejectModal, setRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [statusModal, setStatusModal] = useState(null);
+  const [statusReason, setStatusReason] = useState("");
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -95,19 +97,45 @@ export default function OrganizationDetailPage() {
     finally { setActionLoading(null); }
   };
 
-  const StatusBadge = ({ status }) => {
-    const map = {
-      PENDING: "bg-amber-50 text-amber-700 border-amber-200",
-      ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      REJECTED: "bg-red-50 text-red-700 border-red-200",
-      SUSPENDED: "bg-slate-50 text-slate-700 border-slate-200",
-    };
-    return (
-      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${map[status] || "bg-slate-50 text-slate-600"}`}>
-        {status}
-      </span>
-    );
+  const handleStatusChange = async () => {
+    if (!statusModal) return;
+    setActionLoading("status");
+    try {
+      await superAdminService.updateOrganizationStatus(orgId, {
+        status: statusModal.status,
+        reason: statusReason || null,
+      });
+      setStatusModal(null);
+      setStatusReason("");
+      loadAll();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setActionLoading(null);
+    }
   };
+
+   const StatusBadge = ({ status }) => {
+     const map = {
+       PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+       ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
+       REJECTED: "bg-red-50 text-red-700 border-red-200",
+       SUSPENDED: "bg-slate-50 text-slate-700 border-slate-200",
+       DEACTIVATED: "bg-purple-50 text-purple-700 border-purple-200",
+     };
+     return (
+       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${map[status] || "bg-slate-50 text-slate-600"}`}>
+         {status}
+       </span>
+     );
+   };
+
+   const statusOptions = [
+     { value: "ACTIVE", label: "Active", color: "text-emerald-700 bg-emerald-50" },
+     { value: "SUSPENDED", label: "Suspended", color: "text-slate-700 bg-slate-50" },
+     { value: "DEACTIVATED", label: "Deactivated", color: "text-purple-700 bg-purple-50" },
+     { value: "REJECTED", label: "Rejected", color: "text-red-700 bg-red-50" },
+   ];
 
   const sections = [
     { key: "profile", label: "Profile", icon: Building },
@@ -172,7 +200,6 @@ export default function OrganizationDetailPage() {
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">{org.name}</h2>
                   <div className="flex items-center gap-3 mt-1">
-                    <StatusBadge status={org.status} />
                     <span className="text-xs text-slate-400 font-mono">{org.code}</span>
                   </div>
                   <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
@@ -181,31 +208,40 @@ export default function OrganizationDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                {org.status === "PENDING" && (
-                  <>
-                    <button onClick={handleApprove} disabled={actionLoading === "approve"}
-                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50">
-                      <ThumbsUp className="h-4 w-4" /> Approve
-                    </button>
-                    <button onClick={handleReject} disabled={actionLoading === "reject"}
-                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-50">
-                      <ThumbsDown className="h-4 w-4" /> Reject
-                    </button>
-                  </>
-                )}
-                {org.status === "ACTIVE" && (
-                  <button onClick={handleSuspend} disabled={actionLoading === "suspend"}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-600 text-white text-sm font-semibold hover:bg-slate-700 disabled:opacity-50">
-                    <ShieldAlert className="h-4 w-4" /> Suspend
-                  </button>
-                )}
-                {org.status === "SUSPENDED" && (
-                  <button onClick={handleReactivate} disabled={actionLoading === "reactivate"}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50">
-                    <RotateCcw className="h-4 w-4" /> Reactivate
-                  </button>
-                )}
+              <div className="flex gap-2 items-center">
+                <StatusBadge status={org.status} />
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const target = e.target.value;
+                      if (!target) return;
+                      const option = statusOptions.find(o => o.value === target);
+                      if (!option) return;
+                      if (target === "REJECTED") {
+                        if (org.status !== "PENDING") return;
+                        handleReject();
+                        return;
+                      }
+                      setStatusModal({ status: target, label: option.label });
+                      setStatusReason("");
+                    }}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 outline-none focus:border-[#FF7A00] cursor-pointer"
+                  >
+                    <option value="">Change status...</option>
+                    {statusOptions.map(o => {
+                      const disabled =
+                        (o.value === org.status) ||
+                        (o.value === "ACTIVE" && org.status !== "PENDING" && org.status !== "SUSPENDED") ||
+                        (o.value === "SUSPENDED" && org.status !== "ACTIVE") ||
+                        (o.value === "REJECTED" && org.status !== "PENDING") ||
+                        (o.value === "DEACTIVATED" && org.status === "DEACTIVATED");
+                      return (
+                        <option key={o.value} value={o.value} disabled={disabled}>
+                          {o.label}
+                        </option>
+                      );
+                    })}
+                  </select>
               </div>
             </div>
           </div>
@@ -403,16 +439,23 @@ export default function OrganizationDetailPage() {
                         <div className={`absolute -left-[26px] h-6 w-6 rounded-full flex items-center justify-center border-2 ${
                           h.action === "approved" ? "border-emerald-400 bg-emerald-50" :
                           h.action === "rejected" ? "border-red-400 bg-red-50" :
+                          h.action === "suspended" || h.action === "deactivated" ? "border-slate-400 bg-slate-50" :
                           "border-blue-400 bg-blue-50"
                         }`}>
                           {h.action === "approved" ? <CheckCircle className="h-3 w-3 text-emerald-500" /> :
                            h.action === "rejected" ? <XCircle className="h-3 w-3 text-red-500" /> :
+                           h.action === "suspended" || h.action === "deactivated" ? <ShieldAlert className="h-3 w-3 text-slate-500" /> :
                            <RotateCcw className="h-3 w-3 text-blue-500" />}
                         </div>
                         <div className="text-sm">
                           <span className="font-bold text-slate-700 capitalize">{h.action}</span>
+                          {h.previous_status && h.new_status && (
+                            <span className="text-slate-500">
+                              {' '}<StatusBadge status={h.previous_status} /> → <StatusBadge status={h.new_status} />
+                            </span>
+                          )}
                           <span className="text-slate-500"> by {h.performed_by_name || "System"}</span>
-                          {h.reason && <p className="text-xs text-red-500 mt-1">Reason: {h.reason}</p>}
+                          {h.reason && <p className="text-xs text-slate-500 mt-1 italic">{h.reason}</p>}
                           <div className="text-xs text-slate-400 mt-0.5">{new Date(h.created_at).toLocaleString()}</div>
                         </div>
                       </div>
@@ -473,6 +516,38 @@ export default function OrganizationDetailPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Status Change Confirmation Modal */}
+      {statusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-xl border border-slate-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-full bg-[#FF7A00]/10 flex items-center justify-center">
+                <ShieldAlert className="h-5 w-5 text-[#FF7A00]" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800">Change Organization Status</h3>
+            </div>
+            <p className="text-sm text-slate-600 mb-4">
+              Change <strong>{org?.name}</strong> status to <span className="font-bold">{statusModal.label}</span>.
+              Current status: <StatusBadge status={org?.status} />
+            </p>
+            <textarea
+              value={statusReason}
+              onChange={(e) => setStatusReason(e.target.value)}
+              placeholder="Optional reason for this status change..."
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-4 text-sm text-slate-800 outline-none focus:border-[#FF7A00] min-h-[80px] resize-y"
+            />
+            <div className="flex gap-3 mt-6 justify-end">
+              <button onClick={() => setStatusModal(null)}
+                className="px-4 py-2 rounded-full border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button onClick={handleStatusChange} disabled={actionLoading === "status"}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF7A00] text-white text-sm font-semibold hover:bg-[#E66E00] disabled:opacity-50">
+                {actionLoading === "status" ? "Updating..." : `Change to ${statusModal.label}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Reject Reason Modal */}

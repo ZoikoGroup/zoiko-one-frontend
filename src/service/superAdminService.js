@@ -9,8 +9,12 @@ export const superAdminService = {
   getOrganization: (id) => api.get(`/super-admin/organizations/${id}`),
   updateOrganization: (id, data) => api.put(`/super-admin/organizations/${id}`, data),
   suspendOrganization: (id) => api.put(`/super-admin/organizations/${id}/suspend`),
+  putOnHold: (id) => api.put(`/super-admin/organizations/${id}/hold`),
   activateOrganization: (id) => api.put(`/super-admin/organizations/${id}/activate`),
   deleteOrganization: (id) => api.delete(`/super-admin/organizations/${id}`),
+  getOrganizationStats: (id) => api.get(`/super-admin/organizations/${id}/stats`),
+  getOrganizationUsers: (orgId, params) => api.get(`/super-admin/organizations/${orgId}/users`, { params }),
+  createOrganization: (data) => api.post("/super-admin/organizations", data),
 
   // Products
   getProducts: () => api.get("/super-admin/products"),
@@ -24,12 +28,8 @@ export const superAdminService = {
   getOrganizationSubscription: (orgId) => api.get(`/super-admin/subscriptions/${orgId}`),
   updateSubscription: (orgId, data) => api.put(`/super-admin/subscriptions/${orgId}`, data),
 
-  // Platform Users
+  // Platform Users - Read-only user view (no lifecycle management)
   getUsers: (params) => api.get("/super-admin/users", { params }),
-  inviteUser: (data) => api.post("/super-admin/users/invite", data),
-  disableUser: (id) => api.put(`/super-admin/users/${id}/disable`),
-  enableUser: (id) => api.put(`/super-admin/users/${id}/enable`),
-  resetUserPassword: (id, data) => api.put(`/super-admin/users/${id}/reset-password`, data),
 
   // Audit Logs
   getAuditLogs: (params) => api.get("/super-admin/audit-logs", { params }),
@@ -46,9 +46,6 @@ export const superAdminService = {
 
   // Analytics
   getAnalytics: () => api.get("/super-admin/analytics"),
-
-  // Create Organization
-  createOrganization: (data) => api.post("/super-admin/organizations", data),
 
   // Revenue / Storage
   getRevenue: () => api.get("/super-admin/revenue"),
@@ -72,14 +69,16 @@ export const superAdminService = {
   // Login Activity
   getLoginActivity: (params) => api.get("/super-admin/login-activity", { params }),
 
-  // Approval Workflow
-  getPendingOrganizations: (params) => api.get("/super-admin/organizations/pending", { params }),
-  getApprovedOrganizations: (params) => api.get("/super-admin/organizations/approved", { params }),
-  getRejectedOrganizations: (params) => api.get("/super-admin/organizations/rejected", { params }),
-  getSuspendedOrganizations: (params) => api.get("/super-admin/organizations/suspended", { params }),
-  getOrganizationDetail: (orgId) => api.get(`/super-admin/organizations/${orgId}/details`),
-  approveOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/approve`),
-  rejectOrganization: (orgId, data) => api.put(`/super-admin/organizations/${orgId}/reject`, data),
-  reactivateOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/reactivate`),
-  getApprovalHistory: (orgId) => api.get(`/super-admin/organizations/${orgId}/approval-history`),
+   // Approval Workflow
+   getPendingOrganizations: (params) => api.get("/super-admin/organizations/pending", { params }),
+   getApprovedOrganizations: (params) => api.get("/super-admin/organizations/approved", { params }),
+   getRejectedOrganizations: (params) => api.get("/super-admin/organizations/rejected", { params }),
+   getSuspendedOrganizations: (params) => api.get("/super-admin/organizations/suspended", { params }),
+   getDeactivatedOrganizations: (params) => api.get("/super-admin/organizations/deactivated", { params }),
+   getOrganizationDetail: (orgId) => api.get(`/super-admin/organizations/${orgId}/details`),
+   approveOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/approve`),
+   rejectOrganization: (orgId, data) => api.put(`/super-admin/organizations/${orgId}/reject`, data),
+   reactivateOrganization: (orgId) => api.put(`/super-admin/organizations/${orgId}/reactivate`),
+   getApprovalHistory: (orgId) => api.get(`/super-admin/organizations/${orgId}/approval-history`),
+   updateOrganizationStatus: (orgId, data) => api.put(`/super-admin/organizations/${orgId}/status`, data),
 };

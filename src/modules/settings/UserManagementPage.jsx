@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUsers, createUser, updateUser, deactivateUser, activateUser, resetPassword } from "../../service/userService";
-import { User, Edit, Trash2, Plus, Search, ChevronDown, Eye, EyeOff, RefreshCw, Unlock, CheckCircle, X } from "lucide-react";
+import { superAdminService } from "../../service/superAdminService";
+import { User, Edit, Trash2, Plus, Search, ChevronDown, Eye, EyeOff, RefreshCw, Unlock, CheckCircle, X, Building2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { ROLE_CREATION_RULES, ROLE_LABELS } from "../../config/roles";
 
@@ -32,7 +33,8 @@ const initialForm = {
 
 export default function UserManagementPage() {
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { user, role } = useAuth();
+  const isSuperAdmin = role === "super_admin";
   const allowedRoles = ROLE_CREATION_RULES[role] || [];
   const canCreateUsers = allowedRoles.length > 0;
   const ROLE_OPTIONS = ALL_ROLE_OPTIONS.filter((r) => allowedRoles.includes(r.value));
@@ -43,41 +45,78 @@ export default function UserManagementPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [orgFilter, setOrgFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({ ...initialForm });
   const [formErrors, setFormErrors] = useState({});
-
   const [createdPassword, setCreatedPassword] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [summaryStats, setSummaryStats] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getUsers({
-        page: currentPage,
-        per_page: ITEMS_PER_PAGE,
-        search,
-        role: roleFilter,
-        status: statusFilter,
-      });
-      setUsers(data.items || []);
-      setTotal(data.total || 0);
+      if (isSuperAdmin) {
+        const data = await superAdminService.getUsers({
+          page: currentPage,
+          page_size: ITEMS_PER_PAGE,
+          search: search || undefined,
+          role: roleFilter || undefined,
+          status: statusFilter || undefined,
+          organization_id: orgFilter ? parseInt(orgFilter) : undefined,
+        });
+        setUsers(data.users || []);
+        setTotal(data.total || 0);
+        setSummaryStats({
+          total_organizations: data.total_organizations,
+          total_org_admins: data.total_org_admins,
+          total_hr_admins: data.total_hr_admins,
+          total_managers: data.total_managers,
+          total_employees: data.total_employees,
+        });
+      } else {
+        const data = await getUsers({
+          page: currentPage,
+          per_page: ITEMS_PER_PAGE,
+          search,
+          role: roleFilter,
+          status: statusFilter,
+        });
+        setUsers(data.items || []);
+        setTotal(data.total || 0);
+        setSummaryStats(null);
+      }
     } catch (err) {
       setError(err.message || "Failed to load users");
       setUsers([]);
       setTotal(0);
+      setSummaryStats(null);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search, roleFilter, statusFilter]);
+  }, [currentPage, search, roleFilter, statusFilter, orgFilter, isSuperAdmin]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      superAdminService.getUsers({ page: 1, page_size: 1 }).then(data => {
+        setSummaryStats({
+          total_organizations: data.total_organizations,
+          total_org_admins: data.total_org_admins,
+          total_hr_admins: data.total_hr_admins,
+          total_managers: data.total_managers,
+          total_employees: data.total_employees,
+        });
+      }).catch(() => {});
+    }
+  }, [isSuperAdmin]);
 
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -184,11 +223,17 @@ export default function UserManagementPage() {
     }
   };
 
-  const stats = {
-    total: users.length,
-    active: users.filter((u) => u.is_active !== false).length,
-    inactive: users.filter((u) => u.is_active === false).length,
-  };
+  const stats = isSuperAdmin && summaryStats ? [
+    { label: "Total Organizations", value: summaryStats.total_organizations, color: "text-indigo-600" },
+    { label: "Organization Admins", value: summaryStats.total_org_admins, color: "text-purple-600" },
+    { label: "HR Admins", value: summaryStats.total_hr_admins, color: "text-blue-600" },
+    { label: "Managers", value: summaryStats.total_managers, color: "text-yellow-600" },
+    { label: "Employees", value: summaryStats.total_employees, color: "text-green-600" },
+  ] : [
+    { label: "Total", value: users.length, color: "text-gray-800" },
+    { label: "Active", value: users.filter((u) => u.is_active !== false).length, color: "text-green-600" },
+    { label: "Inactive", value: users.filter((u) => u.is_active === false).length, color: "text-red-600" },
+  ];
 
   if (loading && users.length === 0) {
     return (
@@ -197,7 +242,9 @@ export default function UserManagementPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-6">
               <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-              <p className="mt-1 text-sm text-gray-500">Manage organization users and their roles.</p>
+              <p className="mt-1 text-sm text-gray-500">
+                {isSuperAdmin ? "Manage all platform users across organizations." : "Manage organization users and their roles."}
+              </p>
             </div>
           </div>
         </header>
@@ -217,7 +264,9 @@ export default function UserManagementPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="mt-1 text-sm text-gray-500">Manage organization users and their roles.</p>
+            <p className="mt-1 text-sm text-gray-500">
+              {isSuperAdmin ? "Manage all platform users across organizations." : "Manage organization users and their roles."}
+            </p>
           </div>
         </div>
       </header>
@@ -230,19 +279,13 @@ export default function UserManagementPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2">
-              <p className="text-xs text-gray-400">Total</p>
-              <p className="text-lg font-bold text-gray-800">{stats.total}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2">
-              <p className="text-xs text-gray-400">Active</p>
-              <p className="text-lg font-bold text-green-600">{stats.active}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2">
-              <p className="text-xs text-gray-400">Inactive</p>
-              <p className="text-lg font-bold text-red-600">{stats.inactive}</p>
-            </div>
+          <div className="grid grid-cols-5 gap-3">
+            {stats.map((s) => (
+              <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2">
+                <p className="text-xs text-gray-400">{s.label}</p>
+                <p className={`text-lg font-bold ${s.color}`}>{s.value ?? "-"}</p>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-wrap justify-between items-center gap-4">
@@ -306,6 +349,7 @@ export default function UserManagementPage() {
                     <tr>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">User</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+                      {isSuperAdmin && <th className="text-left px-4 py-3 font-semibold text-gray-600">Organization</th>}
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Role</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Job Title</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
@@ -327,9 +371,17 @@ export default function UserManagementPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                        {isSuperAdmin && (
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-gray-400" />
+                              <span className="text-gray-700">{u.organization_name || "Unknown"}</span>
+                            </div>
+                          </td>
+                        )}
                         <td className="px-4 py-3">
                           <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${ROLE_BADGES[u.role] || "bg-gray-100 text-gray-800"}`}>
-                            {ROLE_OPTIONS.find((r) => r.value === u.role)?.label || u.role}
+                            {ROLE_LABELS[u.role] || u.role}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{u.job_title || "-"}</td>

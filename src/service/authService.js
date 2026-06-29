@@ -51,17 +51,12 @@ export async function fetchCurrentUser() {
   try {
     return await api.get("/auth/me");
   } catch (err) {
-    console.warn("fetchCurrentUser failed, using cached or mock user:", err);
+    console.warn("fetchCurrentUser failed:", err);
     const cached = getCachedUser();
     if (cached) return cached;
-    return {
-      id: 0,
-      name: "Demo User",
-      first_name: "Demo",
-      last_name: "User",
-      email: "admin@zoiko.com",
-      role: "admin",
-    };
+    // Do NOT return a fake/demo user — clear session and propagate the error
+    clearSession();
+    throw err;
   }
 }
 

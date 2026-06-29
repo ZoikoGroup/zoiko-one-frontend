@@ -34,7 +34,12 @@ export default function RegisterPage() {
     setLocalError(null);
     setSubmitting(true);
     try {
-      await register(form);
+      await register({
+        name: form.adminName,
+        email: form.adminEmail,
+        password: form.password,
+        organization: form.orgName,
+      });
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setLocalError(err.message || "Unable to create your account.");

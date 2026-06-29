@@ -1,40 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Trash2, Plus, Upload, Search, X, Check, RefreshCw, FileText, Eye } from "lucide-react";
+import {
+  Trash2, Plus, Upload, Search, X, Check, RefreshCw, FileText, Download, User, Briefcase, Hash, AlertCircle
+} from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDocuments, uploadDocument, deleteDocument } from "../../../service/hrService";
 import { API_BASE_URL } from "../../../service/api";
 import { useAuth } from "../../../context/AuthContext";
 
-// ── Shared inline helpers ─────────────────────────────────────────────────────
-const STATUS_META = {
-  pending:  { label: "Pending",  bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200",  dot: "bg-amber-500"  },
-  approved: { label: "Approved", bg: "bg-emerald-50",  text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
-  rejected: { label: "Rejected", bg: "bg-rose-50",    text: "text-rose-700",   border: "border-rose-200",   dot: "bg-rose-500"   },
-  expired:  { label: "Expired",  bg: "bg-slate-100",  text: "text-slate-500",  border: "border-slate-200",  dot: "bg-slate-400"  },
-};
-const StatusBadge = ({ status }) => {
-  const m = STATUS_META[status] || STATUS_META.pending;
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${m.bg} ${m.text} ${m.border}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
-      {m.label}
-    </span>
-  );
-};
-const CAT_COLORS = {
-  company:  "bg-indigo-50 text-indigo-700 border-indigo-200",
-  employee: "bg-violet-50 text-violet-700 border-violet-200",
-  contract: "bg-cyan-50 text-cyan-700 border-cyan-200",
-  policy:   "bg-teal-50 text-teal-700 border-teal-200",
-};
-const CategoryPill = ({ category }) => {
-  const cls = CAT_COLORS[category?.toLowerCase()] || "bg-slate-100 text-slate-600 border-slate-200";
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize ${cls}`}>
-      {category || "other"}
-    </span>
-  );
-};
 const fileTypeIcon = (filename = "") => {
   const ext = filename.split(".").pop()?.toLowerCase();
   const map = { pdf: "📄", doc: "📝", docx: "📝", xls: "📊", xlsx: "📊", png: "🖼️", jpg: "🖼️", jpeg: "🖼️", pptx: "📑" };
@@ -46,7 +18,6 @@ const fmtDate = (iso) => {
   return isNaN(d) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 };
 
-// ── Upload modal ──────────────────────────────────────────────────────────────
 function UploadModal({ onClose, onUploaded, user }) {
   const [file, setFile]         = useState(null);
   const [name, setName]         = useState("");
@@ -72,7 +43,6 @@ function UploadModal({ onClose, onUploaded, user }) {
       onUploaded();
       onClose();
     } catch (err) {
-      // FastAPI 422 detail is an array of {loc, msg, type} objects
       const detail = err?.response?.data?.detail;
       const msg = Array.isArray(detail)
         ? detail.map(e => e.msg || e.message || JSON.stringify(e)).join("; ")
@@ -95,7 +65,6 @@ function UploadModal({ onClose, onUploaded, user }) {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* File picker */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">File *</label>
             <div
@@ -114,8 +83,6 @@ function UploadModal({ onClose, onUploaded, user }) {
             </div>
             <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files[0] || null)} />
           </div>
-
-          {/* Name */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Display Name</label>
             <input
@@ -126,8 +93,6 @@ function UploadModal({ onClose, onUploaded, user }) {
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
             />
           </div>
-
-          {/* Category */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category *</label>
             <select
@@ -141,8 +106,6 @@ function UploadModal({ onClose, onUploaded, user }) {
               <option value="policy">Policy</option>
             </select>
           </div>
-
-          {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
             <textarea
@@ -153,11 +116,9 @@ function UploadModal({ onClose, onUploaded, user }) {
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
             />
           </div>
-
           {error && (
             <p className="text-xs text-rose-600 font-medium bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{error}</p>
           )}
-
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 text-sm font-medium text-slate-600 border border-gray-200 rounded-lg hover:bg-gray-50">
               Cancel
@@ -178,7 +139,6 @@ function UploadModal({ onClose, onUploaded, user }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
 export default function EmployeeDocuments() {
   const { user } = useAuth();
   const [docs, setDocs]           = useState([]);
@@ -224,6 +184,12 @@ export default function EmployeeDocuments() {
     }
   };
 
+  const getDownloadUrl = (d) => {
+    if (d.file_url) return d.file_url;
+    if (d.file_path) return `${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`;
+    return null;
+  };
+
   const filtered = docs
     .filter(d => !search.trim() || d.title?.toLowerCase().includes(search.trim().toLowerCase()));
 
@@ -231,11 +197,10 @@ export default function EmployeeDocuments() {
     <HRPage title="Employee Documents">
       <div className="space-y-6 pb-10">
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Employee Documents</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Manage personal employee files, contracts, and ID documents.</p>
+            <p className="text-sm text-slate-500 mt-0.5">View all documents uploaded by employees. Download and manage files.</p>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-center">
             <button onClick={load} className="p-2 rounded-lg border border-gray-200 bg-white text-slate-400 hover:text-slate-600 hover:bg-gray-50">
@@ -250,19 +215,17 @@ export default function EmployeeDocuments() {
           </div>
         </div>
 
-        {/* Search */}
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search documents…"
+            placeholder="Search by document name…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
           />
         </div>
 
-        {/* Table */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
             <svg className="animate-spin h-8 w-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
@@ -296,49 +259,48 @@ export default function EmployeeDocuments() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-xs uppercase text-gray-400">
                     <tr>
-                      <th className="text-left px-6 py-3 font-semibold">Document</th>
-                      <th className="text-left px-6 py-3 font-semibold">Category</th>
-                      <th className="text-left px-6 py-3 font-semibold">Status</th>
-                      <th className="text-left px-6 py-3 font-semibold">Uploaded</th>
-                      <th className="text-center px-6 py-3 font-semibold">Actions</th>
+                      <th className="text-left px-6 py-3 font-semibold"><Hash className="w-3 h-3 inline mr-1" />ID</th>
+                      <th className="text-left px-6 py-3 font-semibold"><User className="w-3 h-3 inline mr-1" />Employee Name</th>
+                      <th className="text-left px-6 py-3 font-semibold"><Briefcase className="w-3 h-3 inline mr-1" />Designation</th>
+                      <th className="text-left px-6 py-3 font-semibold"><FileText className="w-3 h-3 inline mr-1" />Document Name</th>
+                      <th className="text-center px-6 py-3 font-semibold"><Download className="w-3 h-3 inline mr-1" />Download</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filtered.map(d => (
+                    {filtered.map((d, idx) => (
                       <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
+                        <td className="px-6 py-3 text-xs font-mono text-slate-400">{d.id || idx + 1}</td>
                         <td className="px-6 py-3">
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg shrink-0">{fileTypeIcon(d.file_name || d.title)}</span>
-                            <span className="font-medium text-slate-800 truncate max-w-[200px]">{d.title}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600 shrink-0">
+                              {(d.employee_name || d.uploader_name || "?").charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-medium text-slate-800">{d.employee_name || d.uploader_name || "—"}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
-                        <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
-                        <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.created_at)}</td>
-                        <td className="px-6 py-3 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            {d.file_path && (
-                              <a
-                                href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 rounded-lg text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors"
-                                title="View document"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </a>
-                            )}
-                            <button
-                              onClick={() => setConfirmDelete({ id: d.id, name: d.title })}
-                              disabled={deletingId === d.id}
-                              className="p-2 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-40"
-                              title="Delete document"
-                            >
-                              {deletingId === d.id
-                                ? <RefreshCw className="w-4 h-4 animate-spin" />
-                                : <Trash2 className="w-4 h-4" />}
-                            </button>
+                        <td className="px-6 py-3 text-slate-600">{d.designation || d.designation_name || "—"}</td>
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg shrink-0">{fileTypeIcon(d.file_name || d.title)}</span>
+                            <div>
+                              <p className="font-medium text-slate-800 truncate max-w-[200px]">{d.title}</p>
+                              {d.file_name && <p className="text-xs text-slate-400">{d.file_name}</p>}
+                            </div>
                           </div>
+                        </td>
+                        <td className="px-6 py-3 text-center">
+                          {getDownloadUrl(d) ? (
+                            <a
+                              href={getDownloadUrl(d)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Download
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-400">No file</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -353,10 +315,8 @@ export default function EmployeeDocuments() {
         )}
       </div>
 
-      {/* Upload modal */}
       {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUploaded={load} user={user} />}
 
-      {/* Delete confirm */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
@@ -376,7 +336,6 @@ export default function EmployeeDocuments() {
         </div>
       )}
 
-      {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 ${toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"} text-white`}>
           {toast.type === "success" ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}

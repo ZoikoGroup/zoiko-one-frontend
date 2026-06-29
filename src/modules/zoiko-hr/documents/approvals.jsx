@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Check, X, Clock, RefreshCw, AlertCircle, Eye } from "lucide-react";
+import {
+  Check, X, Clock, RefreshCw, AlertCircle, Eye, ThumbsUp, ThumbsDown,
+  MessageSquare, Loader2, Search, Filter
+} from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getDocuments, updateDocumentStatus } from "../../../service/hrService";
 import { API_BASE_URL } from "../../../service/api";
 
-// ── Shared inline helpers ─────────────────────────────────────────────────────
 const STATUS_META = {
   pending:  { label: "Pending",  bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200",  dot: "bg-amber-500"  },
   approved: { label: "Approved", bg: "bg-emerald-50",  text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
@@ -40,12 +42,16 @@ const fmtDate = (iso) => {
   return isNaN(d) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 };
 
+const STATUS_FILTERS = ["all", "pending", "approved", "rejected", "expired"];
+
 export default function Approvals() {
   const [docs, setDocs]             = useState([]);
   const [loading, setLoading]       = useState(true);
   const [processingId, setProcessingId] = useState(null);
   const [toast, setToast]           = useState(null);
-  const [confirm, setConfirm]       = useState(null);
+  const [search, setSearch]         = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [actionModal, setActionModal] = useState(null);
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -66,32 +72,48 @@ export default function Approvals() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleAction = async (id, status) => {
-    setConfirm(null);
+  const handleApproveReject = async () => {
+    if (!actionModal) return;
+    const { id, newStatus, feedback } = actionModal;
+    if (newStatus === "rejected" && !feedback.trim()) {
+      setActionModal({ ...actionModal, feedbackError: true });
+      return;
+    }
     setProcessingId(id);
     try {
-      await updateDocumentStatus(id, status);
-      showToast("success", `Document ${status === "approved" ? "approved" : "rejected"} successfully.`);
-      load();
+      await updateDocumentStatus(id, newStatus, feedback.trim() || undefined);
+      setDocs(prev => prev.map(d => d.id === id ? { ...d, status: newStatus, admin_feedback: feedback.trim(), rejection_reason: feedback.trim() } : d));
+      showToast("success", `Document ${newStatus === "approved" ? "approved" : "rejected"} successfully.${feedback.trim() ? ` Feedback sent.` : ""}`);
+      setActionModal(null);
     } catch (err) {
-      showToast("error", err?.message || `Failed to ${status} document.`);
+      showToast("error", err?.message || `Failed to ${newStatus} document.`);
     } finally {
       setProcessingId(null);
     }
   };
 
+  const getDownloadUrl = (d) => {
+    if (d.file_url) return d.file_url;
+    if (d.file_path) return `${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`;
+    return null;
+  };
+
+  const filtered = docs
+    .filter(d => statusFilter === "all" || d.status === statusFilter)
+    .filter(d => !search.trim() || d.title?.toLowerCase().includes(search.trim().toLowerCase()));
+
   const pending  = docs.filter(d => d.status === "pending");
-  const resolved = docs.filter(d => d.status !== "pending");
+  const approved = docs.filter(d => d.status === "approved");
+  const rejected = docs.filter(d => d.status === "rejected");
 
   return (
-    <HRPage title="Approvals">
-      <div className="space-y-8 pb-10">
+    <HRPage title="Document Approvals">
+      <div className="space-y-6 pb-10">
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Document Approvals</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Review and approve or reject pending document submissions.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Review, approve or reject document submissions with feedback.</p>
           </div>
           <button
             onClick={load}
@@ -101,12 +123,11 @@ export default function Approvals() {
           </button>
         </div>
 
-        {/* Summary bar */}
         <div className="grid grid-cols-3 gap-4">
           {[
             { label: "Awaiting Review", value: pending.length, bg: "bg-amber-50", text: "text-amber-700", Icon: Clock },
-            { label: "Approved", value: docs.filter(d => d.status === "approved").length, bg: "bg-emerald-50", text: "text-emerald-700", Icon: Check },
-            { label: "Rejected", value: docs.filter(d => d.status === "rejected").length, bg: "bg-rose-50", text: "text-rose-700", Icon: X },
+            { label: "Approved", value: approved.length, bg: "bg-emerald-50", text: "text-emerald-700", Icon: Check },
+            { label: "Rejected", value: rejected.length, bg: "bg-rose-50", text: "text-rose-700", Icon: X },
           ].map(s => (
             <div key={s.label} className={`rounded-xl p-4 ${s.bg} flex items-center gap-3`}>
               <s.Icon className={`w-5 h-5 ${s.text} shrink-0`} />
@@ -118,179 +139,230 @@ export default function Approvals() {
           ))}
         </div>
 
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search documents…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {STATUS_FILTERS.map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 py-2 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                  statusFilter === s ? "bg-indigo-600 text-white shadow-sm" : "bg-white border border-gray-200 text-slate-600 hover:bg-gray-50"
+                }`}
+              >
+                {s === "all" ? "All" : s}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
             <svg className="animate-spin h-8 w-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
             </svg>
-            <span className="text-sm font-medium">Loading pending documents…</span>
+            <span className="text-sm font-medium">Loading documents…</span>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <span className="text-5xl mb-4">📄</span>
+            <p className="text-base font-semibold text-slate-700 mb-1">No documents found</p>
+            <p className="text-sm text-slate-400">No documents match your search or filter.</p>
           </div>
         ) : (
-          <>
-            {/* Pending queue */}
-            <section>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                Pending ({pending.length})
-              </h3>
-              {pending.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <span className="text-5xl mb-4">✅</span>
-                  <p className="text-base font-semibold text-slate-700 mb-1">All caught up!</p>
-                  <p className="text-sm text-slate-400">No documents are waiting for review right now.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {pending.map(d => (
-                    <div key={d.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-4 min-w-0">
-                        <div className="p-3 bg-amber-50 rounded-lg shrink-0">
-                          <AlertCircle className="w-5 h-5 text-amber-600" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">{d.title}</p>
-                          
-                          {/* Employee Name & Details */}
-                          {(d.employee_name || d.uploader_name) && (
-                            <p className="text-xs text-slate-600 mt-1">
-                              <strong>Employee:</strong> {d.employee_name || d.uploader_name}
-                              {d.uploader_name && d.employee_name !== d.uploader_name && ` (Uploaded by: ${d.uploader_name})`}
-                            </p>
-                          )}
-                          
-                          {/* Document File details */}
-                          {(d.file_name || d.file_size) && (
-                            <p className="text-xs text-slate-400 mt-0.5">
-                              {d.file_name && <span className="mr-2 font-medium">{d.file_name}</span>}
-                              {d.file_size && <span>({(d.file_size / 1024).toFixed(1)} KB)</span>}
-                            </p>
-                          )}
-
-                          <div className="flex flex-wrap items-center gap-2 mt-2">
-                            <CategoryPill category={d.category} />
-                            <StatusBadge status={d.status} />
-                            <span className="text-xs text-slate-400">Uploaded {fmtDate(d.created_at)}</span>
-                          </div>
-                          {d.description && (
-                            <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">{d.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                        {d.file_path && (
-                          <a
-                            href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors mr-1"
-                          >
-                            <Eye className="w-4 h-4" /> View
-                          </a>
+          <div className="space-y-3">
+            {filtered.map(d => {
+              const url = getDownloadUrl(d);
+              const isProcessing = processingId === d.id;
+              return (
+                <div key={d.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-4 min-w-0 flex-1">
+                    <div className={`p-3 rounded-lg shrink-0 ${
+                      d.status === "pending" ? "bg-amber-50" :
+                      d.status === "approved" ? "bg-emerald-50" :
+                      d.status === "rejected" ? "bg-rose-50" : "bg-slate-50"
+                    }`}>
+                      {d.status === "pending" ? <AlertCircle className="w-5 h-5 text-amber-600" /> :
+                       d.status === "approved" ? <Check className="w-5 h-5 text-emerald-600" /> :
+                       d.status === "rejected" ? <X className="w-5 h-5 text-rose-600" /> :
+                       <Clock className="w-5 h-5 text-slate-400" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-slate-900 truncate">{d.title}</p>
+                        {d.status === "pending" && (
+                          <span className="px-2 py-0.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-full animate-pulse">
+                            Needs Review
+                          </span>
                         )}
+                      </div>
+
+                      {(d.employee_name || d.uploader_name) && (
+                        <p className="text-xs text-slate-600 mt-1">
+                          <strong>Employee:</strong> {d.employee_name || d.uploader_name}
+                          {d.designation && <span className="ml-2 text-slate-400">({d.designation})</span>}
+                        </p>
+                      )}
+
+                      {(d.file_name || d.file_size) && (
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {d.file_name && <span className="mr-2 font-medium">{d.file_name}</span>}
+                          {d.file_size && <span>({(d.file_size / 1024).toFixed(1)} KB)</span>}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <CategoryPill category={d.category} />
+                        <StatusBadge status={d.status} />
+                        <span className="text-xs text-slate-400">Uploaded {fmtDate(d.created_at)}</span>
+                      </div>
+
+                      {d.description && (
+                        <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">{d.description}</p>
+                      )}
+
+                      {(d.admin_feedback || d.rejection_reason) && (
+                        <div className="mt-2 flex items-start gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                          <MessageSquare className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                          <p className="text-xs text-slate-600"><strong>Admin feedback:</strong> {d.admin_feedback || d.rejection_reason}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    {url && (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" /> View
+                      </a>
+                    )}
+
+                    {d.status === "pending" && (
+                      <>
                         <button
-                          onClick={() => setConfirm({ id: d.id, name: d.title, action: "rejected" })}
-                          disabled={processingId === d.id}
+                          onClick={() => setActionModal({ id: d.id, name: d.title, newStatus: "rejected", feedback: "", feedbackError: false })}
+                          disabled={isProcessing}
                           className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-rose-600 border border-rose-200 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors disabled:opacity-50"
                         >
-                          <X className="w-4 h-4" /> Reject
+                          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ThumbsDown className="w-4 h-4" />}
+                          Reject
                         </button>
                         <button
-                          onClick={() => setConfirm({ id: d.id, name: d.title, action: "approved" })}
-                          disabled={processingId === d.id}
+                          onClick={() => setActionModal({ id: d.id, name: d.title, newStatus: "approved", feedback: "", feedbackError: false })}
+                          disabled={isProcessing}
                           className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
                         >
-                          {processingId === d.id
-                            ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving…</>
-                            : <><Check className="w-4 h-4" /> Approve</>
-                          }
+                          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ThumbsUp className="w-4 h-4" />}
+                          Approve
                         </button>
-                      </div>
-                    </div>
-                  ))}
+                      </>
+                    )}
+                  </div>
                 </div>
-              )}
-            </section>
-
-            {/* Resolved history */}
-            {resolved.length > 0 && (
-              <section>
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                  Recently Resolved ({resolved.length})
-                </h3>
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-xs uppercase text-gray-400">
-                      <tr>
-                        <th className="text-left px-6 py-3 font-semibold">Document</th>
-                        <th className="text-left px-6 py-3 font-semibold">Employee</th>
-                        <th className="text-left px-6 py-3 font-semibold">Category</th>
-                        <th className="text-left px-6 py-3 font-semibold">Decision</th>
-                        <th className="text-left px-6 py-3 font-semibold">Date</th>
-                        <th className="text-center px-6 py-3 font-semibold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {resolved.map(d => (
-                        <tr key={d.id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="px-6 py-3">
-                            <div>
-                              <p className="font-medium text-slate-800">{d.title}</p>
-                              {d.file_name && <p className="text-xs text-slate-400 mt-0.5">{d.file_name}</p>}
-                            </div>
-                          </td>
-                          <td className="px-6 py-3 text-slate-600">{d.employee_name || d.uploader_name || "—"}</td>
-                          <td className="px-6 py-3"><CategoryPill category={d.category} /></td>
-                          <td className="px-6 py-3"><StatusBadge status={d.status} /></td>
-                          <td className="px-6 py-3 text-slate-400 text-xs">{fmtDate(d.updated_at || d.created_at)}</td>
-                          <td className="px-6 py-3 text-center">
-                            {d.file_path && (
-                              <a
-                                href={`${API_BASE_URL}/${d.file_path.replace(/\\/g, "/")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors"
-                              >
-                                <Eye className="w-3.5 h-3.5" /> View
-                              </a>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            )}
-          </>
+              );
+            })}
+            <p className="text-xs text-slate-400 text-center pt-2">{filtered.length} document{filtered.length !== 1 ? "s" : ""} total</p>
+          </div>
         )}
       </div>
 
-      {/* Confirm dialog */}
-      {confirm && (
+      {actionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <h4 className="text-base font-bold text-slate-900 mb-2">
-              {confirm.action === "approved" ? "Approve Document?" : "Reject Document?"}
-            </h4>
-            <p className="text-sm text-slate-500 mb-6">
-              You are about to <strong>{confirm.action === "approved" ? "approve" : "reject"}</strong> &ldquo;{confirm.name}&rdquo;. This updates its status immediately.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setConfirm(null)} className="px-4 py-2 text-sm font-medium text-slate-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  {actionModal.newStatus === "approved" ? "Approve Document" : "Reject Document"}
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">&ldquo;{actionModal.name}&rdquo;</p>
+              </div>
+              <button onClick={() => setActionModal(null)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className={`p-4 rounded-xl ${actionModal.newStatus === "approved" ? "bg-emerald-50 border border-emerald-200" : "bg-rose-50 border border-rose-200"}`}>
+                <div className="flex items-start gap-3">
+                  {actionModal.newStatus === "approved" ? (
+                    <ThumbsUp className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <ThumbsDown className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <p className={`text-sm font-bold ${actionModal.newStatus === "approved" ? "text-emerald-800" : "text-rose-800"}`}>
+                      {actionModal.newStatus === "approved" ? "You are approving this document" : "You are rejecting this document"}
+                    </p>
+                    <p className={`text-xs mt-1 ${actionModal.newStatus === "approved" ? "text-emerald-600" : "text-rose-600"}`}>
+                      This will update the document status and notify the employee.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Feedback to Employee
+                  {actionModal.newStatus === "rejected" && <span className="text-rose-500 text-sm ml-0.5">*</span>}
+                </label>
+                <textarea
+                  rows={3}
+                  value={actionModal.feedback}
+                  onChange={e => setActionModal({ ...actionModal, feedback: e.target.value, feedbackError: false })}
+                  placeholder={actionModal.newStatus === "approved" ? "Optional: Add a note for the employee (e.g., Document verified and approved)..." : "Provide a reason for rejection (this will be shared with the employee)..."}
+                  className={`w-full border rounded-xl px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:border-indigo-400 focus:bg-white transition resize-none ${
+                    actionModal.feedbackError
+                      ? "border-rose-400 bg-rose-50 focus:ring-rose-300"
+                      : "border-gray-200 bg-slate-50 focus:ring-indigo-300"
+                  }`}
+                />
+                {actionModal.feedbackError && (
+                  <p className="text-xs text-rose-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> Feedback is required when rejecting a document.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 pt-0 flex gap-3">
+              <button onClick={() => setActionModal(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
                 Cancel
               </button>
               <button
-                onClick={() => handleAction(confirm.id, confirm.action)}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg text-white ${confirm.action === "approved" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}`}
+                onClick={handleApproveReject}
+                disabled={processingId === actionModal.id}
+                className={`flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition shadow-sm flex items-center justify-center gap-2 ${
+                  actionModal.newStatus === "approved"
+                    ? "bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400"
+                    : "bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400"
+                }`}
               >
-                {confirm.action === "approved" ? "Yes, Approve" : "Yes, Reject"}
+                {processingId === actionModal.id ? (
+                  <><Loader2 size={14} className="animate-spin" /> Processing...</>
+                ) : (
+                  <>{actionModal.newStatus === "approved" ? "Approve" : "Reject"} Document</>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 ${toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"} text-white`}>
           {toast.type === "success" ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}

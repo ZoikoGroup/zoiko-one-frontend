@@ -672,45 +672,4 @@ export const updateDesignation = (id, payload) =>
 export const deleteDesignation = (id) =>
   api.delete(`/hr/designations/${id}`).then(data => ({ data }));
 
-// ════════════════════════════════════════════════════════════════════════════════
-// EMPLOYEE MANAGEMENT SERVICE CALLS
-// ════════════════════════════════════════════════════════════════════════════════
-
-// ── DASHBOARD ────────────────────────────────────────────────────────────────
-
-export const getEmployeeDashboard = () => api.get("/hr/employee-management/dashboard");
-
-// ── EMPLOYEES ────────────────────────────────────────────────────────────────
-
-export const getEmployees = (params = {}) => api.get("/hr/employee-management/employees", { params });
-export const getEmployeeById = (id) => api.get(`/hr/employee-management/employees/${id}`);
-export const createEmployee = (payload) => api.post("/hr/employee-management/employees", payload);
-export const updateEmployee = (id, payload) => api.put(`/hr/employee-management/employees/${id}`, payload);
-export const deleteEmployee = (id) => api.delete(`/hr/employee-management/employees/${id}`);
-
-// ── PROFILE ─────────────────────────────────────────────────────────────────────
-
-export const getEmployeeProfile = (employeeId) => api.get(`/hr/employee-management/employees/${employeeId}/profile`);
-export const updateEmployeeProfile = (employeeId, payload) => api.put(`/hr/employee-management/employees/${employeeId}/profile`, payload);
-
-// ── ORGANIZATION STRUCTURE ────────────────────────────────────────────────────
-
-export const getOrgChart = (organizationId) => api.get(`/hr/employee-management/org-chart?organization_id=${organizationId}`);
-export const changeManager = (payload) => api.put("/hr/employee-management/change-manager", payload);
-
-// ── EMPLOYEE LIFECYCLE ─────────────────────────────────────────────────────────
-
-export const getEmployeeLifecycle = (employeeId) => {
-  const params = employeeId ? { employee_id: employeeId } : {};
-  return api.get("/hr/employee-management/lifecycle", { params });
-};
-export const confirmProbation = (payload) => api.post("/hr/employee-management/confirm", payload);
-export const promoteEmployee = (payload) => api.post("/hr/employee-management/promote", payload);
-export const transferEmployee = (payload) => api.post("/hr/employee-management/transfer", payload);
-export const resignEmployee = (payload) => api.post("/hr/employee-management/resign", payload);
-export const exitEmployee = (payload) => api.post("/hr/employee-management/exit", payload);
-
-// ── REPORTS ─────────────────────────────────────────────────────────────────────
-
-export const getEmployeeReports = (filters) => api.get(`/hr/employee-management/reports`, { params: filters });
-export const exportEmployeeReports = (payload) => api.post("/hr/employee-management/export", payload);
+// ── (Employee management endpoints moved to src/service/employee.js) ──────────

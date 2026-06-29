@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { TrendingUp, Users, UserCheck, Clock, AlertCircle, RefreshCw, Building2, Award, Target, Star, Activity, CheckCircle, Briefcase, MapPin, Calendar, FileText } from "lucide-react";
-import HRPage from "../../../components/HRPage";
-import { getEmployeeDashboard } from "../../../service/hrService";
+import HRPage from "../../../../components/HRPage";
+import { getEmployeeDashboard } from "../../../../service/employee";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/employee-management" },

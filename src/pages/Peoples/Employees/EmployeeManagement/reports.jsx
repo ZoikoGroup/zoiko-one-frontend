@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import HRPage from "../../../components/HRPage";
-import { getEmployeeReports, exportEmployeeReports } from "../../../service/hrService";
+import HRPage from "../../../../components/HRPage";
+import { getEmployeeReports, exportEmployeeReports } from "../../../../service/employee";
 import { FileText, Download, Users, UserCheck, Building2, Clock, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
 
 const NAV_ITEMS = [

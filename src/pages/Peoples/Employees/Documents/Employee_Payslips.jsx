@@ -1,58 +1,137 @@
+import { useEffect, useMemo, useState } from "react";
+import HRPage from "../../../../components/HRPage";
+import { getDocuments } from "../../../../service/employee";
+
+function parseCurrency(str) {
+  if (!str) return 0;
+  const cleaned = String(str).replace(/[₹,\s]/g, "");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
+function formatCurrency(amount) {
+  return `₹${Number(amount).toLocaleString("en-IN")}`;
+}
+
 export default function Payslips() {
-  const payslips = [
-    { month: "June 2026",    gross: "₹85,000", deductions: "₹18,500", net: "₹66,500", status: "Generated" },
-    { month: "May 2026",     gross: "₹85,000", deductions: "₹18,500", net: "₹66,500", status: "Generated" },
-    { month: "April 2026",   gross: "₹82,000", deductions: "₹17,800", net: "₹64,200", status: "Generated" },
-    { month: "March 2026",   gross: "₹82,000", deductions: "₹17,800", net: "₹64,200", status: "Generated" },
-    { month: "February 2026",gross: "₹80,000", deductions: "₹17,200", net: "₹62,800", status: "Generated" },
-    { month: "January 2026", gross: "₹80,000", deductions: "₹17,200", net: "₹62,800", status: "Generated" },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rawDocs, setRawDocs] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getDocuments({ category: "payslip" });
+        const data = res?.data || res?.items || [];
+        if (mounted) setRawDocs(Array.isArray(data) ? data : []);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.message || "Failed to load payslips");
+        setRawDocs([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const payslips = useMemo(() => {
+    return rawDocs
+      .map((d) => {
+        const title = d.title || d.name || d.document_type || "";
+        const gross = d.gross || d.gross_pay || parseCurrency(d.amount || 0) || "₹0";
+        const deductions = d.deductions || d.total_deductions || "₹0";
+        const net = d.net || d.net_pay || d.amount || "₹0";
+        const status = d.status || d.document_status || "Generated";
+        const month = d.month || d.period || title;
+        const id = d.id || d.document_id || title;
+        return { id, month, gross, deductions, net, status };
+      })
+      .sort((a, b) => String(b.month).localeCompare(String(a.month)));
+  }, [rawDocs]);
+
+  const stats = useMemo(() => {
+    if (payslips.length === 0) {
+      return { gross: "₹0", deductions: "₹0", net: "₹0" };
+    }
+    const latest = payslips[0];
+    return {
+      gross: latest.gross,
+      deductions: latest.deductions,
+      net: latest.net,
+    };
+  }, [payslips]);
+
+  if (loading) {
+    return (
+      <HRPage title="My Payslips" subtitle="Download your monthly salary slips.">
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <span className="ml-3 text-gray-500">Loading payslips...</span>
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
-    <div style={{ padding: "32px", background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{ marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", margin: "0 0 6px 0" }}>My Payslips</h1>
-        <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>Download your monthly salary slips.</p>
-      </div>
+    <HRPage title="My Payslips" subtitle="Download your monthly salary slips.">
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>
+      )}
 
-      {/* Summary */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "28px" }}>
-        {[
-          { label: "Last Month CTC",  value: "₹85,000", color: "#4F46E5" },
-          { label: "Last Deductions", value: "₹18,500", color: "#DC2626" },
-          { label: "Last Net Pay",    value: "₹66,500", color: "#059669" },
-        ].map((s) => (
-          <div key={s.label} style={{ padding: "20px", borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB", textAlign: "center" }}>
-            <p style={{ fontSize: "28px", fontWeight: "800", color: s.color, margin: "0 0 4px 0" }}>{s.value}</p>
-            <p style={{ fontSize: "13px", color: "#6B7280", margin: 0 }}>{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#F9FAFB" }}>
-              {["Month", "Gross Pay", "Deductions", "Net Pay", "Action"].map((h) => (
-                <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6B7280", textTransform: "uppercase" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {payslips.map((p, i) => (
-              <tr key={i} style={{ borderTop: "1px solid #F3F4F6" }}>
-                <td style={{ padding: "14px 20px", fontSize: "14px", fontWeight: "600", color: "#111827" }}>{p.month}</td>
-                <td style={{ padding: "14px 20px", fontSize: "14px", color: "#374151" }}>{p.gross}</td>
-                <td style={{ padding: "14px 20px", fontSize: "14px", color: "#DC2626" }}>{p.deductions}</td>
-                <td style={{ padding: "14px 20px", fontSize: "14px", fontWeight: "700", color: "#059669" }}>{p.net}</td>
-                <td style={{ padding: "14px 20px" }}>
-                  <button style={{ padding: "6px 14px", background: "#EEF2FF", color: "#4F46E5", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>Download</button>
-                </td>
-              </tr>
+      {!error && (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-3 gap-4 mb-7">
+            {[
+              { label: "Last Month CTC", value: stats.gross, color: "text-indigo-600" },
+              { label: "Last Deductions", value: stats.deductions, color: "text-red-600" },
+              { label: "Last Net Pay", value: stats.net, color: "text-emerald-600" },
+            ].map((s) => (
+              <div key={s.label} className="p-5 rounded-xl bg-white border border-gray-200 text-center">
+                <p className={`text-3xl font-extrabold ${s.color} m-0 mb-1`}>{s.value}</p>
+                <p className="text-xs text-gray-500 m-0">{s.label}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </div>
+
+          {/* Table */}
+          <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">
+            {payslips.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">No payslips found.</div>
+            ) : (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50">
+                    {["Month", "Gross Pay", "Deductions", "Net Pay", "Action"].map((h) => (
+                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {payslips.map((p) => (
+                    <tr key={p.id || p.month} className="border-t border-gray-100">
+                      <td className="px-5 py-3.5 text-sm font-semibold text-gray-900">{p.month}</td>
+                      <td className="px-5 py-3.5 text-sm text-gray-700">{p.gross}</td>
+                      <td className="px-5 py-3.5 text-sm text-red-600">{p.deductions}</td>
+                      <td className="px-5 py-3.5 text-sm font-bold text-emerald-600">{p.net}</td>
+                      <td className="px-5 py-3.5">
+                        <button className="px-3.5 py-1.5 bg-indigo-50 text-indigo-600 border-none rounded-md text-xs font-semibold cursor-pointer hover:bg-indigo-100">
+                          Download
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
+    </HRPage>
   );
 }

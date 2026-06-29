@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getEmployeeById, getEmployeeProfile, getEmployeeLifecycle } from "../../../service/hrService";
-import HRPage from "../../../components/HRPage";
+import { getEmployeeById, getEmployeeProfile, getEmployeeLifecycle } from "../../../../service/employee";
+import HRPage from "../../../../components/HRPage";
 import { ArrowLeft, Mail, Phone, Calendar, MapPin, Building, Briefcase, DollarSign, User, Shield, Award, BookOpen, Clock, ChevronRight, ExternalLink } from "lucide-react";
 
 const STATUS_STYLES = {
@@ -177,28 +177,28 @@ export default function EmployeeProfile() {
             <div className="flex items-start gap-3 text-sm">
               <Building className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-gray-900 font-medium">{deptName || "—"}</p>
+                <p className="text-gray-900 font-medium">{deptName || "\u2014"}</p>
                 <p className="text-gray-500 text-xs">Department</p>
               </div>
             </div>
             <div className="flex items-start gap-3 text-sm">
               <Award className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-gray-900 font-medium">{employee.designation_id || "—"}</p>
+                <p className="text-gray-900 font-medium">{employee.designation_id || "\u2014"}</p>
                 <p className="text-gray-500 text-xs">Designation ID</p>
               </div>
             </div>
             <div className="flex items-start gap-3 text-sm">
               <User className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-gray-900 font-medium">{managerName || employee.reporting_manager_id || "—"}</p>
+                <p className="text-gray-900 font-medium">{managerName || employee.reporting_manager_id || "\u2014"}</p>
                 <p className="text-gray-500 text-xs">Reporting Manager</p>
               </div>
             </div>
             <div className="flex items-start gap-3 text-sm">
               <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-gray-900 font-medium">{employee.date_of_joining || "—"}</p>
+                <p className="text-gray-900 font-medium">{employee.date_of_joining || "\u2014"}</p>
                 <p className="text-gray-500 text-xs">Joined</p>
               </div>
             </div>
@@ -212,15 +212,15 @@ export default function EmployeeProfile() {
             <div className="flex items-start gap-3 text-sm">
               <Phone className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-gray-900 font-medium">{employee.phone || "—"}</p>
+                <p className="text-gray-900 font-medium">{employee.phone || "\u2014"}</p>
                 <p className="text-gray-500 text-xs">Phone</p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <StatBadge label="Salary" value={employee.basic_salary ? `$${Number(employee.basic_salary).toLocaleString()}` : "—"} />
-            <StatBadge label="CTC" value={employee.ctc ? `$${Number(employee.ctc).toLocaleString()}` : "—"} />
+            <StatBadge label="Salary" value={employee.basic_salary ? `$${Number(employee.basic_salary).toLocaleString()}` : "\u2014"} />
+            <StatBadge label="CTC" value={employee.ctc ? `$${Number(employee.ctc).toLocaleString()}` : "\u2014"} />
           </div>
         </div>
 
@@ -383,8 +383,8 @@ export default function EmployeeProfile() {
                                     {(event.event_type || event.type || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-700">{event.event_date || event.date || event.created_at || "—"}</td>
-                                <td className="px-4 py-3 text-sm text-gray-700">{event.description || event.details || event.notes || "—"}</td>
+                                <td className="px-4 py-3 text-sm text-gray-700">{event.event_date || event.date || event.created_at || "\u2014"}</td>
+                                <td className="px-4 py-3 text-sm text-gray-700">{event.description || event.details || event.notes || "\u2014"}</td>
                               </tr>
                             ))}
                           </tbody>

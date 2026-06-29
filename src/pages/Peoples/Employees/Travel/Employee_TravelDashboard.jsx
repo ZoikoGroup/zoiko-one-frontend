@@ -1,52 +1,138 @@
+import { useEffect, useMemo, useState } from "react";
+import HRPage from "../../../../components/HRPage";
+import { getTravel } from "../../../../service/employee";
+
+function normalizeStatus(s) {
+  const v = String(s || "").toLowerCase();
+  if (v.includes("approve")) return "Approved";
+  if (v.includes("pending")) return "Pending";
+  if (v.includes("reject")) return "Rejected";
+  if (v.includes("complete")) return "Completed";
+  if (v.includes("expense")) return "Expense";
+  return s ? String(s) : "";
+}
+
+const statusColor = {
+  Approved: "text-indigo-600 bg-indigo-50",
+  Pending: "text-yellow-600 bg-yellow-50",
+  Completed: "text-green-600 bg-green-50",
+};
+
+const statCards = [
+  { key: "total", label: "Total Trips", color: "text-indigo-600" },
+  { key: "pending", label: "Pending Approval", color: "text-yellow-600" },
+  { key: "expenses", label: "Expenses Claimed", color: "text-green-600" },
+  { key: "upcoming", label: "Upcoming Trips", color: "text-sky-600" },
+];
+
+function computeAmount(records) {
+  const total = records.reduce((sum, r) => {
+    const amt = parseFloat(String(r.amount || r.expense_amount || "0").replace(/[^0-9.]/g, ""));
+    return sum + (isNaN(amt) ? 0 : amt);
+  }, 0);
+  return `₹${total.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
 export default function TravelDashboard() {
-  const stats = [
-    { label: "Total Trips", value: "7", color: "#4F46E5" },
-    { label: "Pending Approval", value: "1", color: "#D97706" },
-    { label: "Expenses Claimed", value: "₹42,500", color: "#059669" },
-    { label: "Upcoming Trips", value: "2", color: "#0EA5E9" },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [trips, setTrips] = useState([]);
 
-  const trips = [
-    { dest: "Mumbai", date: "Jul 5–7, 2026", purpose: "Client Meeting", status: "Approved" },
-    { dest: "Bangalore", date: "Jul 14, 2026", purpose: "Tech Conference", status: "Pending" },
-    { dest: "Pune", date: "Jun 15, 2026", purpose: "Project Kickoff", status: "Completed" },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getTravel();
+        const data = res?.data || res?.items || res || [];
+        const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+        if (mounted) setTrips(arr);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.message || "Failed to load travel data");
+        setTrips([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
 
-  const statusColor = {
-    Approved:  { color: "#4F46E5", bg: "#EEF2FF" },
-    Pending:   { color: "#D97706", bg: "#FFFBEB" },
-    Completed: { color: "#059669", bg: "#ECFDF5" },
-  };
+  const stats = useMemo(() => {
+    const total = trips.length;
+    const pending = trips.filter((t) => normalizeStatus(t.status) === "Pending").length;
+    const expenseRecords = trips.filter((t) => normalizeStatus(t.status) === "Expense" || t.type === "expense" || t.category);
+    const expenses = expenseRecords.length > 0
+      ? computeAmount(expenseRecords)
+      : `₹${trips.reduce((s, t) => {
+          const a = parseFloat(String(t.amount || t.expense_amount || "0").replace(/[^0-9.]/g, ""));
+          return s + (isNaN(a) ? 0 : a);
+        }, 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+    const upcoming = trips.filter((t) => {
+      const st = normalizeStatus(t.status);
+      return st === "Approved" || st === "Pending";
+    }).length;
+    return { total, pending, expenses, upcoming };
+  }, [trips]);
+
+  const recentTrips = useMemo(() => {
+    return trips
+      .filter((t) => {
+        const st = normalizeStatus(t.status);
+        return st === "Approved" || st === "Pending" || st === "Completed";
+      })
+      .slice(0, 5);
+  }, [trips]);
 
   return (
-    <div style={{ padding: "32px", background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{ marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", margin: "0 0 6px 0" }}>Travel Dashboard</h1>
-        <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>Overview of your business travel and reimbursements.</p>
-      </div>
+    <HRPage title="Travel Dashboard" subtitle="Overview of your business travel and reimbursements.">
+      {loading && (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <span className="ml-3 text-gray-500">Loading travel data...</span>
+        </div>
+      )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "28px" }}>
-        {stats.map((s) => (
-          <div key={s.label} style={{ padding: "20px", borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB" }}>
-            <p style={{ fontSize: "12px", fontWeight: "600", color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px 0" }}>{s.label}</p>
-            <p style={{ fontSize: "28px", fontWeight: "800", color: s.color, margin: 0 }}>{s.value}</p>
-          </div>
-        ))}
-      </div>
+      {!loading && error && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>
+      )}
 
-      <div style={{ padding: "24px", borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB" }}>
-        <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#111827", margin: "0 0 16px 0" }}>Recent Trips</h3>
-        {trips.map((t, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderTop: "1px solid #F3F4F6" }}>
-            <div>
-              <p style={{ fontSize: "14px", fontWeight: "700", color: "#111827", margin: "0 0 2px 0" }}>{t.dest}</p>
-              <p style={{ fontSize: "12px", color: "#6B7280", margin: "0 0 2px 0" }}>{t.purpose}</p>
-              <p style={{ fontSize: "12px", color: "#9CA3AF", margin: 0 }}>{t.date}</p>
-            </div>
-            <span style={{ fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "999px", color: statusColor[t.status].color, background: statusColor[t.status].bg }}>{t.status}</span>
+      {!loading && !error && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statCards.map((s) => (
+              <div key={s.key} className="bg-white rounded-xl border border-gray-200 p-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{s.label}</p>
+                <p className={`text-3xl font-extrabold ${s.color}`}>{stats[s.key]}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-base font-bold text-gray-900 mb-4">Recent Trips</h3>
+            {recentTrips.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">No recent trips found.</p>
+            ) : (
+              recentTrips.map((t, i) => {
+                const st = normalizeStatus(t.status);
+                const colors = statusColor[st] || "text-gray-500 bg-gray-100";
+                return (
+                  <div key={t.id || i} className="flex justify-between items-center py-3.5 border-t border-gray-100 first:border-t-0">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-900">{t.destination || t.location || t.city || "Trip"}</p>
+                      <p className="text-xs text-gray-500">{t.purpose || t.reason || ""}</p>
+                      <p className="text-xs text-gray-400">{t.travel_date || t.date || t.from || ""}</p>
+                    </div>
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${colors}`}>{st || t.status || "-"}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </HRPage>
   );
 }

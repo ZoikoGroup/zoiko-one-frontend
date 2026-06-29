@@ -1,65 +1,224 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import HRPage from "../../../../components/HRPage";
+import { CheckCircle } from "lucide-react";
+import { getTravel, createTravel } from "../../../../service/employee";
+
+const statusColor = {
+  Approved: "text-green-600 bg-green-50",
+  Pending: "text-yellow-600 bg-yellow-50",
+  Completed: "text-indigo-600 bg-indigo-50",
+  Rejected: "text-red-600 bg-red-50",
+};
+
+function getStatusClass(st) {
+  return statusColor[st] || "text-gray-500 bg-gray-100";
+}
+
+function normalizeStatus(s) {
+  const v = String(s || "").toLowerCase();
+  if (v.includes("approve")) return "Approved";
+  if (v.includes("pending")) return "Pending";
+  if (v.includes("complete")) return "Completed";
+  if (v.includes("reject")) return "Rejected";
+  return s ? String(s) : "";
+}
 
 export default function TravelRequests() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [requests, setRequests] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [form, setForm] = useState({ destination: "", purpose: "", from: "", to: "" });
 
-  const requests = [
-    { id: "TR-001", destination: "Mumbai", from: "Jun 25", to: "Jun 27", purpose: "Client Demo", status: "Approved" },
-    { id: "TR-002", destination: "Delhi",  from: "Jul 5",  to: "Jul 5",  purpose: "HR Summit",   status: "Pending" },
-    { id: "TR-003", destination: "Pune",   from: "Jun 10", to: "Jun 11", purpose: "Kickoff Meet", status: "Completed" },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getTravel();
+        const data = res?.data || res?.items || res || [];
+        const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+        const filtered = arr.filter((t) => !t.category && !t.type?.includes("expense"));
+        if (mounted) setRequests(filtered);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.message || "Failed to load travel requests");
+        setRequests([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
 
-  const statusColor = {
-    Approved:  { color: "#059669", bg: "#ECFDF5" },
-    Pending:   { color: "#D97706", bg: "#FFFBEB" },
-    Completed: { color: "#4F46E5", bg: "#EEF2FF" },
-  };
+  const requestCards = useMemo(() => {
+    return requests.map((r, i) => ({
+      id: r.id || r.request_id || r.travel_id || `TR-${String(i + 1).padStart(3, "0")}`,
+      destination: r.destination || r.location || r.city || "",
+      from: r.from || r.travel_date || r.start_date || "",
+      to: r.to || r.return_date || r.end_date || "",
+      purpose: r.purpose || r.reason || "",
+      status: normalizeStatus(r.status),
+    }));
+  }, [requests]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSaving(true);
+    setFormError(null);
+    try {
+      await createTravel({
+        destination: form.destination,
+        purpose: form.purpose,
+        from: form.from,
+        to: form.to,
+        status: "Pending",
+      });
+      setShowForm(false);
+      setForm({ destination: "", purpose: "", from: "", to: "" });
+      setSuccess("Your travel request has been submitted successfully! It is under process and will be reviewed by the admin.");
+      setTimeout(() => setSuccess(null), 5000);
+      const res = await getTravel();
+      const data = res?.data || res?.items || res || [];
+      const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+      setRequests(arr.filter((t) => !t.category && !t.type?.includes("expense")));
+    } catch (err) {
+      setFormError(err?.message || "Failed to create travel request");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
-    <div style={{ padding: "32px", background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{ marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", margin: "0 0 6px 0" }}>Travel Requests</h1>
-          <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>Raise and track your business travel requests.</p>
-        </div>
-        <button onClick={() => setShowForm(!showForm)} style={{ padding: "10px 20px", background: "#4F46E5", color: "white", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
-          + New Request
-        </button>
-      </div>
-
-      {showForm && (
-        <div style={{ padding: "24px", borderRadius: "12px", background: "white", border: "1.5px solid #4F46E5", marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#111827", margin: "0 0 16px 0" }}>New Travel Request</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            {[["Destination", "text", "e.g. Mumbai"], ["Purpose", "text", "e.g. Client Meeting"], ["Travel Date From", "date", ""], ["Travel Date To", "date", ""]].map(([label, type, placeholder]) => (
-              <div key={label}>
-                <label style={{ fontSize: "13px", fontWeight: "600", color: "#374151", display: "block", marginBottom: "6px" }}>{label}</label>
-                <input type={type} placeholder={placeholder} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1.5px solid #E5E7EB", fontSize: "14px", boxSizing: "border-box" }} />
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: "16px", display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-            <button onClick={() => setShowForm(false)} style={{ padding: "9px 20px", background: "white", color: "#374151", border: "1.5px solid #E5E7EB", borderRadius: "8px", fontSize: "14px", cursor: "pointer" }}>Cancel</button>
-            <button style={{ padding: "9px 20px", background: "#4F46E5", color: "white", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>Submit</button>
-          </div>
+    <HRPage title="Travel Requests" subtitle="Raise and track your business travel requests.">
+      {loading && (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <span className="ml-3 text-gray-500">Loading travel requests...</span>
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {requests.map((r) => (
-          <div key={r.id} style={{ padding: "20px 24px", borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "4px" }}>
-                <span style={{ fontSize: "12px", fontWeight: "700", color: "#9CA3AF" }}>{r.id}</span>
-                <span style={{ fontSize: "15px", fontWeight: "700", color: "#111827" }}>{r.destination}</span>
-              </div>
-              <p style={{ fontSize: "13px", color: "#6B7280", margin: "0 0 2px 0" }}>{r.purpose}</p>
-              <p style={{ fontSize: "12px", color: "#9CA3AF", margin: 0 }}>{r.from} → {r.to}</p>
-            </div>
-            <span style={{ fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "999px", color: statusColor[r.status].color, background: statusColor[r.status].bg }}>{r.status}</span>
+      {!loading && success && (
+        <div className="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm font-semibold flex items-center gap-2">
+          <CheckCircle size={15} /> {success}
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>
+      )}
+
+      {!loading && !error && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-start">
+            <div />
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
+            >
+              + New Request
+            </button>
           </div>
-        ))}
-      </div>
-    </div>
+
+          {showForm && (
+            <form onSubmit={handleSubmit} className="p-6 rounded-xl bg-white border-2 border-indigo-600">
+              <h3 className="text-base font-bold text-gray-900 mb-4">New Travel Request</h3>
+              {formError && (
+                <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{formError}</div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">Destination</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Mumbai"
+                    value={form.destination}
+                    onChange={(e) => setForm((f) => ({ ...f, destination: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">Purpose</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Client Meeting"
+                    value={form.purpose}
+                    onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">Travel Date From</label>
+                  <input
+                    type="date"
+                    value={form.from}
+                    onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">Travel Date To</label>
+                  <input
+                    type="date"
+                    value={form.to}
+                    onChange={(e) => setForm((f) => ({ ...f, to: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-5 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg text-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 cursor-pointer transition-colors"
+                >
+                  {saving ? "Submitting..." : "Submit"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {requestCards.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+              <p className="text-gray-500 font-medium">No travel requests found.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {requestCards.map((r) => (
+                <div key={r.id} className="p-5 rounded-xl bg-white border border-gray-200 flex justify-between items-center gap-4">
+                  <div className="min-w-0">
+                    <div className="flex gap-2.5 items-center mb-1">
+                      <span className="text-xs font-bold text-gray-400">{r.id}</span>
+                      <span className="text-base font-bold text-gray-900">{r.destination}</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-0.5">{r.purpose}</p>
+                    <p className="text-xs text-gray-400">{r.from}{r.from && r.to ? " → " : ""}{r.to}</p>
+                  </div>
+                  <span className={`text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap ${getStatusClass(r.status)}`}>
+                    {r.status || "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </HRPage>
   );
 }

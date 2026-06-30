@@ -118,15 +118,7 @@ const HrDashBoard = () => {
   const fetchDashboardData = async () => {
     try {
       setError(null);
-      const [
-        hrStats,
-        employeesData,
-        departmentsData,
-        attendanceData,
-        leaveData,
-        compensationData,
-        performanceData,
-      ] = await Promise.all([
+      const results = await Promise.allSettled([
         getHrDashboardStats(),
         getHrEmployees(),
         getDepartments(),
@@ -136,6 +128,8 @@ const HrDashBoard = () => {
         getPerformanceDashboard(),
       ]);
 
+      const [hrResult, employeesResult, departmentsResult, attendanceResult, leaveResult, compensationResult, performanceResult] = results;
+
       const extractArray = (data) => {
         if (!data) return [];
         if (Array.isArray(data)) return data;
@@ -144,14 +138,22 @@ const HrDashBoard = () => {
         return [];
       };
 
+      const safeValue = (result, transform = (v) => v) =>
+        result.status === "fulfilled" ? transform(result.value) : (console.error("Dashboard fetch failed:", result.reason), null);
+
+      const errors = results.filter((r) => r.status === "rejected");
+      if (errors.length) {
+        console.warn(`${errors.length} dashboard widget(s) failed to load`);
+      }
+
       setDashboardData({
-        hrDashboard: hrStats || {},
-        employees: extractArray(employeesData),
-        departments: extractArray(departmentsData),
-        attendance: extractArray(attendanceData),
-        leave: extractArray(leaveData),
-        compensation: compensationData || {},
-        performance: performanceData || {},
+        hrDashboard: safeValue(hrResult, (v) => v || {}),
+        employees: safeValue(employeesResult, extractArray) || [],
+        departments: safeValue(departmentsResult, extractArray) || [],
+        attendance: safeValue(attendanceResult, extractArray) || [],
+        leave: safeValue(leaveResult, extractArray) || [],
+        compensation: safeValue(compensationResult, (v) => v || {}),
+        performance: safeValue(performanceResult, (v) => v || {}),
       });
 
       setLastUpdated(new Date());

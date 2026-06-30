@@ -240,7 +240,7 @@ const products = {
               { label: "Requests",           href: "/zoiko-hr/ess/requests",          icon: ClipboardList },
               { label: "Settings",           href: "/zoiko-hr/ess/settings",          icon: SlidersHorizontal },
             ]},
-            { label: "Documents",          icon: FolderOpen, children: [
+            { label: "Employee Documents", icon: FolderOpen, children: [
               { label: "My Files",           href: "/zoiko-hr/ess/documents/my-files",        icon: FolderOpen },
               { label: "Payslips",           href: "/zoiko-hr/ess/documents/payslips",        icon: Receipt },
               { label: "Offer & Contracts",  href: "/zoiko-hr/ess/documents/contracts",       icon: FileSignature },

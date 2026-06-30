@@ -451,20 +451,25 @@ export default function ZoikoFooter() {
       <div style={styles.getStartedSection}>
         <div style={styles.getStartedLabel}>GET STARTED</div>
         <div style={styles.getStartedLinks}>
-          {["Get a Demo", "Request Pricing", "Explore Products", "Contact Sales", "Sign In"].map((lnk) => (
-            <a
-              key={lnk}
-              href="#"
+          {[
+            { label: "Get a Demo", href: "/get-demo" },
+            { label: "Request Pricing", href: "/pricing" },
+            { label: "Explore Products", href: "/products" },
+            { label: "Contact Sales", href: "/contact" },
+            { label: "Sign In", href: "/login" },
+          ].map((lnk) => (
+            <Link
+              key={lnk.label}
+              to={lnk.href}
               style={{
                 ...styles.getStartedLink,
-                color: hoveredLink === `gs-${lnk}` ? "white" : "rgba(255,255,255,0.75)",
+                color: hoveredLink === `gs-${lnk.label}` ? "white" : "rgba(255,255,255,0.75)",
               }}
-              onMouseEnter={() => setHoveredLink(`gs-${lnk}`)}
+              onMouseEnter={() => setHoveredLink(`gs-${lnk.label}`)}
               onMouseLeave={() => setHoveredLink(null)}
-              onClick={(e) => e.preventDefault()}
             >
-              {lnk}
-            </a>
+              {lnk.label}
+            </Link>
           ))}
         </div>
       </div>

@@ -2,6 +2,12 @@ import { useMemo } from "react";
 import { sections as allSections } from "../navigation";
 import { ROLE_ALLOWED_PREFIXES, VALID_ROLES } from "../config/roles";
 
+// Sections to completely hide for specific roles (by title)
+const SECTION_EXCLUSIONS = {
+  super_admin: ["HR ADMIN", "PRODUCTS"],
+  hr_admin: ["PRODUCTS"],
+};
+
 function isAllowedPathForRole(pathname, role) {
   if (!role || !VALID_ROLES.includes(role)) return false;
   const prefixes = ROLE_ALLOWED_PREFIXES[role] ?? [];
@@ -36,8 +42,12 @@ export default function useFilteredNavigation(role) {
   return useMemo(() => {
     if (!role || !VALID_ROLES.includes(role)) return allSections;
 
+    const excludedTitles = SECTION_EXCLUSIONS[role] || [];
+
     return allSections
       .map((section) => {
+        if (excludedTitles.includes(section.title)) return null;
+
         const filteredItems = section.items
           .map((item) => filterNavItem(item, role))
           .filter(Boolean);

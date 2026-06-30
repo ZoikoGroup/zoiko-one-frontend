@@ -5,7 +5,6 @@ import { ROLE_ALLOWED_PREFIXES, VALID_ROLES } from "../config/roles";
 // Sections to completely hide for specific roles (by title)
 const SECTION_EXCLUSIONS = {
   super_admin: ["HR ADMIN", "PRODUCTS"],
-  hr_admin: ["PRODUCTS"],
 };
 
 function isAllowedPathForRole(pathname, role) {

@@ -204,6 +204,14 @@ import InsightsSettings from "./modules/insights/settings.jsx";
 import ItemsPage from "./modules/inventory/pages/ItemsPage";
 import InventoryModule from "./modules/inventory/index.jsx";
 
+// Organization Admin modules
+import OrgAdminDashboardPage from "./modules/organization-admin/DashboardPage";
+import OrgAdminOrganizationPage from "./modules/organization-admin/OrganizationPage";
+
+// HR Admin modules
+import HrAdminDashboardPage from "./modules/hr-admin/DashboardPage";
+import HrAdminOrganizationPage from "./modules/hr-admin/OrganizationPage";
+
 // Platform Governance modules
 import RolesPage from "./modules/governance/RolesPage";
 
@@ -492,9 +500,29 @@ const routeOverrides = {
   "/operations/support-center": <SupportCenterPage />,
   "/admin-profile": <AdminProfilePage />,
   "/settings/user-management": <UserManagementPage />,
+  // Organization Admin
+  "/organization-admin/dashboard": <OrgAdminDashboardPage />,
+  "/organization-admin/organization": <OrgAdminOrganizationPage />,
+  // HR Admin
+  "/hr-admin/dashboard": <HrAdminDashboardPage />,
+  "/hr-admin/organization": <HrAdminOrganizationPage />,
+  "/hr-admin/employees": <ZoikoHREmployees />,
+  "/hr-admin/departments": <ZoikoHRDepartmentsDepartmentList />,
+  "/hr-admin/designations": <ZoikoHRDesignationList />,
+  "/hr-admin/attendance": <ZoikoHRAttendanceDashboard />,
+  "/hr-admin/leave": <ZoikoHRLeaveDashboard />,
+  "/hr-admin/onboarding": <ZoikoHROnboardingDashboard />,
+  "/hr-admin/recruitment": <RecruitmentDashboard />,
+  "/hr-admin/performance": <PerformanceDashboard />,
+  "/hr-admin/assets": <AssetsDashboard />,
+  "/hr-admin/learning": <ZoikoHRLearning />,
+  "/hr-admin/documents": <DocumentsDashboard />,
+  "/hr-admin/reports": <ZoikoHRReports />,
+  "/hr-admin/settings": <UserManagementPage />,
   // Super Admin
   "/super-admin/dashboard": <SuperAdminDashboardPage />,
   "/super-admin/organizations": <SuperAdminOrganizationsPage />,
+  "/super-admin/organizations/:orgId": <OrganizationDetailPage />,
   "/super-admin/products": <SuperAdminProductsPage />,
   "/super-admin/subscriptions": <SuperAdminSubscriptionsPage />,
   "/super-admin/users": <SuperAdminPlatformUsersPage />,
@@ -603,7 +631,11 @@ export default function App() {
                         allowedRoles={
                           route.href.startsWith("/super-admin/")
                             ? ["super_admin"]
-                            : route.href.startsWith("/employee/")
+                            : route.href.startsWith("/organization-admin/")
+                              ? ["admin"]
+                              : route.href.startsWith("/hr-admin/")
+                              ? ["hr_admin"]
+                              : route.href.startsWith("/employee/")
                               ? ["employee"]
                               : route.href.startsWith("/zoiko-hr/ess") ||
                                 route.href.startsWith("/zoiko-hr/leave") ||
@@ -655,6 +687,7 @@ export default function App() {
                 <Route path="/zoiko-hr/recruitment/analytics" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
                 <Route path="/zoiko-hr/recruitment/analytics/reports" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
                 <Route path="/zoiko-hr/recruitment/settings" element={<Navigate to="/zoiko-hr/recruitment" replace />} />
+                <Route path="/super-admin/organizations/:orgId" element={<OrganizationDetailPage />} />
                 <Route path="*" element={
   <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-10">
     <AlertTriangle className="h-12 w-12 text-slate-300 mb-4" />

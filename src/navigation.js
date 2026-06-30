@@ -513,8 +513,41 @@ const sharedLayersSection = {
   ],
 };
 
+// Organization Admin Dashboard Section
+const organizationAdminDashboard = {
+  title: "ORGANIZATION ADMIN",
+  items: [
+    { label: "Dashboard", href: "/organization-admin/dashboard", icon: LayoutDashboard },
+    { label: "My Organization", href: "/organization-admin/organization", icon: Building2 },
+  ],
+};
+
+// HR Admin Dashboard Section
+const hrAdminDashboard = {
+  title: "HR ADMIN",
+  items: [
+    { label: "Dashboard", href: "/hr-admin/dashboard", icon: LayoutDashboard },
+    { label: "Employees", href: "/hr-admin/employees", icon: Users },
+    { label: "Departments", href: "/hr-admin/departments", icon: Building2 },
+    { label: "Designations", href: "/hr-admin/designations", icon: BadgeCheck },
+    { label: "Attendance", href: "/hr-admin/attendance", icon: Clock },
+    { label: "Leave", href: "/hr-admin/leave", icon: Calendar },
+    { label: "Onboarding", href: "/hr-admin/onboarding", icon: UserCheck },
+    { label: "Recruitment", href: "/hr-admin/recruitment", icon: UserPlus },
+    { label: "Performance", href: "/hr-admin/performance", icon: Activity },
+    { label: "Assets", href: "/hr-admin/assets", icon: Package },
+    { label: "Learning", href: "/hr-admin/learning", icon: BookOpen },
+    { label: "Documents", href: "/hr-admin/documents", icon: FileText },
+    { label: "Reports", href: "/hr-admin/reports", icon: BarChart3 },
+    { label: "Organisation", href: "/hr-admin/organization", icon: Building2 },
+    { label: "Settings", href: "/hr-admin/settings", icon: SlidersHorizontal },
+  ],
+};
+
 export const sections = [
   superAdminDashboard,
+  organizationAdminDashboard,
+  hrAdminDashboard,
   superAdmin,
   platformGovernance,
   products,

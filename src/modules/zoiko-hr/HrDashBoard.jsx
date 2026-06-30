@@ -99,12 +99,7 @@ const HrDashBoard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: "12 leave requests awaiting approval", type: "warning", time: "5 min ago" },
-    { id: 2, message: "Payroll processing scheduled tomorrow", type: "info", time: "15 min ago" },
-    { id: 3, message: "New employee onboarding this week", type: "success", time: "1 hour ago" },
-    { id: 4, message: "Attendance sync completed successfully", type: "success", time: "2 hours ago" },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -178,77 +173,6 @@ const HrDashBoard = () => {
   const handleRefresh = () => {
     setRefreshing(true);
     fetchDashboardData();
-  };
-
-  const generateMockData = () => {
-    const currentDate = new Date();
-    const mockHrStats = {
-      total_employees: 1248,
-      active_departments: 12,
-      pending_requests: 42,
-      total_budget: 2450000,
-      compliance_score: 94,
-    };
-
-    const mockDepartmentStats = [
-      { department: "Engineering", employee_count: 456, compensation_avg: 95000, headcount_status: "stable" },
-      { department: "Sales", employee_count: 234, compensation_avg: 85000, headcount_status: "expanding" },
-      { department: "HR", employee_count: 45, compensation_avg: 75000, headcount_status: "stable" },
-      { department: "Marketing", employee_count: 123, compensation_avg: 80000, headcount_status: "expanding" },
-      { department: "Finance", employee_count: 67, compensation_avg: 90000, headcount_status: "stable" },
-    ];
-
-    const mockOperationalStats = {
-      attendance_rate: 94.2,
-      leave_processing_time: 2.3,
-      recruitment_pipeline: { applications: 245, interviews: 48, offers: 12, hired: 8 },
-      onboarding_completion: 96.5,
-    };
-
-    const mockPerformanceStats = {
-      performance_score: 88.5,
-      learning_progress: 76.8,
-      compensation_trend: [
-        { month: "Jan", value: 82 },
-        { month: "Feb", value: 84 },
-        { month: "Mar", value: 83 },
-        { month: "Apr", value: 86 },
-        { month: "May", value: 87 },
-        { month: "Jun", value: 88.5 },
-      ],
-      compliance_status: 94,
-    };
-
-    const mockAttendanceData = [
-      { date: "2024-01-15", present: 120, absent: 5, late: 3, remote: 2 },
-      { date: "2024-01-16", present: 118, absent: 7, late: 2, remote: 3 },
-      { date: "2024-01-17", present: 122, absent: 3, late: 1, remote: 4 },
-      { date: "2024-01-18", present: 119, absent: 6, late: 4, remote: 1 },
-      { date: "2024-01-19", present: 121, absent: 4, late: 2, remote: 3 },
-    ];
-
-    const mockLeaveData = [
-      { type: "annual", count: 45 },
-      { type: "sick", count: 12 },
-      { type: "casual", count: 8 },
-      { type: "maternity", count: 3 },
-    ];
-
-    return {
-      hrDashboard: mockHrStats,
-      employees: [],
-      departments: mockDepartmentStats,
-      attendance: mockAttendanceData,
-      leave: mockLeaveData,
-      compensation: { average_salary: 85000, salary_range: { min: 45000, max: 150000 } },
-      performance: mockPerformanceStats,
-      operational: {
-        attendance_rate: 94.2,
-        leave_processing_time: 2.3,
-        recruitment_pipeline: { applications: 245, interviews: 48, offers: 12, hired: 8 },
-        onboarding_completion: 96.5,
-      },
-    };
   };
 
   const handleExport = (format) => {

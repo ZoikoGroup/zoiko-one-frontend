@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import HRPage from "../../../components/HRPage";
 import { getEmployees, getDepartments, getDesignations, createEmployee, updateEmployee, deleteEmployee, getEmployeeById } from "../../../service/hrService";
-import { User, Edit, Trash2, Plus, Search, Filter, X, CheckCircle, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Eye, UserCheck, UserX, FileText } from "lucide-react";
+import { resetPassword } from "../../../service/userService";
+import { User, Edit, Trash2, Plus, Search, Filter, X, CheckCircle, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Eye, UserCheck, UserX, FileText, Unlock, EyeOff } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/employee-management" },
@@ -110,6 +111,8 @@ export default function Employees() {
   const [deptList, setDeptList] = useState([]);
   const [desigList, setDesigList] = useState([]);
   const [managerList, setManagerList] = useState([]);
+  const [resetPwdResult, setResetPwdResult] = useState(null);
+  const [showResetPwd, setShowResetPwd] = useState(false);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -299,6 +302,17 @@ export default function Employees() {
       await fetchEmployees();
     } catch (err) {
       setError(err.message || "Failed to delete employee");
+    }
+  };
+
+  const handleResetPassword = async (id) => {
+    if (!window.confirm("Reset password for this employee? A new temporary password will be generated.")) return;
+    try {
+      const res = await resetPassword(id);
+      setResetPwdResult(res.temporary_password || null);
+      setShowResetPwd(true);
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || "Failed to reset password");
     }
   };
 
@@ -531,6 +545,9 @@ export default function Employees() {
                           <button onClick={() => openEdit(e)} className="text-green-600 hover:text-green-800 text-xs font-medium px-1" title="Edit">
                             <Edit className="w-3.5 h-3.5" />
                           </button>
+                          <button onClick={() => handleResetPassword(e.id)} className="text-orange-500 hover:text-orange-700 text-xs font-medium px-1" title="Reset Password">
+                            <Unlock className="w-3.5 h-3.5" />
+                          </button>
                           {e.status === "active" && (
                             <button onClick={() => handleDelete(e.id, e.status)} className="text-red-400 hover:text-red-600 text-xs px-1" title="Deactivate">
                               <Trash2 className="w-3.5 h-3.5" />
@@ -756,6 +773,33 @@ export default function Employees() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showResetPwd && resetPwdResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-slate-800">Password Reset Successful</h2>
+            </div>
+            <p className="text-sm text-slate-600 mb-4">
+              Temporary password generated. Share it with the employee.
+            </p>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 mb-4">
+              <code className="text-sm font-mono font-bold text-slate-800">{resetPwdResult}</code>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => { setShowResetPwd(false); setResetPwdResult(null); }}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

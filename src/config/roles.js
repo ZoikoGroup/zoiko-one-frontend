@@ -17,8 +17,8 @@ export const ROLE_LABELS = {
 // Default landing after role-based redirect
 export const ROLE_DEFAULT_REDIRECT = {
   [ROLES.SUPER_ADMIN]: "/super-admin/dashboard",
-  [ROLES.ADMIN]: "/zoiko-hr",
-  [ROLES.HR_ADMIN]: "/zoiko-hr",
+  [ROLES.ADMIN]: "/organization-admin/dashboard",
+  [ROLES.HR_ADMIN]: "/hr-admin/dashboard",
   [ROLES.MANAGER]: "/zoiko-hr",
   [ROLES.EMPLOYEE]: "/employee/ess",
 };
@@ -66,8 +66,10 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/settings/",
   ],
 
-  // Organization Admin - allowed: full Zoiko HR + Payroll/Billing/Insights/Spend/Inventory/ZoikoTime + Settings
+  // Organization Admin - allowed: Org Admin dashboard/org + full Zoiko HR + Payroll/Billing/Insights/Spend/Inventory/ZoikoTime + Settings
   [ROLES.ADMIN]: [
+    "/organization-admin/dashboard",
+    "/organization-admin/organization",
     "/zoiko-hr",
     "/payroll",
     "/billing",
@@ -78,9 +80,23 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/settings/",
   ],
 
-  // HR Admin - only HR-related modules + user management
+  // HR Admin - dedicated /hr-admin/* routes + user management settings
   [ROLES.HR_ADMIN]: [
-    "/zoiko-hr",
+    "/hr-admin/dashboard",
+    "/hr-admin/organization",
+    "/hr-admin/employees",
+    "/hr-admin/departments",
+    "/hr-admin/designations",
+    "/hr-admin/attendance",
+    "/hr-admin/leave",
+    "/hr-admin/onboarding",
+    "/hr-admin/recruitment",
+    "/hr-admin/performance",
+    "/hr-admin/assets",
+    "/hr-admin/learning",
+    "/hr-admin/documents",
+    "/hr-admin/reports",
+    "/hr-admin/settings",
     "/settings/",
   ],
 

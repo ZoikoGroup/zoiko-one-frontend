@@ -63,8 +63,8 @@ const navData = {
   ],
   SOLUTIONS: ["Services Businesses", "Agencies", "Retail Businesses", "Trades Businesses", "Hospitality", "E-Commerce", "Product Businesses", "Multi-Entity"],
   "FIVE PILLARS": ["People — HR, Time, Payroll", "Money — Billing, Spend", "Work — Projects", "Supply — Inventory", "Control — Comply, Insights"],
-  RESOURCES: ["Resource Center", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "Integrations", { label: "API Documentation", href: "/api-documentation" }, { label: "System Status", href: "/system-status" }, "Pricing", "Contact"],
-  COMPANY: ["About Zoiko One", "Leadership", "Careers", "Contact", "Pricing", { label: "Trust Center", href: "/trust-center" }, "Solutions"],
+  RESOURCES: [{ label: "Resource Center", href: "/resources" }, { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, { label: "Integrations", href: "/integrations" }, { label: "API Documentation", href: "/api-documentation" }, { label: "System Status", href: "/system-status" }, { label: "Pricing", href: "/pricing" }, "Contact"],
+  COMPANY: [{ label: "About Zoiko One", href: "/about" }, "Leadership", "Careers", "Contact", "Pricing", { label: "Trust Center", href: "/trust-center" }, "Solutions"],
 };
 
 const ecosystemItems = [

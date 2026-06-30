@@ -125,7 +125,6 @@ import DocumentsDashboard from "./modules/zoiko-hr/documents/dashboard.jsx";
 import EmployeeDocuments from "./modules/zoiko-hr/documents/employee-documents.jsx";
 import CompanyDocuments from "./modules/zoiko-hr/documents/company-documents.jsx";
 import ApprovalWorkflow from "./modules/zoiko-hr/documents/approvals.jsx";
-import DocumentsSettings from "./modules/zoiko-hr/documents/settings.jsx";
 
 import ZoikoHRAttendanceDashboard from "./modules/zoiko-hr/attendance/dashboard.jsx";
 import ZoikoHRAttendanceDailyRecords from "./modules/zoiko-hr/attendance/daily-records.jsx";
@@ -149,12 +148,12 @@ import ZoikoHRCompRevisions from "./modules/zoiko-hr/compensation/salary-revisio
 import ZoikoHRCompAllowances from "./modules/zoiko-hr/compensation/allowances.jsx";
 import ZoikoHRCompBenefits from "./modules/zoiko-hr/compensation/benefits.jsx";
 
-import ZoikoHRDashboard from "./modules/zoiko-hr/employee-management/dashboard.jsx";
-import ZoikoHREmployees from "./modules/zoiko-hr/employee-management/employees.jsx";
-import ZoikoHRProfile from "./modules/zoiko-hr/employee-management/profile.jsx";
-import ZoikoHROrgChart from "./modules/zoiko-hr/employee-management/organization.jsx";
-import ZoikoHRLifecycle from "./modules/zoiko-hr/employee-management/lifecycle.jsx";
-import ZoikoHRReports from "./modules/zoiko-hr/employee-management/reports.jsx";
+import ZoikoHRDashboard from "./pages/Peoples/Employees/EmployeeManagement/dashboard.jsx";
+import ZoikoHREmployees from "./pages/Peoples/Employees/EmployeeManagement/employees.jsx";
+import ZoikoHRProfile from "./pages/Peoples/Employees/EmployeeManagement/profile.jsx";
+import ZoikoHROrgChart from "./pages/Peoples/Employees/EmployeeManagement/organization.jsx";
+import ZoikoHRLifecycle from "./pages/Peoples/Employees/EmployeeManagement/lifecycle.jsx";
+import ZoikoHRReports from "./pages/Peoples/Employees/EmployeeManagement/reports.jsx";
 
 import ZoikoTimeModule from "./modules/zoikotime";
 import ZoikoPayrollModule from "./modules/payroll";
@@ -278,8 +277,8 @@ import EmployeeEssRequests   from "./pages/Peoples/Employees/ESS/Employee_EssReq
 import EmployeeEssSettings   from "./pages/Peoples/Employees/ESS/Employee_EssSettings.jsx";
 
 // Leaves folder
-import EmployeeMyLeave       from "./pages/Peoples/Employees/Leaves/Employee_MyLeave.jsx";
-import EmployeeApplyLeave    from "./pages/Peoples/Employees/Leaves/Employee_ApplyLeave.jsx";
+import EmployeeMyLeave       from "./pages/Peoples/Employees/Leaves/Employee_ApplyLeave.jsx";
+import EmployeeApplyLeave    from "./pages/Peoples/Employees/Leaves/Employee_ApplyLeaveForm.jsx";
 import EmployeeLeaveCalendar from "./pages/Peoples/Employees/Leaves/Employee_LeaveCalendar.jsx";
 import EmployeeLeaveHistory  from "./pages/Peoples/Employees/Leaves/Employee_LeaveHistory.jsx";
 import EmployeeLeaveTypes    from "./pages/Peoples/Employees/Leaves/Employee_LeaveTypes.jsx";
@@ -407,7 +406,6 @@ const routeOverrides = {
   "/zoiko-hr/documents/employee-documents": <EmployeeDocuments />,
   "/zoiko-hr/documents/company-documents": <CompanyDocuments />,
   "/zoiko-hr/documents/approvals": <ApprovalWorkflow />,
-  "/zoiko-hr/documents/settings": <DocumentsSettings />,
   // Workforce Planning
   "/zoiko-hr/workforce-planning": <WorkforceDashboard />,
   "/zoiko-hr/workforce-planning/plans": <WorkforcePlans />,

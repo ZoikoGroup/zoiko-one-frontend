@@ -1,52 +1,176 @@
-import { useState, useEffect } from "react";
-import { getMyLeave } from "../../../../service/hrService";
-import { getMyAttendanceLegacy } from "../../../../service/hrService";
+import { useEffect, useMemo, useRef, useState } from "react";
+import HRPage from "../../../../components/HRPage";
+import { getMyProfile, getLeaveBalances, getAttendanceRecords, getEss, getDocuments } from "../../../../service/employee";
+import { getStoredUser } from "../../../../service/api";
 
 export default function EssDashboard() {
-  const [stats, setStats] = useState([
-    { label: "Leave Balance", value: "-", sub: "Annual leave remaining", color: "#4F46E5" },
-    { label: "Attendance", value: "-", sub: "This month", color: "#059669" },
-    { label: "Pending Requests", value: "-", sub: "Awaiting approval", color: "#D97706" },
-    { label: "Documents", value: "-", sub: "Files uploaded", color: "#0EA5E9" },
-  ]);
+  const [profile, setProfile] = useState(null);
+  const [balances, setBalances] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [essRecords, setEssRecords] = useState([]);
+  const [documents, setDocuments] = useState({ data: [] });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
+    setLoading(true);
+    setError(null);
+
+    const employeeId = getStoredUser()?.id;
+
     Promise.all([
-      getMyLeave().catch(() => null),
-      getMyAttendanceLegacy().catch(() => null),
-    ]).then(([leaveData, attendanceData]) => {
-      const leaveBalance = leaveData?.balance || leaveData?.total_leave_balance || "-";
-      const attendanceRate = attendanceData?.rate || attendanceData?.this_month || "-";
-      setStats([
-        { label: "Leave Balance", value: leaveBalance, sub: "Annual leave remaining", color: "#4F46E5" },
-        { label: "Attendance", value: attendanceRate, sub: "This month", color: "#059669" },
-        { label: "Pending Requests", value: leaveData?.pending_requests ?? "-", sub: "Awaiting approval", color: "#D97706" },
-        { label: "Documents", value: "-", sub: "Files uploaded", color: "#0EA5E9" },
-      ]);
-    }).finally(() => setLoading(false));
+      getMyProfile(),
+      employeeId ? getLeaveBalances(employeeId) : Promise.resolve([]),
+      getAttendanceRecords(),
+      employeeId ? getEss(employeeId) : Promise.resolve([]),
+      getDocuments({}),
+    ])
+      .then(([profileRes, balancesRes, attendanceRes, essRes, docsRes]) => {
+        if (!mounted.current) return;
+        setProfile(profileRes.data || profileRes);
+        setBalances(Array.isArray(balancesRes) ? balancesRes : []);
+        setAttendance(
+          attendanceRes?.items || (Array.isArray(attendanceRes) ? attendanceRes : [])
+        );
+        setEssRecords(Array.isArray(essRes) ? essRes : []);
+        setDocuments(docsRes);
+      })
+      .catch((err) => {
+        if (mounted.current) setError(err.message || "Failed to load dashboard");
+      })
+      .finally(() => {
+        if (mounted.current) setLoading(false);
+      });
+
+    return () => { mounted.current = false; };
   }, []);
 
-  return (
-    <div style={{ padding: "32px", background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{ marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", margin: "0 0 6px 0" }}>
-          Employee Self Service
-        </h1>
-        <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>
-          Welcome back! Here's your personal overview for today.
-        </p>
-      </div>
+  const stats = useMemo(() => {
+    const totalLeaveDays = balances.reduce((sum, b) => sum + (b.remaining_days ?? b.remaining ?? 0), 0);
+    const presentDays = attendance.filter((r) => r.status === "Present").length;
+    const totalDays = attendance.length || 1;
+    const attendancePct = Math.round((presentDays / totalDays) * 100);
+    const pendingRequests = essRecords.filter((r) => r.status === "Pending").length;
+    const docCount = documents?.data?.length || 0;
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "28px" }}>
+    return [
+      { label: "Leave Balance", value: `${totalLeaveDays} Days`, sub: "Annual leave remaining", color: "#4F46E5" },
+      { label: "Attendance", value: `${attendancePct}%`, sub: "This month", color: "#059669" },
+      { label: "Pending Requests", value: String(pendingRequests), sub: "Awaiting approval", color: "#D97706" },
+      { label: "Documents", value: String(docCount), sub: "Files uploaded", color: "#0EA5E9" },
+    ];
+  }, [balances, attendance, essRecords, documents]);
+
+  const recentActivity = useMemo(() => {
+    const activities = [];
+
+    essRecords.forEach((r) => {
+      if (r.type || r.leave_type || r.requestType) {
+        activities.push({
+          action: `${r.type || r.requestType || r.leave_type} request`,
+          date: r.createdAt || r.created_at || r.raised,
+          status: r.status === "Approved" ? "Approved" : r.status === "Pending" ? "Pending" : r.status,
+        });
+      }
+    });
+
+    attendance.forEach((r) => {
+      if (r.date) {
+        activities.push({
+          action: `Attendance marked — ${r.status}`,
+          date: r.date,
+          status: "Done",
+        });
+      }
+    });
+
+    activities.sort((a, b) => {
+      const da = a.date ? new Date(a.date) : new Date(0);
+      const db = b.date ? new Date(b.date) : new Date(0);
+      return db - da;
+    });
+
+    return activities.slice(0, 8);
+  }, [essRecords, attendance]);
+
+  if (loading) {
+    return (
+      <HRPage title="Employee Self Service" subtitle="Welcome back! Here's your personal overview for today.">
+        <div className="flex justify-center items-center py-20">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </HRPage>
+    );
+  }
+
+  if (error) {
+    return (
+      <HRPage title="Employee Self Service" subtitle="Welcome back! Here's your personal overview for today.">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-medium">
+          {error}
+        </div>
+      </HRPage>
+    );
+  }
+
+  return (
+    <HRPage title="Employee Self Service" subtitle="Welcome back! Here's your personal overview for today.">
+      <div className="grid grid-cols-4 gap-4 mb-7">
         {stats.map((s) => (
-          <div key={s.label} style={{ padding: "20px", borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB" }}>
-            <p style={{ fontSize: "12px", fontWeight: "600", color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px 0" }}>{s.label}</p>
-            <p style={{ fontSize: "28px", fontWeight: "800", color: s.color, margin: "0 0 4px 0" }}>{loading ? "..." : s.value}</p>
-            <p style={{ fontSize: "12px", color: "#9CA3AF", margin: 0 }}>{s.sub}</p>
+          <div key={s.label} className="p-5 rounded-xl bg-white border border-gray-200">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{s.label}</p>
+            <p className="text-3xl font-extrabold mb-1" style={{ color: s.color }}>{s.value}</p>
+            <p className="text-xs text-gray-400">{s.sub}</p>
           </div>
         ))}
       </div>
-    </div>
+
+      {recentActivity.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-lg font-medium">No recent activity</p>
+        </div>
+      ) : (
+        <div className="p-6 rounded-xl bg-white border border-gray-200">
+          <h3 className="text-base font-bold text-gray-900 mb-4">Recent Activity</h3>
+          {recentActivity.map((a, i) => (
+            <div key={i} className="flex justify-between items-center py-3 border-t border-gray-100">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{a.action}</p>
+                <p className="text-xs text-gray-500">
+                  {a.date
+                    ? new Date(a.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "-"}
+                </p>
+              </div>
+              <span
+                className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                style={{
+                  color:
+                    a.status === "Done"
+                      ? "#059669"
+                      : a.status === "Approved"
+                        ? "#4F46E5"
+                        : "#D97706",
+                  background:
+                    a.status === "Done"
+                      ? "#ECFDF5"
+                      : a.status === "Approved"
+                        ? "#EEF2FF"
+                        : "#FFFBEB",
+                }}
+              >
+                {a.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </HRPage>
   );
 }

@@ -144,7 +144,6 @@ const products = {
               { label: "Employee Documents",   href: "/zoiko-hr/documents/employee-documents", icon: FileText },
               { label: "Company Documents",    href: "/zoiko-hr/documents/company-documents",  icon: Building2 },
               { label: "Approval Workflow",    href: "/zoiko-hr/documents/approvals",          icon: ClipboardCheck },
-              { label: "Settings",             href: "/zoiko-hr/documents/settings",           icon: SlidersHorizontal },
             ]},
             { label: "Departments",        icon: Building2, children: [
               { label: "Dashboard",            href: "/zoiko-hr/departments",             icon: LayoutDashboard },

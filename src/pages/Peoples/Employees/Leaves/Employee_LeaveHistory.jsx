@@ -1,52 +1,135 @@
-export default function LeaveHistory() {
-  const records = [
-    { id: "LV-001", type: "Annual Leave", from: "Jun 10, 2026", to: "Jun 11, 2026", days: 2, appliedOn: "Jun 5, 2026",  approver: "Rahul Sharma", status: "Approved" },
-    { id: "LV-002", type: "Sick Leave",   from: "May 22, 2026", to: "May 22, 2026", days: 1, appliedOn: "May 22, 2026", approver: "Rahul Sharma", status: "Approved" },
-    { id: "LV-003", type: "Casual Leave", from: "Apr 14, 2026", to: "Apr 14, 2026", days: 1, appliedOn: "Apr 12, 2026", approver: "Priya Mehta",  status: "Approved" },
-    { id: "LV-004", type: "Annual Leave", from: "Mar 1, 2026",  to: "Mar 3, 2026",  days: 3, appliedOn: "Feb 25, 2026", approver: "Rahul Sharma", status: "Rejected" },
-    { id: "LV-005", type: "Unpaid Leave", from: "Feb 10, 2026", to: "Feb 10, 2026", days: 1, appliedOn: "Feb 9, 2026",  approver: "Priya Mehta",  status: "Approved" },
-  ];
+import { useEffect, useRef, useState } from "react";
+import HRPage from "../../../../components/HRPage";
+import { getLeaveRequests } from "../../../../service/employee";
+import { getStoredUser } from "../../../../service/api";
 
-  const statusColor = {
-    Approved: { color: "#059669", bg: "#ECFDF5" },
-    Rejected: { color: "#DC2626", bg: "#FEF2F2" },
-    Pending:  { color: "#D97706", bg: "#FFFBEB" },
-  };
+const statusColor = {
+  Approved: { color: "#059669", bg: "#ECFDF5" },
+  Rejected: { color: "#DC2626", bg: "#FEF2F2" },
+  Pending: { color: "#D97706", bg: "#FFFBEB" },
+};
+
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+export default function LeaveHistory() {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    setLoading(true);
+    setError(null);
+
+    const employeeId = getStoredUser()?.id;
+    if (!employeeId) {
+      if (mounted.current) {
+        setError("User not found. Please log in again.");
+        setLoading(false);
+      }
+      return;
+    }
+
+    getLeaveRequests(employeeId)
+      .then((data) => {
+        if (!mounted.current) return;
+        const list = Array.isArray(data) ? data : [];
+        list.sort((a, b) => {
+          const da = a.created_at || a.appliedOn || a.start_date;
+          const db = b.created_at || b.appliedOn || b.start_date;
+          return new Date(db || 0) - new Date(da || 0);
+        });
+        setRecords(list);
+      })
+      .catch((err) => {
+        if (mounted.current) setError(err.message || "Failed to load leave history");
+      })
+      .finally(() => {
+        if (mounted.current) setLoading(false);
+      });
+
+    return () => { mounted.current = false; };
+  }, []);
+
+  if (loading) {
+    return (
+      <HRPage title="Leave History" subtitle="Complete record of all your leave requests.">
+        <div className="flex justify-center items-center py-20">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </HRPage>
+    );
+  }
+
+  if (error) {
+    return (
+      <HRPage title="Leave History" subtitle="Complete record of all your leave requests.">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-medium">
+          {error}
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
-    <div style={{ padding: "32px", background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{ marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", margin: "0 0 6px 0" }}>Leave History</h1>
-        <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>Complete record of all your leave requests.</p>
-      </div>
-
-      <div style={{ borderRadius: "12px", background: "white", border: "1.5px solid #E5E7EB", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#F9FAFB" }}>
-              {["ID", "Type", "From", "To", "Days", "Applied On", "Approver", "Status"].map((h) => (
-                <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "11px", fontWeight: "600", color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((r) => (
-              <tr key={r.id} style={{ borderTop: "1px solid #F3F4F6" }}>
-                <td style={{ padding: "13px 16px", fontSize: "12px", color: "#9CA3AF", fontWeight: "600" }}>{r.id}</td>
-                <td style={{ padding: "13px 16px", fontSize: "13px", color: "#111827", fontWeight: "600" }}>{r.type}</td>
-                <td style={{ padding: "13px 16px", fontSize: "13px", color: "#374151" }}>{r.from}</td>
-                <td style={{ padding: "13px 16px", fontSize: "13px", color: "#374151" }}>{r.to}</td>
-                <td style={{ padding: "13px 16px", fontSize: "13px", color: "#374151", textAlign: "center" }}>{r.days}</td>
-                <td style={{ padding: "13px 16px", fontSize: "13px", color: "#374151" }}>{r.appliedOn}</td>
-                <td style={{ padding: "13px 16px", fontSize: "13px", color: "#374151" }}>{r.approver}</td>
-                <td style={{ padding: "13px 16px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 10px", borderRadius: "999px", color: statusColor[r.status].color, background: statusColor[r.status].bg }}>{r.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <HRPage title="Leave History" subtitle="Complete record of all your leave requests.">
+      {records.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-lg font-medium">No leave history found</p>
+        </div>
+      ) : (
+        <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  {["ID", "Type", "From", "To", "Days", "Applied On", "Approver", "Status"].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((r) => (
+                  <tr key={r.id || r.leaveId} className="border-t border-gray-100">
+                    <td className="px-4 py-3.5 text-xs font-semibold text-gray-400">{r.id || r.leaveId || "-"}</td>
+                    <td className="px-4 py-3.5 text-xs font-semibold text-gray-900">
+                      {r.leave_type || r.type || "Leave"}
+                    </td>
+                    <td className="px-4 py-3.5 text-xs text-gray-700">{formatDate(r.start_date)}</td>
+                    <td className="px-4 py-3.5 text-xs text-gray-700">{formatDate(r.end_date)}</td>
+                    <td className="px-4 py-3.5 text-xs text-gray-700 text-center">{r.days || 1}</td>
+                    <td className="px-4 py-3.5 text-xs text-gray-700">
+                      {formatDate(r.created_at || r.appliedOn)}
+                    </td>
+                    <td className="px-4 py-3.5 text-xs text-gray-700">{r.approver || r.approved_by || "-"}</td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                        style={{
+                          color: statusColor[r.status]?.color || "#6B7280",
+                          background: statusColor[r.status]?.bg || "#F3F4F6",
+                        }}
+                      >
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </HRPage>
   );
 }

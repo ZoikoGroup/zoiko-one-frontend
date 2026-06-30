@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import HRPage from "../../../components/HRPage";
-import { getEmployees, getDepartments, getDesignations, createEmployee, updateEmployee, deleteEmployee, getEmployeeById } from "../../../service/hrService";
-import { resetPassword } from "../../../service/userService";
-import { User, Edit, Trash2, Plus, Search, Filter, X, CheckCircle, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Eye, UserCheck, UserX, FileText, Unlock, EyeOff } from "lucide-react";
+import HRPage from "../../../../components/HRPage";
+import { getEmployees, getDepartments, getDesignations, createEmployee, updateEmployee, deleteEmployee, getEmployeeById } from "../../../../service/employee";
+import { resetPassword } from "../../../../service/userService";
+import { User, Edit, Trash2, Plus, Search, Filter, X, CheckCircle, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Eye, UserCheck, UserX, FileText, Unlock } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/employee-management" },

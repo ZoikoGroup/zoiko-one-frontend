@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import HRPage from "../../../components/HRPage";
-import { getEmployeeLifecycle, confirmProbation, promoteEmployee, transferEmployee, resignEmployee, exitEmployee } from "../../../service/hrService";
+import HRPage from "../../../../components/HRPage";
+import { getEmployeeLifecycle, confirmProbation, promoteEmployee, transferEmployee, resignEmployee, exitEmployee } from "../../../../service/employee";
 import { Clock, UserCheck, TrendingUp, AlertCircle, RefreshCw, FileText, Users, Building2, MapPin } from "lucide-react";
 
 const NAV_ITEMS = [

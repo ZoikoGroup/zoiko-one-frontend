@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import HRPage from "../../../components/HRPage";
-import { getOrgChart } from "../../../service/hrService";
+import HRPage from "../../../../components/HRPage";
+import { getOrgChart } from "../../../../service/employee";
 import { Users, Building2, UserCheck, MapPin, ChevronRight, AlertCircle, RefreshCw } from "lucide-react";
 
 const NAV_ITEMS = [

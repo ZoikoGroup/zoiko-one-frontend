@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Eye, EyeOff, Lock, ShieldCheck, Shield, CheckCircle, XCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Eye, EyeOff, Lock, ShieldCheck, Shield, CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
+import { getMyProfile, updateMyProfile } from "../../../../service/employee";
+import HRPage from "../../../../components/HRPage";
 
 const calcStrength = (pw) => {
   if (!pw) return { score: 0, label: "", color: "" };
@@ -15,10 +17,10 @@ const calcStrength = (pw) => {
 };
 
 const requirements = [
-  { label: "At least 8 characters", test: pw => pw.length >= 8 },
-  { label: "One uppercase letter", test: pw => /[A-Z]/.test(pw) },
-  { label: "One number", test: pw => /[0-9]/.test(pw) },
-  { label: "One special character", test: pw => /[^A-Za-z0-9]/.test(pw) },
+  { label: "At least 8 characters", test: (pw) => pw.length >= 8 },
+  { label: "One uppercase letter", test: (pw) => /[A-Z]/.test(pw) },
+  { label: "One number", test: (pw) => /[0-9]/.test(pw) },
+  { label: "One special character", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
 ];
 
 const PasswordField = ({ label, value, onChange, show, onToggle, placeholder }) => (
@@ -52,16 +54,35 @@ export default function ChangePassword() {
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [twoFA, setTwoFA] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState(null);
   const [errors, setErrors] = useState({});
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    setLoading(true);
+    getMyProfile()
+      .then((res) => {
+        if (!mounted.current) return;
+        const p = res.data || res;
+        setTwoFA(p.isTwoFAEnabled || p.twoFactorEnabled || false);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted.current) setLoading(false);
+      });
+    return () => { mounted.current = false; };
+  }, []);
 
   const strength = calcStrength(newPw);
 
   const validate = () => {
     const e = {};
     if (!current) e.current = "Enter your current password";
-    if (strength.score < 3) e.newPw = "Password is too weak";
     if (!newPw) e.newPw = "Enter a new password";
+    if (strength.score < 3) e.newPw = "Password is too weak";
     if (newPw !== confirm) e.confirm = "Passwords do not match";
     if (!confirm) e.confirm = "Confirm your password";
     return e;
@@ -70,26 +91,77 @@ export default function ChangePassword() {
   const handleSubmit = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    setSubmitted(true);
-    setCurrent(""); setNewPw(""); setConfirm("");
+    setSaving(true);
     setErrors({});
-    setTimeout(() => setSubmitted(false), 4000);
+    setSuccess(null);
+    updateMyProfile({ currentPassword: current, newPassword: newPw })
+      .then(() => {
+        if (!mounted.current) return;
+        setSuccess("password");
+        setCurrent("");
+        setNewPw("");
+        setConfirm("");
+        setTimeout(() => { if (mounted.current) setSuccess(null); }, 4000);
+      })
+      .catch((err) => {
+        if (mounted.current) setErrors({ _api: err?.message || "Failed to update password" });
+      })
+      .finally(() => {
+        if (mounted.current) setSaving(false);
+      });
   };
 
-  const toggle = (field) => setShow(s => ({ ...s, [field]: !s[field] }));
+  const handleToggle2FA = () => {
+    const newVal = !twoFA;
+    setSaving(true);
+    setErrors({});
+    setSuccess(null);
+    updateMyProfile({ isTwoFAEnabled: newVal })
+      .then(() => {
+        if (!mounted.current) return;
+        setTwoFA(newVal);
+        setSuccess("2fa");
+        setTimeout(() => { if (mounted.current) setSuccess(null); }, 4000);
+      })
+      .catch((err) => {
+        if (mounted.current) setErrors({ _2fa: err?.message || "Failed to update 2FA setting" });
+      })
+      .finally(() => {
+        if (mounted.current) setSaving(false);
+      });
+  };
+
+  const toggle = (field) => setShow((s) => ({ ...s, [field]: !s[field] }));
+
+  if (loading) {
+    return (
+      <HRPage title="Security Settings" subtitle="Profile">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+          <span className="ml-3 text-sm text-slate-500 font-medium">Loading settings...</span>
+        </div>
+      </HRPage>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 flex items-start justify-center">
-      <div className="w-full max-w-lg">
-        <div className="mb-8">
-          <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Profile</p>
-          <h1 className="text-2xl font-bold text-slate-800 mt-1">Security Settings</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage your password and authentication preferences.</p>
-        </div>
-
-        {submitted && (
+    <HRPage title="Security Settings" subtitle="Manage your password and authentication preferences.">
+      <div className="max-w-lg">
+        {success === "password" && (
           <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-semibold">
             <CheckCircle size={16} /> Password updated successfully!
+          </div>
+        )}
+
+        {success === "2fa" && (
+          <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-semibold">
+            <CheckCircle size={16} /> Two-factor authentication {twoFA ? "enabled" : "disabled"} successfully!
+          </div>
+        )}
+
+        {errors._api && (
+          <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-semibold">
+            <AlertCircle size={16} /> {errors._api}
           </div>
         )}
 
@@ -107,7 +179,7 @@ export default function ChangePassword() {
               <PasswordField
                 label="Current Password"
                 value={current}
-                onChange={e => { setCurrent(e.target.value); setErrors(p => ({ ...p, current: "" })); }}
+                onChange={(e) => { setCurrent(e.target.value); setErrors((p) => ({ ...p, current: "" })); }}
                 show={show.current}
                 onToggle={() => toggle("current")}
               />
@@ -118,18 +190,17 @@ export default function ChangePassword() {
               <PasswordField
                 label="New Password"
                 value={newPw}
-                onChange={e => { setNewPw(e.target.value); setErrors(p => ({ ...p, newPw: "" })); }}
+                onChange={(e) => { setNewPw(e.target.value); setErrors((p) => ({ ...p, newPw: "" })); }}
                 show={show.new}
                 onToggle={() => toggle("new")}
                 placeholder="Create a strong password"
               />
               {errors.newPw && <p className="text-xs text-red-500 mt-1">{errors.newPw}</p>}
 
-              {/* Strength Meter */}
               {newPw && (
                 <div className="mt-3">
                   <div className="flex gap-1 mb-1.5">
-                    {[1, 2, 3, 4, 5].map(i => (
+                    {[1, 2, 3, 4, 5].map((i) => (
                       <div
                         key={i}
                         className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
@@ -146,9 +217,8 @@ export default function ChangePassword() {
                     {strength.label} Password
                   </p>
 
-                  {/* Requirements */}
                   <div className="mt-3 space-y-1.5">
-                    {requirements.map(req => {
+                    {requirements.map((req) => {
                       const met = req.test(newPw);
                       return (
                         <div key={req.label} className="flex items-center gap-2">
@@ -169,7 +239,7 @@ export default function ChangePassword() {
               <PasswordField
                 label="Confirm New Password"
                 value={confirm}
-                onChange={e => { setConfirm(e.target.value); setErrors(p => ({ ...p, confirm: "" })); }}
+                onChange={(e) => { setConfirm(e.target.value); setErrors((p) => ({ ...p, confirm: "" })); }}
                 show={show.confirm}
                 onToggle={() => toggle("confirm")}
                 placeholder="Re-enter your new password"
@@ -185,9 +255,10 @@ export default function ChangePassword() {
 
           <button
             onClick={handleSubmit}
-            className="mt-6 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition shadow-sm shadow-indigo-200"
+            disabled={saving}
+            className="mt-6 w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-bold rounded-xl transition shadow-sm shadow-indigo-200 flex items-center justify-center gap-2"
           >
-            Update Password
+            {saving ? <><Loader2 size={14} className="animate-spin" /> Updating...</> : "Update Password"}
           </button>
         </div>
 
@@ -201,6 +272,12 @@ export default function ChangePassword() {
           </div>
           <p className="text-xs text-slate-400 mb-5 ml-10">Add an extra layer of security to your account with 2FA.</p>
 
+          {errors._2fa && (
+            <div className="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-semibold">
+              <AlertCircle size={14} /> {errors._2fa}
+            </div>
+          )}
+
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
             <div className="flex items-center gap-3">
               <Shield size={18} className={twoFA ? "text-violet-500" : "text-slate-300"} />
@@ -212,18 +289,21 @@ export default function ChangePassword() {
               </div>
             </div>
 
-            {/* Toggle */}
-            <button
-              onClick={() => setTwoFA(v => !v)}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${twoFA ? "bg-violet-500" : "bg-slate-200"}`}
-              aria-label="Toggle 2FA"
-            >
-              <span
-                className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${
-                  twoFA ? "left-7" : "left-1"
-                }`}
-              />
-            </button>
+            {saving ? (
+              <Loader2 size={18} className="text-indigo-500 animate-spin" />
+            ) : (
+              <button
+                onClick={handleToggle2FA}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${twoFA ? "bg-violet-500" : "bg-slate-200"}`}
+                aria-label="Toggle 2FA"
+              >
+                <span
+                  className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${
+                    twoFA ? "left-7" : "left-1"
+                  }`}
+                />
+              </button>
+            )}
           </div>
 
           {twoFA && (
@@ -236,6 +316,6 @@ export default function ChangePassword() {
           )}
         </div>
       </div>
-    </div>
+    </HRPage>
   );
 }

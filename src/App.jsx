@@ -27,6 +27,7 @@ import ZoikoProductsPage from "./pages/public/ZoikoProductsPage";
 import PlatformPage from "./pages/public/PlatformPage";
 import SolutionsPage from "./pages/public/SolutionsPage";
 import PricingPage from "./pages/public/PricingPage";
+import ContactPage from "./pages/public/ContactPage";
 import ResourcesPage from "./pages/public/ResourcesPage";
 import AboutPage from "./pages/public/AboutPage";
 import ZoikoDemoPage from "./pages/public/ZoikoDemoPage";
@@ -601,6 +602,7 @@ export default function App() {
       <Route path="/five-pillars/supply" element={<ZoikoSupplyPage />} />
       <Route path="/five-pillars/control" element={<ZoikoControlPage />} />
       <Route path="/get-demo" element={<ZoikoDemoPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/products/zoiko-hr" element={<ZoikoHRPage />} />
       <Route path="/products/payroll" element={<ZoikoPayrollPage />} />
       <Route path="/products/zoikotime" element={<ZoikoTimePage />} />

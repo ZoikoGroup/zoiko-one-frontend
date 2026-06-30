@@ -80,8 +80,9 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/settings/",
   ],
 
-  // HR Admin - dedicated /hr-admin/* routes + user management settings
+  // HR Admin - Zoiko HR product navigation + dedicated /hr-admin/* routes + user management settings
   [ROLES.HR_ADMIN]: [
+    "/zoiko-hr",
     "/hr-admin/dashboard",
     "/hr-admin/organization",
     "/hr-admin/employees",

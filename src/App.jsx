@@ -30,6 +30,8 @@ import PricingPage from "./pages/public/PricingPage";
 import ContactPage from "./pages/public/ContactPage";
 import ResourcesPage from "./pages/public/ResourcesPage";
 import AboutPage from "./pages/public/AboutPage";
+import ZoikoLeadershipPage from "./pages/public/ZoikoLeadershipPage";
+import ZoikoCareersPage from "./pages/public/ZoikoCareersPage";
 import ZoikoDemoPage from "./pages/public/ZoikoDemoPage";
 import ZoikoHRPage from "./pages/products/ZoikoHRPage";
 import ZoikoPayrollPage from "./pages/products/ZoikoPayrollPage";
@@ -579,8 +581,11 @@ const routeOverrides = {
 };
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (hash) return;
+    window.scrollTo(0, 0);
+  }, [pathname, hash]);
   return null;
 }
 
@@ -596,6 +601,8 @@ export default function App() {
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/resources" element={<ResourcesPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/leadership" element={<ZoikoLeadershipPage />} />
+      <Route path="/careers" element={<ZoikoCareersPage />} />
       <Route path="/five-pillars/people" element={<ZoikoPeoplePage />} />
       <Route path="/five-pillars/money" element={<ZoikoMoneyPage />} />
       <Route path="/five-pillars/work" element={<ZoikoWorkPage />} />

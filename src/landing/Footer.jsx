@@ -69,8 +69,8 @@ const navData = {
     title: "Company",
     links: [
       { label: "About Zoiko One", href: "/about" },
-      "Leadership",
-      "Careers",
+      { label: "Leadership", href: "/leadership" },
+      { label: "Careers", href: "/careers" },
       { label: "Contact", href: "/contact" },
       "Pricing",
       { label: "Trust Center", href: "/trust-center" },

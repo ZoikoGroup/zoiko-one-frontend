@@ -45,11 +45,11 @@ const navData = {
   fivePillars: {
     title: "Five Pillars",
     links: [
-      "People — HR, Time, Payroll",
-      "Money — Billing, Spend",
-      "Work — Projects",
-      "Supply — Inventory",
-      "Control — Comply, Insights",
+      { label: "People — HR, Time, Payroll", href: "/five-pillars/people" },
+      { label: "Money — Billing, Spend", href: "/five-pillars/money" },
+      { label: "Work — Projects", href: "/five-pillars/work" },
+      { label: "Supply — Inventory", href: "/five-pillars/supply" },
+      { label: "Control — Comply, Insights", href: "/five-pillars/control" },
     ],
   },
   resources: {

@@ -55,20 +55,20 @@ const navData = {
   resources: {
     title: "Resources",
     links: [
-      "Resource Center",
+      { label: "Resource Center", href: "/resources" },
       { label: "Trust Center", href: "/trust-center" },
       { label: "Security", href: "/security" },
-      "Integrations",
+      { label: "Integrations", href: "/integrations" },
       { label: "API Documentation", href: "/api-documentation" },
       { label: "System Status", href: "/system-status" },
-      "Pricing",
+      { label: "Pricing", href: "/pricing" },
       { label: "Contact", href: "/contact" },
     ],
   },
   company: {
     title: "Company",
     links: [
-      "About Zoiko One",
+      { label: "About Zoiko One", href: "/about" },
       "Leadership",
       "Careers",
       { label: "Contact", href: "/contact" },

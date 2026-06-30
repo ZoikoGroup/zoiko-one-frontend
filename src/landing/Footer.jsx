@@ -45,11 +45,11 @@ const navData = {
   fivePillars: {
     title: "Five Pillars",
     links: [
-      "People — HR, Time, Payroll",
-      "Money — Billing, Spend",
-      "Work — Projects",
-      "Supply — Inventory",
-      "Control — Comply, Insights",
+      { label: "People — HR, Time, Payroll", href: "/five-pillars/people" },
+      { label: "Money — Billing, Spend", href: "/five-pillars/money" },
+      { label: "Work — Projects", href: "/five-pillars/work" },
+      { label: "Supply — Inventory", href: "/five-pillars/supply" },
+      { label: "Control — Comply, Insights", href: "/five-pillars/control" },
     ],
   },
   resources: {
@@ -62,7 +62,7 @@ const navData = {
       { label: "API Documentation", href: "/api-documentation" },
       { label: "System Status", href: "/system-status" },
       "Pricing",
-      "Contact",
+      { label: "Contact", href: "/contact" },
     ],
   },
   company: {
@@ -71,7 +71,7 @@ const navData = {
       "About Zoiko One",
       "Leadership",
       "Careers",
-      "Contact",
+      { label: "Contact", href: "/contact" },
       "Pricing",
       { label: "Trust Center", href: "/trust-center" },
       "Solutions",
@@ -97,7 +97,7 @@ const legalLinks = [
   { label: "Trust Center", href: "/trust-center" },
   { label: "Security", href: "/security" },
   "System Status",
-  "Contact",
+  { label: "Contact", href: "/contact" },
 ];
 
 const getStartedLinks = [

@@ -27,6 +27,7 @@ import ZoikoProductsPage from "./pages/public/ZoikoProductsPage";
 import PlatformPage from "./pages/public/PlatformPage";
 import SolutionsPage from "./pages/public/SolutionsPage";
 import PricingPage from "./pages/public/PricingPage";
+import ContactPage from "./pages/public/ContactPage";
 import ResourcesPage from "./pages/public/ResourcesPage";
 import AboutPage from "./pages/public/AboutPage";
 import ZoikoDemoPage from "./pages/public/ZoikoDemoPage";
@@ -39,6 +40,11 @@ import ZoikoComplyPage from "./pages/products/ZoikoComplyPage";
 import ZoikoSpendPage from "./pages/products/ZoikoSpendPage";
 import ZoikoInventoryPage from "./pages/products/ZoikoInventoryPage";
 import ZoikoDocsProPage from "./pages/products/ZoikoDocsProPage";
+import ZoikoPeoplePage from "./pages/public/five-pillars/ZoikoPeoplePage";
+import ZoikoMoneyPage from "./pages/public/five-pillars/ZoikoMoneyPage";
+import ZoikoWorkPage from "./pages/public/five-pillars/ZoikoWorkPage";
+import ZoikoSupplyPage from "./pages/public/five-pillars/ZoikoSupplyPage";
+import ZoikoControlPage from "./pages/public/five-pillars/ZoikoControlPage";
 import ZoikoHowItWorksPage from "./pages/platform/ZoikoHowItWorksPage";
 import ZoikoSecurityPage from "./pages/platform/ZoikoSecurityPage";
 import ZoikoTrustCenterPage from "./pages/platform/ZoikoTrustCenterPage";
@@ -590,7 +596,13 @@ export default function App() {
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/resources" element={<ResourcesPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/five-pillars/people" element={<ZoikoPeoplePage />} />
+      <Route path="/five-pillars/money" element={<ZoikoMoneyPage />} />
+      <Route path="/five-pillars/work" element={<ZoikoWorkPage />} />
+      <Route path="/five-pillars/supply" element={<ZoikoSupplyPage />} />
+      <Route path="/five-pillars/control" element={<ZoikoControlPage />} />
       <Route path="/get-demo" element={<ZoikoDemoPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/products/zoiko-hr" element={<ZoikoHRPage />} />
       <Route path="/products/payroll" element={<ZoikoPayrollPage />} />
       <Route path="/products/zoikotime" element={<ZoikoTimePage />} />

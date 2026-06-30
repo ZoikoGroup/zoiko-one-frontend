@@ -2,14 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, UserCircle, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { ROLE_LABELS } from "../config/roles";
 
 export default function UserMenu() {
-  const { user, logout } = useAuth();
+  const { user, role, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const displayName = user?.name || user?.full_name || "Super Admin";
-  const displayEmail = user?.email || "zoiko@admin.one";
+  const displayName = user?.name || user?.full_name || ROLE_LABELS[role] || "User";
+  const displayEmail = user?.email || "user@zoiko.one";
 
   async function handleLogout() {
     await logout();

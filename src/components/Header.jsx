@@ -2,15 +2,17 @@ import React, { useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
+import { useAuth } from "../context/AuthContext";
+import { ROLE_LABELS } from "../config/roles";
 import logo from "../assets/logo.png";
 
 /**
- * Header component for Super Admin UI.
- * - Shows Zoiko One logo and "Super Admin" badge.
+ * Header component for the app shell.
+ * - Shows Zoiko One logo and a role-based badge.
  * - Provides a mobile menu button (hamburger) to toggle the sidebar.
- * - (Command palette search button removed).
  */
 export default function Header({ onMenuClick, onSearch }) {
+  const { role } = useAuth();
   // Keyboard shortcut for command palette
   useEffect(() => {
     const handler = (e) => {
@@ -40,7 +42,7 @@ export default function Header({ onMenuClick, onSearch }) {
         <div className="flex items-center space-x-2">
           <Link to="/"><img src={logo} alt="Zoiko One" className="h-8 w-auto object-contain" /></Link>
           <span className="ml-2 rounded-full bg-[#FF7A00]/10 border border-[#FF7A00]/25 px-2.5 py-0.5 text-xs font-semibold text-[#FF7A00]">
-            Super Admin
+            {ROLE_LABELS[role] ?? "Super Admin"}
           </span>
         </div>
 

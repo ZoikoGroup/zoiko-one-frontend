@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import PageHeader from "../../components/PageHeader";
-import { getOrganizationDashboardStats } from "../../service/orgAdminService";
+import { getOrganizationDashboardStats, getOrganizationDetails } from "../../service/orgAdminService";
 import { getLearningDashboard } from "../../service/hrService";
 import { getPerformanceDashboard } from "../../service/hrService";
 import { getRecruitmentDashboard } from "../../service/hrService";
@@ -31,8 +31,9 @@ export default function HrAdminDashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [learningStats, setLearningStats] = useState(null);
-  const [performanceStats, setPerformanceStats] = useState(null);
+  const [perfStats, setPerfStats] = useState(null);
   const [recruitmentStats, setRecruitmentStats] = useState(null);
+  const [orgName, setOrgName] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -43,15 +44,17 @@ export default function HrAdminDashboardPage() {
       getLearningDashboard().catch(() => null),
       getPerformanceDashboard().catch(() => null),
       getRecruitmentDashboard().catch(() => null),
+      getOrganizationDetails().catch(() => null),
     ])
-      .then(([orgStats, learnStats, perfStats, recStats]) => {
+      .then(([orgStats, learnStats, perfStats, recStats, orgDetails]) => {
         if (cancelled) return;
         setStats(orgStats);
         setLearningStats(learnStats);
-        setPerformanceStats(perfStats);
+        setPerfStats(perfStats);
         setRecruitmentStats(recStats);
+        setOrgName(orgDetails?.name || null);
       })
-      .catch(err => setError(err.message))
+      .catch(err => setError(err?.message || "Failed to load dashboard"))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -67,7 +70,7 @@ export default function HrAdminDashboardPage() {
       return fmt(stats[key]);
     }
     if (key === "learning_courses" && learningStats) return fmt(learningStats.total_courses);
-    if (key === "performance_reviews" && performanceStats) return fmt(performanceStats.total_reviews);
+    if (key === "performance_reviews" && perfStats) return fmt(perfStats.total_reviews);
     if (key === "recruitment_openings" && recruitmentStats) return fmt(recruitmentStats.total_open_positions);
     return "—";
   };
@@ -76,7 +79,7 @@ export default function HrAdminDashboardPage() {
     <div className="space-y-6 font-sans">
       <PageHeader
         title="HR Admin Dashboard"
-        description={`Welcome back, ${user?.name || "HR Admin"}. Here is your organization overview.`}
+        description={`Welcome back, ${user?.name || "HR Admin"}.${orgName ? ` Organization: ${orgName}.` : ""} Here is your organization overview.`}
       />
 
       {error && (

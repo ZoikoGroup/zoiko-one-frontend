@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import PageHeader from "../../components/PageHeader";
 import { getOrganizationDetails } from "../../service/orgAdminService";
-import { Building, MapPin, Globe, Clock, BadgeDollarSign, Users, Briefcase } from "lucide-react";
+import { Building, Calendar, Shield, MapPin, Globe, Clock, BadgeDollarSign, HardDrive, Users, Coins, Briefcase, User, Phone, Mail, FileText } from "lucide-react";
 
 const statusColors = {
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -46,22 +46,29 @@ export default function HrAdminOrganizationPage() {
   }
 
   const statusClass = statusColors[org.status] || "bg-slate-50 text-slate-700 border-slate-200";
+  const subStatusClass = statusColors[org.subscription_status] || "bg-slate-50 text-slate-700 border-slate-200";
 
   const infoRows = [
     { label: "Organization Name", value: org.name },
     { label: "Organization Code", value: org.code },
-    { label: "Industry", value: org.industry || "—" },
-    { label: "Status", value: (
+    { label: "Organization Admin", value: org.admin_name || "—", icon: User },
+    { label: "Admin Email", value: org.admin_email || "—", icon: Mail },
+    { label: "Organization Status", value: (
       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${statusClass}`}>
         {org.status?.charAt(0).toUpperCase() + org.status?.slice(1) || "—"}
       </span>
     )},
     { label: "Subscription Plan", value: org.subscription_plan || "Free" },
     { label: "Subscription Status", value: (
-      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border bg-slate-50 text-slate-700 border-slate-200`}>
+      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${subStatusClass}`}>
         {org.subscription_status?.charAt(0).toUpperCase() + org.subscription_status?.slice(1) || "Active"}
       </span>
     )},
+    { label: "Max Users", value: org.max_users ?? "—" },
+    { label: "Registration Date", value: org.created_at ? new Date(org.created_at).toLocaleDateString() : "—" },
+    { label: "Industry", value: org.industry || "—" },
+    { label: "Email", value: org.email || "—", icon: Mail },
+    { label: "Phone", value: org.phone || "—", icon: Phone },
     { label: "Address", value: org.address || "—" },
     { label: "City", value: org.city || "—" },
     { label: "State", value: org.state || "—" },

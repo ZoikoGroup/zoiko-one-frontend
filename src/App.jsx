@@ -509,7 +509,7 @@ const routeOverrides = {
   "/organization-admin/organization": <OrgAdminOrganizationPage />,
   // HR Admin
   "/hr-admin/dashboard": <HrAdminDashboardPage />,
-  "/hr-admin/organization": <HrAdminOrganizationPage />,
+  "/hr-admin/my-organization": <HrAdminOrganizationPage />,
   "/hr-admin/employees": <ZoikoHREmployees />,
   "/hr-admin/departments": <ZoikoHRDepartmentsDepartmentList />,
   "/hr-admin/designations": <ZoikoHRDesignationList />,

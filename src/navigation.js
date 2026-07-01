@@ -512,6 +512,15 @@ const sharedLayersSection = {
   ],
 };
 
+// HR Admin Dashboard Section
+const hrAdminDashboard = {
+  title: "HR ADMIN",
+  items: [
+    { label: "Dashboard", href: "/hr-admin/dashboard", icon: LayoutDashboard },
+    { label: "My Organization", href: "/hr-admin/my-organization", icon: Building2 },
+  ],
+};
+
 // Organization Admin Dashboard Section
 const organizationAdminDashboard = {
   title: "ORGANIZATION ADMIN",
@@ -524,6 +533,7 @@ const organizationAdminDashboard = {
 export const sections = [
   superAdminDashboard,
   organizationAdminDashboard,
+  hrAdminDashboard,
   superAdmin,
   platformGovernance,
   products,

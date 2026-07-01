@@ -208,11 +208,8 @@ const products = {
               { label: "Reports",               href: "/zoiko-hr/employee-management/reports", icon: BarChart3 },
             ]},
             { label: "Assets",             icon: Package, children: [
-              { label: "Dashboard",          href: "/zoiko-hr/assets",                icon: LayoutDashboard },
-              { label: "Asset Catalog",      href: "/zoiko-hr/assets/catalog",         icon: Layers },
-              { label: "My Assets",          href: "/zoiko-hr/assets/my-assets",       icon: Package },
-              { label: "Asset Requests",     href: "/zoiko-hr/assets/requests",        icon: ClipboardList },
-              { label: "Settings",           href: "/zoiko-hr/assets/settings",        icon: SlidersHorizontal },
+              { label: "Assets",             href: "/organization-admin/assets",          icon: Package },
+              { label: "Asset Requests",     href: "/organization-admin/assets/requests", icon: ClipboardList },
             ]},
             { label: "Learning",           icon: BookOpen, children: [
               { label: "Dashboard",          href: "/zoiko-hr/learning",               icon: LayoutDashboard },
@@ -433,6 +430,16 @@ const employeeWorkspace = {
         { label: "Approvals",        href: "/employee/travel/approvals", icon: ClipboardCheck },
         { label: "Expenses",         href: "/employee/travel/expenses",  icon: Receipt },
         { label: "Settings",         href: "/employee/travel/settings",  icon: SlidersHorizontal },
+      ],
+    },
+
+    // ── Assets ───────────────────────────────────────────────────────────────
+    {
+      label: "Assets",
+      icon: Package,
+      children: [
+        { label: "My Assets",     href: "/employee/assets",           icon: Package },
+        { label: "Request Asset",  href: "/employee/assets/request",   icon: Plus },
       ],
     },
   ],

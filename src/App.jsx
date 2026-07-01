@@ -214,6 +214,8 @@ import InventoryModule from "./modules/inventory/index.jsx";
 // Organization Admin modules
 import OrgAdminDashboardPage from "./modules/organization-admin/DashboardPage";
 import OrgAdminOrganizationPage from "./modules/organization-admin/OrganizationPage";
+import OrgAdminAssetRequestsPage from "./modules/organization-admin/AssetRequestsPage";
+import OrgAdminAssetsPage from "./modules/organization-admin/AssetsPage";
 
 // HR Admin modules
 import HrAdminDashboardPage from "./modules/hr-admin/DashboardPage";
@@ -509,6 +511,8 @@ const routeOverrides = {
   // Organization Admin
   "/organization-admin/dashboard": <OrgAdminDashboardPage />,
   "/organization-admin/organization": <OrgAdminOrganizationPage />,
+  "/organization-admin/assets": <OrgAdminAssetsPage />,
+  "/organization-admin/assets/requests": <OrgAdminAssetRequestsPage />,
   // HR Admin
   "/hr-admin/dashboard": <HrAdminDashboardPage />,
   "/hr-admin/my-organization": <HrAdminOrganizationPage />,
@@ -578,6 +582,10 @@ const routeOverrides = {
   "/employee/travel/approvals": <EmployeeTravelApprovals />,
   "/employee/travel/expenses":  <EmployeeTravelExpenses />,
   "/employee/travel/settings":  <EmployeeTravelSettings />,
+
+  // Assets
+  "/employee/assets":           <EmployeeAssetDetails />,
+  "/employee/assets/request":   <EmployeeAssetDetails />,
 };
 
 function ScrollToTop() {

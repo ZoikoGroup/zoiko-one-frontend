@@ -69,8 +69,8 @@ export default function AssetDetails() {
       })
       .then(([assetsRes, reqsRes]) => {
         if (!mounted.current) return;
-        const assets = assetsRes?.data || assetsRes || [];
-        const reqs = reqsRes?.data || reqsRes || [];
+        const assets = assetsRes?.items || assetsRes?.data || (Array.isArray(assetsRes) ? assetsRes : []);
+        const reqs = reqsRes?.items || reqsRes?.data || (Array.isArray(reqsRes) ? reqsRes : []);
         setAssignedAssets(Array.isArray(assets) ? assets : []);
         setRequests(Array.isArray(reqs) ? reqs : []);
       })
@@ -98,9 +98,10 @@ export default function AssetDetails() {
     setErrors({});
     setSuccess(null);
     createAssetRequest({
-      assetType: form.assetType,
+      asset_type: form.assetType,
       reason: form.reason,
-      priority: form.priority,
+      priority: form.priority.toLowerCase(),
+      requested_on: new Date().toISOString().split("T")[0],
     })
       .then((res) => {
         if (!mounted.current) return;

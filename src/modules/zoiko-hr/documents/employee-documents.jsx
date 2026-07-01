@@ -1,188 +1,38 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  Trash2, Plus, Upload, Search, X, Check, RefreshCw, FileText, Download, User, Briefcase, Hash, AlertCircle
+  Search, RefreshCw, FileText, Download, User, Briefcase, Hash
 } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getDocuments, uploadDocument, deleteDocument } from "../../../service/hrService";
+import { getDocuments } from "../../../service/hrService";
 import { API_BASE_URL } from "../../../service/api";
-import { useAuth } from "../../../context/AuthContext";
 
 const fileTypeIcon = (filename = "") => {
   const ext = filename.split(".").pop()?.toLowerCase();
   const map = { pdf: "📄", doc: "📝", docx: "📝", xls: "📊", xlsx: "📊", png: "🖼️", jpg: "🖼️", jpeg: "🖼️", pptx: "📑" };
   return map[ext] || "📎";
 };
-const fmtDate = (iso) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  return isNaN(d) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-};
-
-function UploadModal({ onClose, onUploaded, user }) {
-  const [file, setFile]         = useState(null);
-  const [name, setName]         = useState("");
-  const [category, setCategory] = useState("employee");
-  const [description, setDesc]  = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [error, setError]       = useState(null);
-  const fileRef                 = useRef();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) { setError("Please select a file to upload."); return; }
-    setUploading(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("title", name || file.name);
-      formData.append("category", category);
-      if (description) formData.append("description", description);
-      if (user?.id) formData.append("employee_id", user.id);
-      await uploadDocument(formData);
-      onUploaded();
-      onClose();
-    } catch (err) {
-      const detail = err?.response?.data?.detail;
-      const msg = Array.isArray(detail)
-        ? detail.map(e => e.msg || e.message || JSON.stringify(e)).join("; ")
-        : (typeof detail === "string" ? detail : null);
-      setError(msg || "Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <Upload className="w-4 h-4 text-indigo-600" /> Upload Document
-          </h3>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-slate-400 hover:text-slate-600">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">File *</label>
-            <div
-              onClick={() => fileRef.current?.click()}
-              className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors"
-            >
-              {file ? (
-                <p className="text-sm font-medium text-slate-700">{file.name}</p>
-              ) : (
-                <>
-                  <FileText className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-slate-400">Click to choose a file</p>
-                  <p className="text-xs text-slate-300 mt-1">PDF, DOCX, XLSX, PNG…</p>
-                </>
-              )}
-            </div>
-            <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files[0] || null)} />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Display Name</label>
-            <input
-              type="text"
-              placeholder="Leave blank to use file name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Category *</label>
-            <select
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-            >
-              <option value="employee">Employee</option>
-              <option value="company">Company</option>
-              <option value="contract">Contract</option>
-              <option value="policy">Policy</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
-            <textarea
-              rows={2}
-              value={description}
-              onChange={e => setDesc(e.target.value)}
-              placeholder="Optional notes…"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
-            />
-          </div>
-          {error && (
-            <p className="text-xs text-rose-600 font-medium bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{error}</p>
-          )}
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 text-sm font-medium text-slate-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={uploading}
-              className="flex-1 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {uploading
-                ? <><RefreshCw className="w-4 h-4 animate-spin" /> Uploading…</>
-                : <><Upload className="w-4 h-4" /> Upload</>}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 export default function EmployeeDocuments() {
-  const { user } = useAuth();
   const [docs, setDocs]           = useState([]);
   const [loading, setLoading]     = useState(true);
-  const [deletingId, setDeletingId] = useState(null);
-  const [showUpload, setShowUpload] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [error, setError]         = useState(null);
   const [search, setSearch]       = useState("");
-  const [toast, setToast]         = useState(null);
-
-  const showToast = (type, message) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3500);
-  };
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await getDocuments({ category: "employee" });
-      setDocs(Array.isArray(res?.data) ? res.data : []);
-    } catch {
-      showToast("error", "Failed to load documents.");
+      const raw = res?.data;
+      setDocs(Array.isArray(raw) ? raw : (raw?.items || raw?.data || []));
+    } catch (e) {
+      setError(e?.message || "Failed to load documents.");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
-
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    const { id, name } = confirmDelete;
-    setConfirmDelete(null);
-    setDeletingId(id);
-    try {
-      await deleteDocument(id);
-      showToast("success", `"${name}" deleted successfully.`);
-      load();
-    } catch {
-      showToast("error", `Failed to delete "${name}". Please try again.`);
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   const getDownloadUrl = (d) => {
     if (d.file_url) return d.file_url;
@@ -191,7 +41,7 @@ export default function EmployeeDocuments() {
   };
 
   const filtered = docs
-    .filter(d => !search.trim() || d.title?.toLowerCase().includes(search.trim().toLowerCase()));
+    .filter(d => !search.trim() || (d.title || d.name || "").toLowerCase().includes(search.trim().toLowerCase()));
 
   return (
     <HRPage title="Employee Documents">
@@ -203,14 +53,8 @@ export default function EmployeeDocuments() {
             <p className="text-sm text-slate-500 mt-0.5">View all documents uploaded by employees. Download and manage files.</p>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-center">
-            <button onClick={load} className="p-2 rounded-lg border border-gray-200 bg-white text-slate-400 hover:text-slate-600 hover:bg-gray-50">
+            <button onClick={load} className="p-2 rounded-lg border border-gray-200 bg-white text-slate-400 hover:text-slate-600 hover:bg-gray-50" title="Refresh">
               <RefreshCw className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setShowUpload(true)}
-              className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200"
-            >
-              <Plus className="w-4 h-4" /> Upload Document
             </button>
           </div>
         </div>
@@ -242,17 +86,9 @@ export default function EmployeeDocuments() {
                 <p className="text-base font-semibold text-slate-700 mb-1">
                   {search ? "No results found" : "No employee documents yet"}
                 </p>
-                <p className="text-sm text-slate-400 mb-5">
-                  {search ? "Try a different search term." : "Upload the first document using the button above."}
+                <p className="text-sm text-slate-400">
+                  {search ? "Try a different search term." : "Documents will appear here once employees upload them."}
                 </p>
-                {!search && (
-                  <button
-                    onClick={() => setShowUpload(true)}
-                    className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700"
-                  >
-                    <Plus className="w-4 h-4" /> Upload Document
-                  </button>
-                )}
               </div>
             ) : (
               <>
@@ -278,7 +114,7 @@ export default function EmployeeDocuments() {
                             <span className="font-medium text-slate-800">{d.employee_name || d.uploader_name || "—"}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-3 text-slate-600">{d.designation || d.designation_name || "—"}</td>
+                        <td className="px-6 py-3 text-slate-600">{d.designation || d.designation_name || d.designationName || "—"}</td>
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-2">
                             <span className="text-lg shrink-0">{fileTypeIcon(d.file_name || d.title)}</span>
@@ -315,33 +151,6 @@ export default function EmployeeDocuments() {
         )}
       </div>
 
-      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUploaded={load} user={user} />}
-
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <h4 className="text-base font-bold text-slate-900 mb-2">Delete Document?</h4>
-            <p className="text-sm text-slate-500 mb-6">
-              &ldquo;<strong>{confirmDelete.name}</strong>&rdquo; will be permanently removed. This cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm font-medium text-slate-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-                Cancel
-              </button>
-              <button onClick={handleDelete} className="px-4 py-2 text-sm font-semibold bg-rose-600 text-white rounded-lg hover:bg-rose-700">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 ${toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"} text-white`}>
-          {toast.type === "success" ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-          {toast.message}
-        </div>
-      )}
     </HRPage>
   );
 }

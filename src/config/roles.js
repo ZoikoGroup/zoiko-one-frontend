@@ -133,7 +133,6 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/employee/leaves/apply",
     "/employee/leaves/calendar",
     "/employee/leaves/history",
-    "/employee/leaves/types",
 
     // ── Documents ────────────────────────────────────────────
     "/employee/documents",

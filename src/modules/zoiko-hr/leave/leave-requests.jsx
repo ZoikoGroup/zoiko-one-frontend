@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { Calendar, Clock, CheckCircle, XCircle, Search, Users } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard, getDepartments } from "../../../service/hrService";
+import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard, getDepartments, getHrEmployees } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -91,13 +91,14 @@ export default function LeaveRequests() {
     let mounted = true;
     const fetch = async () => {
       try {
-        const [leaveData, dashData, depts] = await Promise.all([
+        const [leaveData, dashData, emps] = await Promise.all([
           getLeaveRequests(),
           getLeaveDashboard(),
-          getAllDepartments(),
+          getHrEmployees(),
         ]);
         if (!mounted) return;
-        setRecords(Array.isArray(leaveData) ? leaveData : []);
+        const rawLeaves = Array.isArray(leaveData) ? leaveData : (leaveData?.items || leaveData?.data || []);
+        setRecords(Array.isArray(rawLeaves) ? rawLeaves : []);
         if (dashData) {
           setStats({
             total_requests: dashData.total_requests || 0,
@@ -106,9 +107,12 @@ export default function LeaveRequests() {
             rejected_requests: dashData.rejected_requests || 0,
           });
         }
-        if (depts && depts.data) {
-          setDepartments(Array.isArray(depts.data) ? depts.data : []);
-        }
+        const empData = emps?.data || emps?.items || (Array.isArray(emps) ? emps : []);
+        const deptNames = [...new Set((Array.isArray(empData) ? empData : []).map(e => {
+          const d = e.department || e.department_name;
+          return typeof d === "object" && d !== null ? d.name || String(d.id) : d;
+        }).filter(Boolean))];
+        setDepartments(deptNames.map(name => ({ id: name, name })));
         setApprovers([
           { id: "approved", name: "Approved" },
           { id: "rejected", name: "Rejected" },

@@ -32,7 +32,7 @@ export default function TaxCompliance() {
       setError(null);
       try {
         const res = await getDocuments({ category: "tax" });
-        const data = res?.data || res?.items || [];
+        const data = res?.data || res?.items || res?.data?.items || [];
         if (mounted) setRawDocs(Array.isArray(data) ? data : []);
       } catch (e) {
         if (!mounted) return;

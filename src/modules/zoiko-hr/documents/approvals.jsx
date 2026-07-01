@@ -62,7 +62,8 @@ export default function Approvals() {
     setLoading(true);
     try {
       const res = await getDocuments();
-      setDocs(Array.isArray(res?.data) ? res.data : []);
+      const raw = res?.data;
+      setDocs(Array.isArray(raw) ? raw : (raw?.items || raw?.data || []));
     } catch (err) {
       showToast("error", err?.message || "Failed to load documents.");
     } finally {
@@ -210,7 +211,7 @@ export default function Approvals() {
                       {(d.employee_name || d.uploader_name) && (
                         <p className="text-xs text-slate-600 mt-1">
                           <strong>Employee:</strong> {d.employee_name || d.uploader_name}
-                          {d.designation && <span className="ml-2 text-slate-400">({d.designation})</span>}
+                          {(d.designation || d.designation_name || d.designationName) && <span className="ml-2 text-slate-400">({d.designation || d.designation_name || d.designationName})</span>}
                         </p>
                       )}
 

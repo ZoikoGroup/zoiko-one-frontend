@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getEmployeeById, getEmployeeProfile, getEmployeeLifecycle } from "../../../../service/employee";
+import { getDesignations } from "../../../../service/hrService";
 import HRPage from "../../../../components/HRPage";
 import { ArrowLeft, Mail, Phone, Calendar, MapPin, Building, Briefcase, DollarSign, User, Shield, Award, BookOpen, Clock, ChevronRight, ExternalLink } from "lucide-react";
 
@@ -65,11 +66,24 @@ export default function EmployeeProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [employee, setEmployee] = useState(null);
+  const [manager, setManager] = useState(null);
   const [profile, setProfile] = useState(null);
   const [lifecycle, setLifecycle] = useState([]);
-  const [manager, setManager] = useState(null);
+  const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const designationMap = useMemo(() => {
+    const m = {};
+    designations.forEach((d) => { m[d.id] = d; });
+    return m;
+  }, [designations]);
+
+  const getDesignationName = (id) => {
+    if (!id) return null;
+    const d = designationMap[id];
+    return d ? d.title || d.name || d.designation_name : `#${id}`;
+  };
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
@@ -112,7 +126,14 @@ export default function EmployeeProfile() {
       }
     };
 
-    Promise.all([fetchData(), fetchProfile(), fetchLifecycle()]).finally(() => {
+    const fetchDesignationsList = async () => {
+      try {
+        const res = await getDesignations();
+        if (mounted) setDesignations(Array.isArray(res) ? res : res?.data || res?.items || []);
+      } catch { /* ignore */ }
+    };
+
+    Promise.all([fetchData(), fetchProfile(), fetchLifecycle(), fetchDesignationsList()]).finally(() => {
       if (mounted) setLoading(false);
     });
 
@@ -184,8 +205,8 @@ export default function EmployeeProfile() {
             <div className="flex items-start gap-3 text-sm">
               <Award className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-gray-900 font-medium">{employee.designation_id || "\u2014"}</p>
-                <p className="text-gray-500 text-xs">Designation ID</p>
+                <p className="text-gray-900 font-medium">{getDesignationName(employee.designation_id) || "\u2014"}</p>
+                <p className="text-gray-500 text-xs">Designation</p>
               </div>
             </div>
             <div className="flex items-start gap-3 text-sm">
@@ -283,7 +304,7 @@ export default function EmployeeProfile() {
                   <SectionCard title="Job Details" icon={Briefcase}>
                     <InfoRow label="Job Title" value={employee.job_title} />
                     <InfoRow label="Department" value={deptName} />
-                    <InfoRow label="Designation ID" value={employee.designation_id} />
+                    <InfoRow label="Designation" value={getDesignationName(employee.designation_id)} />
                     <InfoRow label="Employment Type" value={EMPLOYMENT_TYPE_LABELS[employee.employment_type] || employee.employment_type} />
                     <InfoRow label="Status" value={(employee.status || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} />
                   </SectionCard>

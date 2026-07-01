@@ -283,7 +283,7 @@ import EmployeeSecuritySettings  from "./pages/Peoples/Employees/Profile/Employe
 // ESS folder
 import EmployeeEssDashboard  from "./pages/Peoples/Employees/ESS/Employee_EssDashboard.jsx";
 import EmployeeEssAttendance from "./pages/Peoples/Employees/ESS/Employee_EssAttendance.jsx";
-import EmployeeEssRequests   from "./pages/Peoples/Employees/ESS/Employee_EssRequests.jsx";
+import EmployeeEssRequests   from "./pages/Peoples/Employees/ESS/EmployeeLearning.jsx";
 import EmployeeEssSettings   from "./pages/Peoples/Employees/ESS/Employee_EssSettings.jsx";
 
 // Leaves folder
@@ -291,8 +291,6 @@ import EmployeeMyLeave       from "./pages/Peoples/Employees/Leaves/Employee_App
 import EmployeeApplyLeave    from "./pages/Peoples/Employees/Leaves/Employee_ApplyLeaveForm.jsx";
 import EmployeeLeaveCalendar from "./pages/Peoples/Employees/Leaves/Employee_LeaveCalendar.jsx";
 import EmployeeLeaveHistory  from "./pages/Peoples/Employees/Leaves/Employee_LeaveHistory.jsx";
-import EmployeeLeaveTypes    from "./pages/Peoples/Employees/Leaves/Employee_LeaveTypes.jsx";
-
 // Documents folder
 import EmployeeMyFiles        from "./pages/Peoples/Employees/Documents/Employee_MyFiles.jsx";
 import EmployeePayslips       from "./pages/Peoples/Employees/Documents/Employee_Payslips.jsx";
@@ -567,8 +565,6 @@ const routeOverrides = {
   "/employee/leaves/apply":    <EmployeeApplyLeave />,
   "/employee/leaves/calendar": <EmployeeLeaveCalendar />,
   "/employee/leaves/history":  <EmployeeLeaveHistory />,
-  "/employee/leaves/types":    <EmployeeLeaveTypes />,
-
   // Documents
   "/employee/documents/my-files":       <EmployeeMyFiles />,
   "/employee/documents/payslips":       <EmployeePayslips />,

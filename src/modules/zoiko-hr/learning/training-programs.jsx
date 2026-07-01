@@ -32,6 +32,8 @@ const initialForm = {
   end_date: "",
   status: "planned",
   max_participants: "",
+  department: "",
+  resource_link: "",
 };
 
 export default function TrainingPrograms({ isTab }) {
@@ -129,6 +131,8 @@ export default function TrainingPrograms({ isTab }) {
         end_date: formData.end_date || null,
         status: formData.status,
         max_participants: formData.max_participants ? Number(formData.max_participants) : null,
+        department: formData.department.trim() || null,
+        resource_link: formData.resource_link.trim() || null,
       });
       setShowCreateModal(false);
       resetForm();
@@ -150,6 +154,8 @@ export default function TrainingPrograms({ isTab }) {
       end_date: program.end_date || "",
       status: program.status || "planned",
       max_participants: program.max_participants ? String(program.max_participants) : "",
+      department: program.department || "",
+      resource_link: program.resource_link || "",
     });
     setFormErrors({});
     setShowEditModal(true);
@@ -307,6 +313,7 @@ export default function TrainingPrograms({ isTab }) {
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">Department</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Instructor</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">Start Date</th>
                       <th className="text-left px-4 py-3 font-semibold text-gray-600">End Date</th>
@@ -325,6 +332,15 @@ export default function TrainingPrograms({ isTab }) {
                           >
                             {p.name}
                           </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          {p.department ? (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 capitalize">
+                              {p.department}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">-</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-gray-700">{p.instructor_id || <span className="text-gray-300">-</span>}</td>
                         <td className="px-4 py-3 text-gray-700">{p.start_date || <span className="text-gray-300">-</span>}</td>
@@ -429,6 +445,28 @@ export default function TrainingPrograms({ isTab }) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                  <input
+                    type="text"
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Engineering"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Resource Link / URL</label>
+                  <input
+                    type="url"
+                    value={formData.resource_link}
+                    onChange={(e) => setFormData({ ...formData, resource_link: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Instructor ID</label>
                   <input
                     type="number"
@@ -521,6 +559,28 @@ export default function TrainingPrograms({ isTab }) {
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                  <input
+                    type="text"
+                    value={editForm.department}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Engineering"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Resource Link</label>
+                  <input
+                    type="url"
+                    value={editForm.resource_link}
+                    onChange={(e) => setEditForm({ ...editForm, resource_link: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

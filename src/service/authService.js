@@ -79,3 +79,23 @@ export function getCachedUser() {
 export function isAuthenticated() {
   return Boolean(getAccessToken());
 }
+
+export async function changePassword({ currentPassword, newPassword }) {
+  try {
+    const data = await api.post("/auth/change-password", {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    // If backend returns new tokens (session rotation), update them
+    if (data?.access_token) {
+      setSession({
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+      });
+    }
+    return data;
+  } catch (err) {
+    console.error("Change password failed:", err);
+    throw err;
+  }
+}

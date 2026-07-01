@@ -45,7 +45,8 @@ export default function EmergencyContacts() {
       .then((res) => {
         if (!mounted.current) return;
         const p = res.data || res;
-        const normalized = (p.emergencyContacts || []).map(c => ({ ...c, id: c.id || c._id }));
+        const raw = p.emergencyContacts || p.emergency_contacts || [];
+        const normalized = raw.map(c => ({ ...c, id: c.id || c._id }));
         setContacts(normalized);
       })
       .catch((err) => {
@@ -61,7 +62,7 @@ export default function EmergencyContacts() {
     setSaving(true);
     setSuccess(false);
     setError(null);
-    updateMyProfile({ emergencyContacts: updatedContacts })
+    updateMyProfile({ emergency_contacts: updatedContacts })
       .then(() => {
         if (!mounted.current) return;
         setContacts(updatedContacts);

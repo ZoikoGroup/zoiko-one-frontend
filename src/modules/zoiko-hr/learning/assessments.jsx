@@ -48,6 +48,7 @@ const initialForm = {
   duration_minutes: "",
   passing_score: "",
   max_attempts: "",
+  resource_link: "",
 };
 
 const questionForm = {
@@ -193,6 +194,7 @@ export default function ZoikoHRAssessments({ isTab }) {
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes, 10) : null,
         passing_score: formData.passing_score ? parseInt(formData.passing_score, 10) : 70,
         max_attempts: formData.max_attempts ? parseInt(formData.max_attempts, 10) : null,
+        resource_link: formData.resource_link.trim() || null,
       });
       setShowCreateModal(false);
       resetForm();
@@ -213,6 +215,7 @@ export default function ZoikoHRAssessments({ isTab }) {
       duration_minutes: assessment.duration_minutes ? String(assessment.duration_minutes) : "",
       passing_score: assessment.passing_score ? String(assessment.passing_score) : "",
       max_attempts: assessment.max_attempts ? String(assessment.max_attempts) : "",
+      resource_link: assessment.resource_link || "",
     });
     setFormErrors({});
     setShowEditModal(true);
@@ -233,6 +236,7 @@ export default function ZoikoHRAssessments({ isTab }) {
         duration_minutes: editForm.duration_minutes ? parseInt(editForm.duration_minutes, 10) : null,
         passing_score: editForm.passing_score ? parseInt(editForm.passing_score, 10) : 70,
         max_attempts: editForm.max_attempts ? parseInt(editForm.max_attempts, 10) : null,
+        resource_link: editForm.resource_link.trim() || null,
       });
       setShowEditModal(false);
       setEditItem(null);
@@ -430,6 +434,7 @@ export default function ZoikoHRAssessments({ isTab }) {
                             <th className="text-left px-4 py-3 font-semibold text-gray-600">Max Attempts</th>
                             <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
                             <th className="text-center px-4 py-3 font-semibold text-gray-600">Questions</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Resource</th>
                             <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                           </tr>
                         </thead>
@@ -453,6 +458,16 @@ export default function ZoikoHRAssessments({ isTab }) {
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-center text-gray-700">{a.questions_count ?? <span className="text-gray-300">-</span>}</td>
+                              <td className="px-4 py-3">
+                                {a.resource_link ? (
+                                  <a href={a.resource_link} target="_blank" rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 text-xs font-medium hover:underline">
+                                    View
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-300">-</span>
+                                )}
+                              </td>
                               <td className="px-4 py-3 text-right">
                                 <div className="flex items-center justify-end gap-1">
                                   <button
@@ -665,7 +680,17 @@ export default function ZoikoHRAssessments({ isTab }) {
                     <option key={c.id} value={c.id}>{c.course_name || c.title}</option>
                   ))}
                 </select>
-                {formErrors.course_id && <p className="text-red-500 text-xs mt-1">{formErrors.course_id}</p>}
+                  {formErrors.course_id && <p className="text-red-500 text-xs mt-1">{formErrors.course_id}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Resource Link / PDF URL</label>
+                <input
+                  type="url"
+                  value={formData.resource_link}
+                  onChange={(e) => setFormData({ ...formData, resource_link: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com/assessment-material.pdf"
+                />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -752,7 +777,17 @@ export default function ZoikoHRAssessments({ isTab }) {
                     <option key={c.id} value={c.id}>{c.course_name || c.title}</option>
                   ))}
                 </select>
-                {formErrors.course_id && <p className="text-red-500 text-xs mt-1">{formErrors.course_id}</p>}
+                  {formErrors.course_id && <p className="text-red-500 text-xs mt-1">{formErrors.course_id}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Resource Link / PDF URL</label>
+                <input
+                  type="url"
+                  value={editForm.resource_link}
+                  onChange={(e) => setEditForm({ ...editForm, resource_link: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com/assessment-material.pdf"
+                />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -820,6 +855,17 @@ export default function ZoikoHRAssessments({ isTab }) {
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
                   <p className="text-sm text-gray-700">{detailItem.description || <span className="text-gray-400">-</span>}</p>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Resource Link</label>
+                  {detailItem.resource_link ? (
+                    <a href={detailItem.resource_link} target="_blank" rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium break-all">
+                      {detailItem.resource_link}
+                    </a>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Passing Score</label>

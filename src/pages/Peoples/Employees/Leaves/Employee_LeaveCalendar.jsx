@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import HRPage from "../../../../components/HRPage";
-import { getLeaveCalendar, getLeaveRequests } from "../../../../service/employee";
+import { getLeaveCalendar, getLeaveRequests, getHolidays } from "../../../../service/employee";
 import { getStoredUser } from "../../../../service/api";
 
 const statusColor = {
@@ -26,15 +26,26 @@ export default function LeaveCalendar() {
     Promise.all([
       getLeaveCalendar({ year: now.getFullYear(), month: now.getMonth() + 1 }),
       employeeId ? getLeaveRequests(employeeId) : Promise.resolve([]),
+      getHolidays({ year: now.getFullYear() }),
     ])
-      .then(([calendarRes, requestsRes]) => {
+      .then(([calendarRes, requestsRes, holidaysRes]) => {
         if (!mounted.current) return;
 
         const calendarData = Array.isArray(calendarRes) ? calendarRes : calendarRes?.data || [];
         const publicHolidays = calendarData.filter(
           (c) => c.type === "holiday" || c.is_holiday || c.category === "public_holiday"
         );
-        setHolidays(publicHolidays);
+
+        const hrHolidays = Array.isArray(holidaysRes) ? holidaysRes : holidaysRes?.data || holidaysRes?.items || [];
+        const allHolidays = [...publicHolidays, ...hrHolidays];
+        const seen = new Set();
+        const deduped = allHolidays.filter(h => {
+          const key = h.id || h.name || h.title || h.holiday_name || h.date;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setHolidays(deduped);
 
         const requests = Array.isArray(requestsRes) ? requestsRes : [];
         setMyLeaves(requests);

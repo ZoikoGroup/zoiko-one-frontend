@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Eye, EyeOff, Lock, ShieldCheck, Shield, CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { getMyProfile, updateMyProfile } from "../../../../service/employee";
+import { changePassword } from "../../../../service/authService";
 import HRPage from "../../../../components/HRPage";
 
 const calcStrength = (pw) => {
@@ -94,7 +95,7 @@ export default function ChangePassword() {
     setSaving(true);
     setErrors({});
     setSuccess(null);
-    updateMyProfile({ currentPassword: current, newPassword: newPw })
+    changePassword({ currentPassword: current, newPassword: newPw })
       .then(() => {
         if (!mounted.current) return;
         setSuccess("password");

@@ -1,13 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Plus, Download, RefreshCw } from "lucide-react";
+import { Plus, Download, RefreshCw, Users } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { 
   getDesignations, 
   createDesignation, 
   updateDesignation, 
-  deleteDesignation 
+  deleteDesignation,
+  getHrEmployees
 } from "../../../service/hrService";
+import { updateEmployee } from "../../../service/employee";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/designations" },
@@ -42,19 +44,86 @@ const initialForm = {
 
 export default function DesignationList() {
   const [records, setRecords] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [formData, setFormData] = useState(initialForm);
   const [detailItem, setDetailItem] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+
+  const getEmpName = (emp) => {
+    if (!emp) return "";
+    const u = emp.user || emp.profile || {};
+    const first = emp.first_name || emp.firstName || u.first_name || u.firstName || "";
+    const last = emp.last_name || emp.lastName || u.last_name || u.lastName || "";
+    if (first || last) return `${first} ${last}`.trim();
+    return emp.full_name || emp.fullName || emp.name || emp.employee_name || emp.display_name || u.full_name || u.name || "";
+  };
+
+  const getEmpCode = (emp) => {
+    if (!emp) return "";
+    const u = emp.user || emp.profile || {};
+    return emp.employee_code || emp.code || u.employee_code || u.code || emp.employee_id || emp.employeeId || emp.id;
+  };
+
+  const employeeMap = useMemo(() => {
+    const m = {};
+    employees.forEach((emp) => {
+      const key = emp.id || emp.employee_id || emp.user_id || emp.user?.id || emp.profile?.id;
+      if (key) m[key] = emp;
+    });
+    return m;
+  }, [employees]);
+
+  const getEmployeeDisplay = (empId) => {
+    if (!empId) return "";
+    const emp = employeeMap[empId];
+    if (!emp) return `#${empId}`;
+    const name = getEmpName(emp);
+    const code = getEmpCode(emp);
+    return name ? `${name} (${code})` : `#${code}`;
+  };
+
+  // A Designation has no employee_id of its own — the backend models this the
+  // other way around (Employee.designation_id -> Designation.id), and a single
+  // designation can be held by many employees (see Designation.employees_count).
+  // So "who holds this designation" has to be derived by scanning the employee
+  // list, not read off a field on the designation record.
+  const getEmployeesForDesignation = (designationId) => {
+    if (!designationId) return [];
+    return employees.filter((emp) => {
+      const empDesigId = emp.designation_id ?? emp.designationId ?? emp.designation?.id;
+      return empDesigId != null && String(empDesigId) === String(designationId);
+    });
+  };
+
+  const getAssignedEmployeeDisplay = (designationId) => {
+    const emps = getEmployeesForDesignation(designationId);
+    if (emps.length === 0) return "";
+    if (emps.length === 1) {
+      const name = getEmpName(emps[0]);
+      const code = getEmpCode(emps[0]);
+      return name ? `${name} (${code})` : `#${code}`;
+    }
+    return `${emps.length} employees`;
+  };
 
   const fetchRecords = () => {
     setLoading(true);
-    getDesignations()
-      // BUG FIX 1: was `res.data` — getDesignations() returns the array directly,
-      // not a response wrapper. This caused the table to always be empty.
-      .then((res) => setRecords(Array.isArray(res) ? res : (res?.data ?? [])))
+    Promise.all([
+      getDesignations(),
+      getHrEmployees()
+    ])
+      .then(([desigRes, empRes]) => {
+        const desigItems = desigRes?.items || desigRes?.data || (Array.isArray(desigRes) ? desigRes : []);
+        setRecords(Array.isArray(desigItems) ? desigItems : []);
+        const empItems = empRes?.data || empRes?.items || (Array.isArray(empRes) ? empRes : []);
+        const emps = Array.isArray(empItems) ? empItems : [];
+        if (emps.length > 0) console.log("First employee keys:", Object.keys(emps[0]), "sample:", emps[0]);
+        setEmployees(emps);
+      })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   };
@@ -66,6 +135,7 @@ export default function DesignationList() {
   const handleOpenCreate = () => {
     setEditingId(null);
     setFormData(initialForm);
+    setSelectedEmployeeId("");
     setShowModal(true);
   };
 
@@ -79,16 +149,31 @@ export default function DesignationList() {
       description: item.description || "",
       status: item.status || "active",
     });
+    const currentEmps = getEmployeesForDesignation(item.id);
+    const currentEmpId = currentEmps[0] ? (currentEmps[0].id || currentEmps[0].employee_id || currentEmps[0].user_id) : null;
+    setSelectedEmployeeId(currentEmpId ? String(currentEmpId) : "");
     setShowModal(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const action = editingId 
-      ? updateDesignation(editingId, formData)
-      : createDesignation(formData);
+    // The Designation record itself has no employee_id field on the backend
+    // (a designation can be held by many employees), so the assignment is
+    // never sent as part of this payload — it's persisted separately below
+    // by updating the chosen employee's designation_id instead.
+    const payload = { ...formData };
+    const action = editingId
+      ? updateDesignation(editingId, payload)
+      : createDesignation(payload);
 
     action
+      .then((res) => {
+        const savedDesignation = res?.data || res;
+        const designationId = editingId || savedDesignation?.id;
+        if (selectedEmployeeId && designationId) {
+          return updateEmployee(selectedEmployeeId, { designation_id: designationId });
+        }
+      })
       .then(() => {
         setShowModal(false);
         fetchRecords();
@@ -128,8 +213,7 @@ export default function DesignationList() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Designation Title</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
-                {/* BUG FIX 2: Status column was missing from the table header and rows
-                    despite being part of the form and data model */}
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -140,7 +224,7 @@ export default function DesignationList() {
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.title}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{item.department_name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{item.level}</td>
-                  {/* BUG FIX 2 (cont): render status badge in the new column */}
+                  <td className="px-4 py-3 text-sm text-gray-600">{getAssignedEmployeeDisplay(item.id) || "-"}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${item.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
                       {item.status}
@@ -169,6 +253,10 @@ export default function DesignationList() {
               <div>
                 <label className="block text-sm font-medium text-gray-500">Hierarchy Level</label>
                 <p className="text-sm text-gray-900 font-medium">{detailItem.level}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Assigned Employee{getEmployeesForDesignation(detailItem.id).length > 1 ? "s" : ""}</label>
+                <p className="text-sm text-gray-900 font-medium">{getAssignedEmployeeDisplay(detailItem.id) || "Not assigned"}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500">Description</label>
@@ -209,6 +297,22 @@ export default function DesignationList() {
                     {STATUS_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Assign Employee</label>
+                <select value={selectedEmployeeId} onChange={(e) => setSelectedEmployeeId(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+                  <option value="">Select employee...</option>
+                  {employees.map((emp) => {
+                    const eid = emp.id || emp.employee_id || emp.user_id || emp.user?.id;
+                    const ename = getEmpName(emp);
+                    const ecode = getEmpCode(emp);
+                    return (
+                      <option key={eid} value={eid}>
+                        {ename ? `${ename} (${ecode})` : `#${ecode}`}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>

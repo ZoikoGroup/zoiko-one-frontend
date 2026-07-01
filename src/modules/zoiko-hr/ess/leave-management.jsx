@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
+import { Loader2, AlertCircle, CheckCircle, Calendar, FileText } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { getLeaveRequests, createLeaveRequest } from "../../../service/hrService";
+import { useAuth } from "../../../context/AuthContext";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/ess" },
@@ -8,7 +11,7 @@ const NAV_ITEMS = [
   { label: "Leave Management", href: "/zoiko-hr/ess/leave" },
   { label: "Attendance", href: "/zoiko-hr/ess/attendance" },
   { label: "My Documents", href: "/zoiko-hr/ess/my-documents" },
-  { label: "Requests", href: "/zoiko-hr/ess/requests" },
+  { label: "Learning", href: "/zoiko-hr/ess/requests" },
   { label: "Settings", href: "/zoiko-hr/ess/settings" },
 ];
 
@@ -35,31 +38,55 @@ function SubNav() {
   );
 }
 
-const mockLeaveBalanceData = {
-  annual: { remaining: 12, total: 20 },
-  sick: { remaining: 2, total: 5 },
-  personal: { remaining: 1, total: 3 },
-  unpaid: { remaining: 0, total: 2 },
-};
-
-const mockLeaveRequestsData = [
-  { id: 1, type: "annual", startDate: "2025-04-01", endDate: "2025-04-05", days: 5, reason: "Family vacation", status: "pending", appliedOn: "2025-03-28" },
-  { id: 2, type: "sick", startDate: "2025-03-25", endDate: "2025-03-26", days: 2, reason: "Doctor's appointment", status: "approved", appliedOn: "2025-03-24" },
-  { id: 3, type: "personal", startDate: "2025-04-10", endDate: "2025-04-10", days: 1, reason: "Family event", status: "pending", appliedOn: "2025-04-01" },
-  { id: 4, type: "annual", startDate: "2025-05-01", endDate: "2025-05-03", days: 3, reason: "Conference", status: "pending", appliedOn: "2025-03-30" },
-  { id: 5, type: "unpaid", startDate: "2025-04-15", endDate: "2025-04-20", days: 6, reason: "Personal project", status: "approved", appliedOn: "2025-04-02" },
+const LEAVE_TYPES = [
+  { value: "annual", label: "Annual Leave" },
+  { value: "sick", label: "Sick Leave" },
+  { value: "casual", label: "Casual Leave" },
+  { value: "unpaid", label: "Unpaid Leave" },
+  { value: "maternity", label: "Maternity Leave" },
+  { value: "paternity", label: "Paternity Leave" },
 ];
 
+const STATUS_META = {
+  pending: { label: "Pending", bg: "bg-amber-50", text: "text-amber-700" },
+  approved: { label: "Approved", bg: "bg-emerald-50", text: "text-emerald-700" },
+  rejected: { label: "Rejected", bg: "bg-rose-50", text: "text-rose-700" },
+};
+
 export default function EssLeaveManagement() {
-  const [balance] = useState(mockLeaveBalanceData);
-  const [requests] = useState(mockLeaveRequestsData);
+  const { user } = useAuth();
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ type: "annual", startDate: "", endDate: "", reason: "" });
+  const [form, setForm] = useState({ leave_type: "annual", start_date: "", end_date: "", reason: "" });
   const [formError, setFormError] = useState(null);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    loadRequests();
+    return () => { mounted.current = false; };
+  }, []);
+
+  const loadRequests = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getLeaveRequests();
+      const data = Array.isArray(res) ? res : res?.data || res?.items || [];
+      if (mounted.current) setRequests(data);
+    } catch (err) {
+      if (mounted.current) setError(err?.message || "Failed to load leave requests");
+    } finally {
+      if (mounted.current) setLoading(false);
+    }
+  };
 
   const balanceCards = balance
     ? [
@@ -71,28 +98,29 @@ export default function EssLeaveManagement() {
     : [];
 
   const filtered = requests.filter((r) => {
-    if (search && !r.type.toLowerCase().includes(search.toLowerCase()) && !r.reason.toLowerCase().includes(search.toLowerCase())) return false;
+    const type = r.leave_type || r.type || "";
+    const reason = r.reason || "";
+    if (search && !type.toLowerCase().includes(search.toLowerCase()) && !reason.toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter && r.status !== statusFilter) return false;
-    if (typeFilter && r.type !== typeFilter) return false;
+    if (typeFilter && (r.leave_type || r.type) !== typeFilter) return false;
     return true;
   });
 
-  const handleFilterChange = (key, value) => {
-    if (key === "status") setStatusFilter(value);
-    if (key === "type") setTypeFilter(value);
-  };
-
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!form.startDate || !form.endDate) {
+    if (!form.start_date || !form.end_date) {
       setFormError("Start and end dates are required");
       return;
     }
     setSubmitting(true);
     setFormError(null);
     try {
+      await createLeaveRequest(form);
       setShowModal(false);
-      setForm({ type: "annual", startDate: "", endDate: "", reason: "" });
+      setForm({ leave_type: "annual", start_date: "", end_date: "", reason: "" });
+      setSuccess("Leave request submitted successfully");
+      setTimeout(() => setSuccess(null), 3000);
+      loadRequests();
     } catch (err) {
       setFormError(err.message || "Failed to create leave request");
     } finally {
@@ -100,24 +128,16 @@ export default function EssLeaveManagement() {
     }
   };
 
-  const leaveTypes = [
-    { value: "annual", label: "Annual" },
-    { value: "sick", label: "Sick" },
-    { value: "personal", label: "Personal" },
-    { value: "unpaid", label: "Unpaid" },
-  ];
+  const formatDate = (d) => {
+    if (!d) return "";
+    const dt = new Date(d);
+    return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  };
 
-  const columns = [
-    { key: "type", label: "Type", render: (v) => <span className="font-medium capitalize text-gray-900">{v}</span> },
-    { key: "startDate", label: "Start Date", render: (v) => <span className="text-gray-700">{v}</span> },
-    { key: "endDate", label: "End Date", render: (v) => <span className="text-gray-700">{v}</span> },
-    { key: "days", label: "Days", render: (v) => <span className="font-semibold">{v}</span> },
-    { key: "reason", label: "Reason", render: (v) => <span className="text-gray-500 truncate max-w-[200px] block">{v}</span> },
-    { key: "status", label: "Status", render: (v) => <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
-      v === "pending" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
-    }`}>{v}</span> },
-    { key: "appliedOn", label: "Applied", render: (v) => <span className="text-gray-400 text-xs">{v}</span> },
-  ];
+  const getStatusBadge = (status) => {
+    const m = STATUS_META[status] || { label: status, bg: "bg-gray-50", text: "text-gray-700" };
+    return <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${m.bg} ${m.text}`}>{m.label}</span>;
+  };
 
   return (
     <HRPage title="Employee Self Service" subtitle="Manage your leave requests and view balance">
@@ -131,7 +151,7 @@ export default function EssLeaveManagement() {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -140,48 +160,94 @@ export default function EssLeaveManagement() {
           </button>
         </div>
 
-        {balance && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {balanceCards.map((c) => (
-              <div key={c.title} className="bg-white rounded-xl border border-gray-200 p-4">
-                <p className="text-sm text-gray-500">{c.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{c.value}</p>
-                <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
-                  <div
-                    className="bg-blue-500 h-1.5 rounded-full"
-                    style={{ width: `${balance[c.title.toLowerCase().split(" ")[0]].used / balance[c.title.toLowerCase().split(" ")[0]].total * 100}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-400 mt-1">{balance[c.title.toLowerCase().split(" ")[0]].used} used</p>
-              </div>
-            ))}
+        {success && (
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-semibold">
+            <CheckCircle size={16} /> {success}
           </div>
         )}
 
+        {/* Leave Requests */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Leave Requests</h2>
-          <div className="space-y-4">
-            {filtered.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-medium text-gray-900 capitalize">{r.type}</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
-                      r.status === "pending" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
-                    }`}>{r.status}</span>
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {r.startDate} to {r.endDate} ({r.days} days)
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">Reason: {r.reason}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">Applied on</div>
-                  <div className="text-sm font-medium text-gray-700">{r.appliedOn}</div>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Leave Requests</h2>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-40"
+              />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              >
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <select
+                value={typeFilter}
+                onChange={e => setTypeFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              >
+                <option value="">All Types</option>
+                {LEAVE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
           </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-400">
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+              <span className="text-sm font-medium">Loading leave requests...</span>
+            </div>
+          ) : error ? (
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-semibold">
+              <AlertCircle size={16} /> {error}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-base font-semibold text-gray-700 mb-1">
+                {search || statusFilter || typeFilter ? "No matching requests" : "No leave requests yet"}
+              </p>
+              <p className="text-sm text-gray-400">
+                {search || statusFilter || typeFilter ? "Try different filters." : "Click 'Apply Leave' to submit your first request."}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Start</th>
+                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">End</th>
+                    <th className="text-center py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Days</th>
+                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
+                    <th className="text-center py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="text-right py-3 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Applied</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filtered.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-2 font-semibold text-gray-900 capitalize">{r.leave_type || r.type}</td>
+                      <td className="py-3 px-2 text-gray-700">{formatDate(r.start_date || r.startDate)}</td>
+                      <td className="py-3 px-2 text-gray-700">{formatDate(r.end_date || r.endDate)}</td>
+                      <td className="py-3 px-2 text-center font-semibold text-gray-900">{r.days || "-"}</td>
+                      <td className="py-3 px-2 text-gray-500 max-w-[200px] truncate">{r.reason || "-"}</td>
+                      <td className="py-3 px-2 text-center">{getStatusBadge(r.status)}</td>
+                      <td className="py-3 px-2 text-right text-xs text-gray-400">{formatDate(r.created_at || r.appliedOn)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {showModal && (
@@ -189,26 +255,19 @@ export default function EssLeaveManagement() {
             <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
               <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800">Apply for Leave</h2>
-                <button
-                  onClick={() => { setShowModal(false); setFormError(null); }}
-                  className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-                >
-                  &times;
-                </button>
+                <button onClick={() => { setShowModal(false); setFormError(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
               </div>
               <form onSubmit={handleCreate} className="p-6 space-y-4">
-                {formError && <div className="text-red-500 text-sm">{formError}</div>}
+                {formError && <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{formError}</div>}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
                   <select
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
+                    value={form.leave_type}
+                    onChange={(e) => setForm({ ...form, leave_type: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {leaveTypes.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
+                    {LEAVE_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
                   </select>
                 </div>
@@ -217,8 +276,8 @@ export default function EssLeaveManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                     <input
                       type="date"
-                      value={form.startDate}
-                      onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                      value={form.start_date}
+                      onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -226,8 +285,8 @@ export default function EssLeaveManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                     <input
                       type="date"
-                      value={form.endDate}
-                      onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                      value={form.end_date}
+                      onChange={(e) => setForm({ ...form, end_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -245,7 +304,7 @@ export default function EssLeaveManagement() {
                   <button
                     type="button"
                     onClick={() => { setShowModal(false); setFormError(null); }}
-                    className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -254,6 +313,7 @@ export default function EssLeaveManagement() {
                     disabled={submitting}
                     className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
                   >
+                    {submitting && <Loader2 className="w-4 h-4 animate-spin inline mr-1" />}
                     {submitting ? "Submitting..." : "Submit Request"}
                   </button>
                 </div>

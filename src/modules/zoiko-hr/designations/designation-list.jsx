@@ -9,6 +9,7 @@ import {
   deleteDesignation,
   getHrEmployees
 } from "../../../service/hrService";
+import { updateEmployee } from "../../../service/employee";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/designations" },
@@ -85,14 +86,28 @@ export default function DesignationList() {
     return name ? `${name} (${code})` : `#${code}`;
   };
 
-  const resolveEmployeeId = (item) => {
-    if (item.employee_id) return item.employee_id;
-    if (item.employee?.id) return item.employee.id;
-    if (item.assigned_employee) return item.assigned_employee;
-    if (item.user_id) return item.user_id;
-    if (item.employeeId) return item.employeeId;
-    if (item.assigned_to) return item.assigned_to;
-    return null;
+  // A Designation has no employee_id of its own — the backend models this the
+  // other way around (Employee.designation_id -> Designation.id), and a single
+  // designation can be held by many employees (see Designation.employees_count).
+  // So "who holds this designation" has to be derived by scanning the employee
+  // list, not read off a field on the designation record.
+  const getEmployeesForDesignation = (designationId) => {
+    if (!designationId) return [];
+    return employees.filter((emp) => {
+      const empDesigId = emp.designation_id ?? emp.designationId ?? emp.designation?.id;
+      return empDesigId != null && String(empDesigId) === String(designationId);
+    });
+  };
+
+  const getAssignedEmployeeDisplay = (designationId) => {
+    const emps = getEmployeesForDesignation(designationId);
+    if (emps.length === 0) return "";
+    if (emps.length === 1) {
+      const name = getEmpName(emps[0]);
+      const code = getEmpCode(emps[0]);
+      return name ? `${name} (${code})` : `#${code}`;
+    }
+    return `${emps.length} employees`;
   };
 
   const fetchRecords = () => {
@@ -134,19 +149,31 @@ export default function DesignationList() {
       description: item.description || "",
       status: item.status || "active",
     });
-    setSelectedEmployeeId(resolveEmployeeId(item) ? String(resolveEmployeeId(item)) : "");
+    const currentEmps = getEmployeesForDesignation(item.id);
+    const currentEmpId = currentEmps[0] ? (currentEmps[0].id || currentEmps[0].employee_id || currentEmps[0].user_id) : null;
+    setSelectedEmployeeId(currentEmpId ? String(currentEmpId) : "");
     setShowModal(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // The Designation record itself has no employee_id field on the backend
+    // (a designation can be held by many employees), so the assignment is
+    // never sent as part of this payload — it's persisted separately below
+    // by updating the chosen employee's designation_id instead.
     const payload = { ...formData };
-    if (selectedEmployeeId) payload.employee_id = parseInt(selectedEmployeeId, 10);
-    const action = editingId 
+    const action = editingId
       ? updateDesignation(editingId, payload)
       : createDesignation(payload);
 
     action
+      .then((res) => {
+        const savedDesignation = res?.data || res;
+        const designationId = editingId || savedDesignation?.id;
+        if (selectedEmployeeId && designationId) {
+          return updateEmployee(selectedEmployeeId, { designation_id: designationId });
+        }
+      })
       .then(() => {
         setShowModal(false);
         fetchRecords();
@@ -197,7 +224,7 @@ export default function DesignationList() {
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.title}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{item.department_name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{item.level}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{getEmployeeDisplay(resolveEmployeeId(item)) || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{getAssignedEmployeeDisplay(item.id) || "-"}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${item.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
                       {item.status}
@@ -228,8 +255,8 @@ export default function DesignationList() {
                 <p className="text-sm text-gray-900 font-medium">{detailItem.level}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Assigned Employee</label>
-                <p className="text-sm text-gray-900 font-medium">{getEmployeeDisplay(resolveEmployeeId(detailItem)) || "Not assigned"}</p>
+                <label className="block text-sm font-medium text-gray-500">Assigned Employee{getEmployeesForDesignation(detailItem.id).length > 1 ? "s" : ""}</label>
+                <p className="text-sm text-gray-900 font-medium">{getAssignedEmployeeDisplay(detailItem.id) || "Not assigned"}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500">Description</label>

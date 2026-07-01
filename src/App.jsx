@@ -283,7 +283,7 @@ import EmployeeSecuritySettings  from "./pages/Peoples/Employees/Profile/Employe
 // ESS folder
 import EmployeeEssDashboard  from "./pages/Peoples/Employees/ESS/Employee_EssDashboard.jsx";
 import EmployeeEssAttendance from "./pages/Peoples/Employees/ESS/Employee_EssAttendance.jsx";
-import EmployeeEssRequests   from "./pages/Peoples/Employees/ESS/Employee_EssRequests.jsx";
+import EmployeeEssRequests   from "./pages/Peoples/Employees/ESS/EmployeeLearning.jsx";
 import EmployeeEssSettings   from "./pages/Peoples/Employees/ESS/Employee_EssSettings.jsx";
 
 // Leaves folder

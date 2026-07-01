@@ -14,7 +14,7 @@ function CourseCard({ course, assessments, attempts, onStartQuiz }) {
   const meta = statusColor[status] || statusColor.not_started;
   const Icon = meta.Icon;
   const hasQuiz = assessments.length > 0;
-  const passedAttempts = attempts.filter(a => a.status === "passed" || a.score >= (course.passing_score || 70));
+  const passedAttempts = (Array.isArray(attempts) ? attempts : []).filter(a => a.status === "passed" || a.score >= (course.passing_score || 70));
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden">
@@ -25,9 +25,9 @@ function CourseCard({ course, assessments, attempts, onStartQuiz }) {
               <BookOpen className={`w-5 h-5 ${status === "completed" ? "text-emerald-600" : "text-indigo-600"}`} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900">{course.title || course.name}</h3>
-              {course.department && (
-                <p className="text-xs text-gray-400 mt-0.5 capitalize">{course.department}</p>
+              <h3 className="text-sm font-bold text-gray-900">{course.course_name || course.title || course.name}</h3>
+              {course.category && (
+                <p className="text-xs text-gray-400 mt-0.5 capitalize">{course.category}</p>
               )}
             </div>
           </div>
@@ -42,8 +42,8 @@ function CourseCard({ course, assessments, attempts, onStartQuiz }) {
         )}
 
         <div className="flex items-center gap-3 text-xs text-gray-400 mb-4">
-          {course.duration && <span>{course.duration}</span>}
-          {course.modules_count && <span>{course.modules_count} modules</span>}
+          {course.duration_hours != null && <span>{course.duration_hours}h</span>}
+          {course.provider && <span>{course.provider}</span>}
           {hasQuiz && <span>{assessments.length} quiz{assessments.length > 1 ? "zes" : ""}</span>}
         </div>
 
@@ -414,15 +414,22 @@ export default function EmployeeLearning() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(course => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                assessments={assessmentsMap[course.id] || []}
-                attempts={attemptsMap}
-                onStartQuiz={handleStartQuiz}
-              />
-            ))}
+            {filtered.map(course => {
+              const courseAssessments = assessmentsMap[course.id] || [];
+              // attemptsMap is keyed by assessment id, not course id, and a
+              // course can have several assessments — flatten all of that
+              // course's attempts into one array before handing it down.
+              const courseAttempts = courseAssessments.flatMap(a => attemptsMap[a.id] || []);
+              return (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  assessments={courseAssessments}
+                  attempts={courseAttempts}
+                  onStartQuiz={handleStartQuiz}
+                />
+              );
+            })}
           </div>
         )}
       </div>

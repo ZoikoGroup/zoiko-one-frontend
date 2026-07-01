@@ -175,7 +175,7 @@ export const getAttendanceRecords = (params = {}) => api.get("/hr/attendance/rec
 // EMPLOYEE SELF-SERVICE — ASSETS
 // ════════════════════════════════════════════════════════════════════════════
 
-export const getMyAssets = (employeeId) => api.get(`/hr/assets${employeeId ? `?assigned_to=${employeeId}` : ''}`);
+export const getMyAssets = (employeeId) => api.get(`/hr/assets${employeeId ? `?employee_id=${employeeId}` : ''}`);
 export const createAssetRequest = (payload) => api.post("/hr/assets/requests", payload);
 export const getAssetRequests = (params = {}) => api.get("/hr/assets/requests", { params });
 

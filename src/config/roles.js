@@ -70,6 +70,8 @@ export const ROLE_ALLOWED_PREFIXES = {
   [ROLES.ADMIN]: [
     "/organization-admin/dashboard",
     "/organization-admin/organization",
+    "/organization-admin/assets",
+    "/organization-admin/assets/requests",
     "/zoiko-hr",
     "/payroll",
     "/billing",
@@ -146,6 +148,10 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/employee/travel/approvals",
     "/employee/travel/expenses",
     "/employee/travel/settings",
+
+    // ── Assets ───────────────────────────────────────────────
+    "/employee/assets",
+    "/employee/assets/request",
   ],
 };
 

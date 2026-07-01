@@ -74,7 +74,6 @@ export default function LeaveDashboard() {
   const [dbStats, setDbStats] = useState(null);
   const [balances, setBalances] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
-  const [employeeCount, setEmployeeCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -97,7 +96,6 @@ export default function LeaveDashboard() {
           .filter((r) => r.end_date >= now)
           .slice(0, 5);
         setUpcoming(upcoming);
-        setEmployeeCount(statsData?.employee_count || 0);
       } catch (err) {
         if (mounted) setError(err.message || "Failed to load dashboard");
       } finally {
@@ -110,17 +108,17 @@ export default function LeaveDashboard() {
 
   const stats = dbStats || {
     total_requests: 0, pending_requests: 0, approved_requests: 0, rejected_requests: 0,
-    total_days_taken: 0, on_leave_today: 0,
+    total_days_taken: 0, on_leave_today: 0, employee_count: 0,
   };
   const approvalRate = stats.total_requests > 0
     ? Math.round((stats.approved_requests / stats.total_requests) * 100) : 0;
 
   const teamOverview = {
-    working: Math.max(0, employeeCount - (stats.on_leave_today || 0)),
+    working: Math.max(0, (stats.employee_count || 0) - (stats.on_leave_today || 0)),
     onLeave: stats.on_leave_today || 0,
     wfh: stats.wfh || 0,
     pending: stats.pending_requests || 0,
-    total: employeeCount || 50,
+    total: stats.employee_count || 0,
   };
 
   const statCards = [

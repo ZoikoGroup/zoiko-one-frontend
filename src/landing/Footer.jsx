@@ -55,22 +55,22 @@ const navData = {
   resources: {
     title: "Resources",
     links: [
-      "Resource Center",
+      { label: "Resource Center", href: "/resources" },
       { label: "Trust Center", href: "/trust-center" },
       { label: "Security", href: "/security" },
-      "Integrations",
+      { label: "Integrations", href: "/integrations" },
       { label: "API Documentation", href: "/api-documentation" },
       { label: "System Status", href: "/system-status" },
-      "Pricing",
+      { label: "Pricing", href: "/pricing" },
       { label: "Contact", href: "/contact" },
     ],
   },
   company: {
     title: "Company",
     links: [
-      "About Zoiko One",
-      "Leadership",
-      "Careers",
+      { label: "About Zoiko One", href: "/about" },
+      { label: "Leadership", href: "/leadership" },
+      { label: "Careers", href: "/careers" },
       { label: "Contact", href: "/contact" },
       "Pricing",
       { label: "Trust Center", href: "/trust-center" },
@@ -101,11 +101,11 @@ const legalLinks = [
 ];
 
 const getStartedLinks = [
-  "Get a Demo",
-  "Request Pricing",
-  "Explore Products",
-  "Contact Sales",
-  "Sign In",
+  { label: "Get a Demo", href: "/get-demo" },
+  { label: "Request Pricing", href: "/pricing" },
+  { label: "Explore Products", href: "/products" },
+  { label: "Contact Sales", href: "/contact" },
+  { label: "Sign In", href: "/login" },
 ];
 
 function EcoFooterCard({ card }) {
@@ -234,9 +234,9 @@ export default function Footer() {
         <div style={styles.sectionLabel}>Get Started</div>
         <div style={styles.getStartedLinks}>
           {getStartedLinks.map((link) => (
-            <a key={link} href="#" style={styles.getStartedLink}>
-              {link}
-            </a>
+            <Link key={link.label} to={link.href} style={styles.getStartedLink}>
+              {link.label}
+            </Link>
           ))}
         </div>
       </div>

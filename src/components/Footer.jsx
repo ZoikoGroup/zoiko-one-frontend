@@ -63,8 +63,8 @@ const navData = {
   ],
   SOLUTIONS: ["Services Businesses", "Agencies", "Retail Businesses", "Trades Businesses", "Hospitality", "E-Commerce", "Product Businesses", "Multi-Entity"],
   "FIVE PILLARS": ["People — HR, Time, Payroll", "Money — Billing, Spend", "Work — Projects", "Supply — Inventory", "Control — Comply, Insights"],
-  RESOURCES: ["Resource Center", { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, "Integrations", { label: "API Documentation", href: "/api-documentation" }, { label: "System Status", href: "/system-status" }, "Pricing", "Contact"],
-  COMPANY: ["About Zoiko One", "Leadership", "Careers", "Contact", "Pricing", { label: "Trust Center", href: "/trust-center" }, "Solutions"],
+  RESOURCES: [{ label: "Resource Center", href: "/resources" }, { label: "Trust Center", href: "/trust-center" }, { label: "Security", href: "/security" }, { label: "Integrations", href: "/integrations" }, { label: "API Documentation", href: "/api-documentation" }, { label: "System Status", href: "/system-status" }, { label: "Pricing", href: "/pricing" }, "Contact"],
+  COMPANY: [{ label: "About Zoiko One", href: "/about" }, { label: "Leadership", href: "/leadership" }, { label: "Careers", href: "/careers" }, "Contact", "Pricing", { label: "Trust Center", href: "/trust-center" }, "Solutions"],
 };
 
 const ecosystemItems = [
@@ -451,20 +451,25 @@ export default function ZoikoFooter() {
       <div style={styles.getStartedSection}>
         <div style={styles.getStartedLabel}>GET STARTED</div>
         <div style={styles.getStartedLinks}>
-          {["Get a Demo", "Request Pricing", "Explore Products", "Contact Sales", "Sign In"].map((lnk) => (
-            <a
-              key={lnk}
-              href="#"
+          {[
+            { label: "Get a Demo", href: "/get-demo" },
+            { label: "Request Pricing", href: "/pricing" },
+            { label: "Explore Products", href: "/products" },
+            { label: "Contact Sales", href: "/contact" },
+            { label: "Sign In", href: "/login" },
+          ].map((lnk) => (
+            <Link
+              key={lnk.label}
+              to={lnk.href}
               style={{
                 ...styles.getStartedLink,
-                color: hoveredLink === `gs-${lnk}` ? "white" : "rgba(255,255,255,0.75)",
+                color: hoveredLink === `gs-${lnk.label}` ? "white" : "rgba(255,255,255,0.75)",
               }}
-              onMouseEnter={() => setHoveredLink(`gs-${lnk}`)}
+              onMouseEnter={() => setHoveredLink(`gs-${lnk.label}`)}
               onMouseLeave={() => setHoveredLink(null)}
-              onClick={(e) => e.preventDefault()}
             >
-              {lnk}
-            </a>
+              {lnk.label}
+            </Link>
           ))}
         </div>
       </div>

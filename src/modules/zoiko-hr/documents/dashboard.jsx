@@ -48,7 +48,7 @@ export default function DocumentsDashboard() {
     setLoading(true);
     setError(null);
     getDocuments()
-      .then(res => setDocs(Array.isArray(res?.data) ? res.data : []))
+      .then(res => { const raw = res?.data; setDocs(Array.isArray(raw) ? raw : (raw?.items || raw?.data || [])); })
       .catch(() => setError("Could not load documents. Check your connection and try again."))
       .finally(() => setLoading(false));
   };

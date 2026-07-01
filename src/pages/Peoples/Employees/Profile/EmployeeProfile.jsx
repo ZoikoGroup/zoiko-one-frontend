@@ -96,13 +96,13 @@ export default function EmployeeProfile() {
           </div>
 
           {/* Quick Emergency Contact */}
-          {(p.emergencyContacts?.length > 0) && (
+          {(() => { const ecs = p.emergencyContacts || p.emergency_contacts || []; return ecs.length > 0; })() && (
             <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Shield size={14} className="text-red-500" />
                 <span className="text-xs font-bold text-red-600 uppercase tracking-wide">Emergency Contact</span>
               </div>
-              {p.emergencyContacts.filter((c) => c.isPrimary).slice(0, 1).map((ec) => (
+              {(() => { const ecs = p.emergencyContacts || p.emergency_contacts || []; return ecs.filter((c) => c.isPrimary).slice(0, 1); })().map((ec) => (
                 <div key={ec.id || ec._id}>
                   <p className="text-sm font-semibold text-slate-800">{ec.name}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{ec.relationship}</p>

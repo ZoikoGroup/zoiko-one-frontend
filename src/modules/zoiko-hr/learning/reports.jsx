@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import HRPage from "../../../components/HRPage";
 import {
+  getCourses,
   getCourseCompletionReport,
   getCertificationReport,
   getSkillGapAnalysis,
@@ -12,8 +13,162 @@ import {
   exportSkillGapReportExcel,
   getHrEmployees,
 } from "../../../service/hrService";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 const ITEMS_PER_PAGE = 10;
+
+function DashboardTab() {
+  const [courses, setCourses] = useState([]);
+  const [report, setReport] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState("monthly");
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [coursesRes, reportRes] = await Promise.all([getCourses(), getCourseCompletionReport()]);
+      setCourses(Array.isArray(coursesRes) ? coursesRes : coursesRes?.items || coursesRes?.data || []);
+      setReport(Array.isArray(reportRes) ? reportRes : []);
+    } catch (err) {
+      setError(err.message || "Failed to load report data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const chartData = useMemo(() => {
+    if (report.length === 0 && courses.length === 0) return [];
+    const source = report.length > 0 ? report : courses;
+    return source.slice(0, 10).map((r) => ({
+      name: r.course_name || r.course || r.title || r.name || "Course",
+      rate: parseFloat(r.completion_rate || r.completionRate || 0).toFixed(1),
+      enrolled: r.total_enrollments || r.enrolled || r.enrollments || 0,
+      completed: r.completed || r.completions || 0,
+    }));
+  }, [report, courses]);
+
+  const handleDownloadCsv = useCallback(() => {
+    if (chartData.length === 0) return;
+    const headers = ["Course,Completion Rate,Enrolled,Completed"];
+    const rows = chartData.map((r) => `${r.name},${r.rate}%,${r.enrolled},${r.completed}`);
+    const blob = new Blob([headers.join(""), ...rows.map(r => "\n" + r)], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "learning_dashboard.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }, [chartData]);
+
+  const handleDownloadExcel = useCallback(() => {
+    if (chartData.length === 0) return;
+    const rows = [["Course", "Completion Rate (%)", "Enrolled", "Completed"]];
+    chartData.forEach((r) => rows.push([r.name, r.rate, r.enrolled, r.completed]));
+    const csv = rows.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "learning_dashboard.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }, [chartData]);
+
+  if (loading) {
+    return <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+  }
+
+  if (error) {
+    return <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Filters Row */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">Date Range:</label>
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="daily">Daily</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleDownloadCsv} className="border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5">
+            <span>📥</span> CSV
+          </button>
+          <button onClick={handleDownloadExcel} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5">
+            <span>📊</span> Excel
+          </button>
+        </div>
+      </div>
+
+      {chartData.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm">
+          <p className="text-gray-500 font-medium">No data available for charts.</p>
+        </div>
+      ) : (
+        <>
+          {/* Bar Chart */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <h3 className="text-sm font-bold text-gray-800 mb-4">Course Completion Rates</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-20} textAnchor="end" interval={0} height={60} />
+                <YAxis unit="%" tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value) => `${value}%`} />
+                <Bar dataKey="rate" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Completion Rate" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Courses</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{courses.length || report.length}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Enrollments</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">{chartData.reduce((s, r) => s + (r.enrolled || 0), 0)}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Avg Completion</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">
+                {chartData.length > 0 ? (chartData.reduce((s, r) => s + parseFloat(r.rate || 0), 0) / chartData.length).toFixed(1) : 0}%
+              </p>
+            </div>
+          </div>
+
+          {/* Flow Chart / Progress bars */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <h3 className="text-sm font-bold text-gray-800 mb-4">Enrollment vs Completion</h3>
+            <div className="space-y-3">
+              {chartData.slice(0, 5).map((r, i) => (
+                <div key={i}>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span className="font-medium truncate max-w-[200px]">{r.name}</span>
+                    <span>{r.completed}/{r.enrolled}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.min((r.enrolled ? (r.completed / r.enrolled) * 100 : 0), 100)}%` }} />
+                    </div>
+                    <span className="text-xs font-medium text-gray-500 w-10 text-right">{r.rate}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 function CompletionTab() {
   const [data, setData] = useState([]);
@@ -393,6 +548,7 @@ export default function ZoikoHRReports({ isTab }) {
   const [activeTab, setActiveTab] = useState("completion");
 
   const tabs = [
+    { key: "dashboard", label: "Dashboard" },
     { key: "completion", label: "Course Completion" },
     { key: "certification", label: "Certification Report" },
     { key: "skillgap", label: "Skill Gap" },
@@ -418,6 +574,7 @@ export default function ZoikoHRReports({ isTab }) {
         </div>
       </div>
 
+      {activeTab === "dashboard" && <DashboardTab />}
       {activeTab === "completion" && <CompletionTab />}
       {activeTab === "certification" && <CertificationTab />}
       {activeTab === "skillgap" && <SkillGapTab />}

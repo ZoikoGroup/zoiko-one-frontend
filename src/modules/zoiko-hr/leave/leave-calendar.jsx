@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeaveCalendar, getLeaveRequests } from "../../../service/hrService";
+import { getLeaveCalendar, getLeaveRequests, getHolidays, createHoliday } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
@@ -46,17 +46,30 @@ function SubNav() {
 export default function LeaveCalendar() {
   const today = new Date();
   const [records, setRecords] = useState([]);
+  const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [typeFilter, setTypeFilter] = useState("");
+  const [showHolidayModal, setShowHolidayModal] = useState(false);
+  const [holidayForm, setHolidayForm] = useState({ name: "", date: "", description: "" });
+  const [holidaySubmitting, setHolidaySubmitting] = useState(false);
+  const [holidayError, setHolidayError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
   useEffect(() => {
     let mounted = true;
     const fetch = async () => {
       try {
-        const data = await getLeaveCalendar({ year: currentYear, month: currentMonth + 1 });
-        if (mounted) setRecords(Array.isArray(data) ? data : []);
+        const [data, hols] = await Promise.all([
+          getLeaveCalendar({ year: currentYear, month: currentMonth + 1 }),
+          getHolidays({ year: currentYear }),
+        ]);
+        if (mounted) {
+          setRecords(Array.isArray(data) ? data : []);
+          const holData = Array.isArray(hols) ? hols : (hols?.data || hols?.items || []);
+          setHolidays(Array.isArray(holData) ? holData : []);
+        }
       } catch {
         // ignore
       } finally {
@@ -66,6 +79,38 @@ export default function LeaveCalendar() {
     fetch();
     return () => { mounted = false; };
   }, [currentYear, currentMonth]);
+
+  const handleAddHoliday = async (e) => {
+    e.preventDefault();
+    if (!holidayForm.name.trim() || !holidayForm.date) {
+      setHolidayError("Name and date are required");
+      return;
+    }
+    setHolidaySubmitting(true);
+    setHolidayError(null);
+    try {
+      await createHoliday({
+        name: holidayForm.name.trim(),
+        date: holidayForm.date,
+        description: holidayForm.description.trim() || null,
+      });
+      setShowHolidayModal(false);
+      setHolidayForm({ name: "", date: "", description: "" });
+      setSuccessMsg("Holiday added successfully");
+      setTimeout(() => setSuccessMsg(null), 3000);
+      const [data, hols] = await Promise.all([
+        getLeaveCalendar({ year: currentYear, month: currentMonth + 1 }),
+        getHolidays({ year: currentYear }),
+      ]);
+      setRecords(Array.isArray(data) ? data : []);
+      const holData = Array.isArray(hols) ? hols : (hols?.data || hols?.items || []);
+      setHolidays(Array.isArray(holData) ? holData : []);
+    } catch (err) {
+      setHolidayError(err?.message || "Failed to add holiday");
+    } finally {
+      setHolidaySubmitting(false);
+    }
+  };
 
   const prevMonth = () => {
     if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(currentYear - 1); }
@@ -85,16 +130,24 @@ export default function LeaveCalendar() {
     return result;
   }, [records, typeFilter]);
 
+  const monthHolidays = useMemo(() => {
+    return holidays.filter(h => {
+      const d = new Date(h.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+  }, [holidays, currentMonth, currentYear]);
+
   const calendarDays = useMemo(() => {
     const days = [];
     for (let i = 0; i < firstDayOfWeek; i++) days.push(null);
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       const dayLeaves = filtered.filter((l) => dateStr >= l.start_date && dateStr <= l.end_date);
-      days.push({ date: d, dateStr, leaves: dayLeaves });
+      const dayHolidays = monthHolidays.filter(h => h.date === dateStr);
+      days.push({ date: d, dateStr, leaves: dayLeaves, holidays: dayHolidays });
     }
     return days;
-  }, [filtered, currentYear, currentMonth, daysInMonth, firstDayOfWeek]);
+  }, [filtered, monthHolidays, currentYear, currentMonth, daysInMonth, firstDayOfWeek]);
 
   if (loading) {
     return (
@@ -112,10 +165,22 @@ export default function LeaveCalendar() {
     <HRPage title="Leave Calendar" subtitle="Team leave calendar view">
       <SubNav />
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Leave Calendar</h1>
-          <p className="text-sm text-gray-500 mt-1">Team leave calendar view</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Leave Calendar</h1>
+            <p className="text-sm text-gray-500 mt-1">Team leave calendar view</p>
+          </div>
+          <button
+            onClick={() => { setShowHolidayModal(true); setHolidayError(null); }}
+            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Holiday
+          </button>
         </div>
+
+        {successMsg && (
+          <div className="px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm font-medium">{successMsg}</div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3">
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
@@ -123,6 +188,17 @@ export default function LeaveCalendar() {
             <option value="">All Leave Types</option>
             {Object.entries(typeLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
+          {holidays.filter(h => {
+            const d = new Date(h.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          }).length > 0 && (
+            <span className="text-xs text-teal-600 font-medium bg-teal-50 px-2 py-1 rounded-lg">
+              {holidays.filter(h => {
+                const d = new Date(h.date);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+              }).length} holiday(s) this month
+            </span>
+          )}
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -147,6 +223,13 @@ export default function LeaveCalendar() {
                 <div key={day.date} className={`bg-white min-h-[100px] p-1 ${isToday ? "ring-2 ring-teal-500 ring-inset" : ""}`}>
                   <div className="text-xs font-medium text-gray-500 mb-1">{day.date}</div>
                   <div className="space-y-0.5">
+                    {day.holidays.map((h) => (
+                      <div key={h.id || h.name}
+                        title={`Holiday: ${h.name}`}
+                        className="text-[10px] leading-tight px-1 py-0.5 rounded text-white truncate bg-rose-500">
+                        🎉 {h.name}
+                      </div>
+                    ))}
                     {day.leaves.slice(0, 3).map((l) => (
                       <div key={l.id}
                         title={`${l.employee_name || l.employee} - ${l.leave_type}`}
@@ -173,6 +256,38 @@ export default function LeaveCalendar() {
           </div>
         </div>
       </div>
+
+      {showHolidayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-800">Add Holiday</h2>
+              <button onClick={() => { setShowHolidayModal(false); setHolidayError(null); }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+            <form onSubmit={handleAddHoliday} className="p-6 space-y-4">
+              {holidayError && <div className="px-3 py-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{holidayError}</div>}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Name *</label>
+                <input type="text" value={holidayForm.name} onChange={(e) => setHolidayForm({ ...holidayForm, name: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="e.g. Independence Day" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                <input type="date" value={holidayForm.date} onChange={(e) => setHolidayForm({ ...holidayForm, date: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                <textarea rows={2} value={holidayForm.description} onChange={(e) => setHolidayForm({ ...holidayForm, description: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => { setShowHolidayModal(false); setHolidayError(null); }} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={holidaySubmitting} className="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 text-white rounded-lg font-medium transition-colors">
+                  {holidaySubmitting ? <><Loader2 className="w-4 h-4 animate-spin inline mr-1" /> Adding...</> : "Add Holiday"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </HRPage>
   );
 }

@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { label: "Leave Management", href: "/zoiko-hr/ess/leave" },
   { label: "Attendance", href: "/zoiko-hr/ess/attendance" },
   { label: "My Documents", href: "/zoiko-hr/ess/my-documents" },
-  { label: "Requests", href: "/zoiko-hr/ess/requests" },
+  { label: "Learning", href: "/zoiko-hr/ess/requests" },
   { label: "Settings", href: "/zoiko-hr/ess/settings" },
 ];
 
@@ -229,7 +229,8 @@ export default function EssMyDocuments() {
     setLoading(true);
     try {
       const res = await getDocuments({ employee_id: user.id });
-      setDocuments(Array.isArray(res?.data) ? res.data : []);
+      const raw = res?.data;
+      setDocuments(Array.isArray(raw) ? raw : (raw?.items || raw?.data || []));
     } catch {
       showToast("error", "Failed to load documents.");
     } finally {

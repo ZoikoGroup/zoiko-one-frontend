@@ -1,28 +1,212 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { X, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { BookOpen, CheckCircle, Clock, Award, Loader2, AlertCircle, ChevronRight, FileText } from "lucide-react";
 import HRPage from "../../../../components/HRPage";
-import { getEss, createEss } from "../../../../service/employee";
-
-const tabs = ["All", "Pending", "Approved", "Rejected"];
+import { getCourses, getTrainingPrograms, getAssessments, getQuizAttempts, getMyProfile } from "../../../../service/employee";
 
 const statusColor = {
-  Pending: { color: "#D97706", bg: "#FFFBEB" },
-  Approved: { color: "#059669", bg: "#ECFDF5" },
-  Rejected: { color: "#DC2626", bg: "#FEF2F2" },
+  completed: { label: "Completed", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", Icon: CheckCircle },
+  in_progress: { label: "In Progress", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", Icon: Clock },
+  not_started: { label: "Not Started", bg: "bg-slate-50", text: "text-slate-500", border: "border-slate-200", Icon: Clock },
 };
 
-const REQUEST_TYPES = ["Leave", "Attendance Correction", "Document Request", "Travel", "Expense", "Other"];
+function CourseCard({ course, assessments, attempts, onStartQuiz }) {
+  const status = course.completion_status || "not_started";
+  const meta = statusColor[status] || statusColor.not_started;
+  const Icon = meta.Icon;
+  const hasQuiz = assessments.length > 0;
+  const passedAttempts = attempts.filter(a => a.status === "passed" || a.score >= (course.passing_score || 70));
 
-export default function EssRequests() {
-  const [requests, setRequests] = useState([]);
-  const [activeTab, setActiveTab] = useState("All");
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden">
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-lg ${status === "completed" ? "bg-emerald-50" : "bg-indigo-50"}`}>
+              <BookOpen className={`w-5 h-5 ${status === "completed" ? "text-emerald-600" : "text-indigo-600"}`} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">{course.title || course.name}</h3>
+              {course.department && (
+                <p className="text-xs text-gray-400 mt-0.5 capitalize">{course.department}</p>
+              )}
+            </div>
+          </div>
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${meta.bg} ${meta.text} ${meta.border}`}>
+            <Icon size={12} />
+            {meta.label}
+          </span>
+        </div>
+
+        {course.description && (
+          <p className="text-xs text-gray-500 mb-3 line-clamp-2">{course.description}</p>
+        )}
+
+        <div className="flex items-center gap-3 text-xs text-gray-400 mb-4">
+          {course.duration && <span>{course.duration}</span>}
+          {course.modules_count && <span>{course.modules_count} modules</span>}
+          {hasQuiz && <span>{assessments.length} quiz{assessments.length > 1 ? "zes" : ""}</span>}
+        </div>
+
+        {passedAttempts.length > 0 && (
+          <div className="mb-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+            <Award size={14} className="text-emerald-600 shrink-0" />
+            <span className="text-xs font-semibold text-emerald-700">Badge earned — {passedAttempts.length} quiz{passedAttempts.length > 1 ? "zes" : ""} passed</span>
+          </div>
+        )}
+
+        {hasQuiz && status !== "completed" && (
+          <button
+            onClick={() => onStartQuiz(course, assessments)}
+            className="w-full flex items-center justify-center gap-1.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors"
+          >
+            <FileText size={13} /> Take Quiz <ChevronRight size={13} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function QuizModal({ course, assessments, onClose }) {
+  const [currentQ, setCurrentQ] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState(null);
+
+  const allQuestions = assessments.flatMap(a => a.questions || []);
+  const filteredQuestions = allQuestions.filter(q => q.question_type === "multiple_choice" || q.question_type === "true_false");
+
+  const handleAnswer = (questionId, answer) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  };
+
+  const handleSubmit = () => {
+    let correct = 0;
+    filteredQuestions.forEach(q => {
+      if (answers[q.id] === q.correct_answer) correct++;
+    });
+    const pct = filteredQuestions.length > 0 ? Math.round((correct / filteredQuestions.length) * 100) : 0;
+    setScore(pct);
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-indigo-600" /> {course.title || "Quiz"}
+          </h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600">
+            <AlertCircle className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-auto p-6">
+          {assessments.some(a => a.resource_link) && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-semibold text-blue-700 mb-1">Assessment Resource:</p>
+              {assessments.filter(a => a.resource_link).map((a, i) => (
+                <a key={i} href={a.resource_link} target="_blank" rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium block break-all">
+                  {a.resource_link}
+                </a>
+              ))}
+            </div>
+          )}
+          {filteredQuestions.length === 0 ? (
+            <p className="text-center py-8 text-gray-500">No quiz questions available for this course.</p>
+          ) : submitted ? (
+            <div className="text-center py-8">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 ${score >= 70 ? "bg-emerald-50" : "bg-amber-50"}`}>
+                <span className={`text-3xl font-bold ${score >= 70 ? "text-emerald-600" : "text-amber-600"}`}>{score}%</span>
+              </div>
+              <p className="text-lg font-bold text-gray-900 mb-1">
+                {score >= 70 ? "Congratulations! Quiz Passed 🎉" : "Quiz Not Passed"}
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                You answered {filteredQuestions.filter(q => answers[q.id] === q.correct_answer).length} of {filteredQuestions.length} correctly
+              </p>
+              {score >= 70 && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm font-semibold">
+                  <Award size={16} /> Badge Earned!
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <p className="text-sm text-gray-500">{filteredQuestions.length} question{filteredQuestions.length > 1 ? "s" : ""}</p>
+              {filteredQuestions.map((q, idx) => (
+                <div key={q.id || idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <p className="text-sm font-semibold text-gray-900 mb-3">
+                    {idx + 1}. {q.question_text}
+                  </p>
+                  <div className="space-y-2">
+                    {(q.options || []).map((opt, oi) => {
+                      const optValue = typeof opt === "string" ? opt : opt.value || opt;
+                      return (
+                        <label key={oi} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                          answers[q.id] === optValue
+                            ? "border-indigo-300 bg-indigo-50"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        }`}>
+                          <input
+                            type="radio"
+                            name={`q_${q.id}`}
+                            value={optValue}
+                            checked={answers[q.id] === optValue}
+                            onChange={() => handleAnswer(q.id, optValue)}
+                            className="w-4 h-4 text-indigo-600"
+                          />
+                          <span className="text-sm text-gray-700">{typeof opt === "string" ? opt : opt.label || opt}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {!submitted && filteredQuestions.length > 0 && (
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+            <span className="text-xs text-gray-400">
+              {Object.keys(answers).length} of {filteredQuestions.length} answered
+            </span>
+            <button
+              onClick={handleSubmit}
+              disabled={Object.keys(answers).length < filteredQuestions.length}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              Submit Quiz
+            </button>
+          </div>
+        )}
+
+        {submitted && (
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+            <button onClick={onClose} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-semibold transition-colors">
+              Close
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function EmployeeLearning() {
+  const [courses, setCourses] = useState([]);
+  const [programs, setPrograms] = useState([]);
+  const [assessmentsMap, setAssessmentsMap] = useState({});
+  const [attemptsMap, setAttemptsMap] = useState({});
+  const [employeeDept, setEmployeeDept] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(null);
-  const [form, setForm] = useState({ type: "Leave", description: "" });
-  const [formError, setFormError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [quizCourse, setQuizCourse] = useState(null);
+  const [quizAssessments, setQuizAssessments] = useState([]);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -30,192 +214,225 @@ export default function EssRequests() {
     setLoading(true);
     setError(null);
 
-    getEss()
-      .then((data) => {
-        if (!mounted.current) return;
-        setRequests(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
-        if (mounted.current) setError(err.message || "Failed to load requests");
-      })
-      .finally(() => {
-        if (mounted.current) setLoading(false);
-      });
+    const load = async () => {
+      try {
+        const profileRes = await getMyProfile();
+        const profile = profileRes.data || profileRes;
+        const dept = profile.department || profile.department_name || profile.departmentId || "";
+        if (mounted.current) setEmployeeDept(dept);
 
+        const coursesRes = await getCourses();
+        const allCourses = Array.isArray(coursesRes) ? coursesRes : coursesRes?.data || coursesRes?.items || [];
+        const filtered = dept ? allCourses.filter(c => {
+          const cDept = c.department || c.department_name || c.category || "";
+          return cDept.toLowerCase() === dept.toLowerCase() || cDept === "";
+        }) : allCourses;
+
+        if (!mounted.current) return;
+        setCourses(filtered);
+
+        const progsRes = await getTrainingPrograms();
+        const allProgs = Array.isArray(progsRes) ? progsRes : progsRes?.data || progsRes?.items || [];
+        const filteredProgs = dept ? allProgs.filter(p => {
+          const pDept = p.department || p.department_name || "";
+          return pDept.toLowerCase() === dept.toLowerCase() || pDept === "";
+        }) : allProgs;
+        if (mounted.current) setPrograms(filteredProgs);
+
+        const amap = {};
+        const amap2 = {};
+        for (const course of filtered) {
+          try {
+            const aRes = await getAssessments(course.id);
+            const aData = Array.isArray(aRes) ? aRes : aRes?.data || aRes?.items || [];
+            amap[course.id] = aData;
+
+            const storedUser = JSON.parse(localStorage.getItem("zoiko_user") || "{}");
+            if (storedUser?.id) {
+              for (const assessment of aData) {
+                try {
+                  const attRes = await getQuizAttempts(assessment.id, storedUser.id);
+                  const attData = Array.isArray(attRes) ? attRes : attRes?.data || attRes?.items || [];
+                  amap2[assessment.id] = attData;
+                } catch { /* ignore */ }
+              }
+            }
+          } catch { /* ignore */ }
+        }
+        if (mounted.current) {
+          setAssessmentsMap(amap);
+          setAttemptsMap(amap2);
+        }
+      } catch (err) {
+        if (mounted.current) setError(err?.message || "Failed to load learning data");
+      } finally {
+        if (mounted.current) setLoading(false);
+      }
+    };
+
+    load();
     return () => { mounted.current = false; };
   }, []);
 
-  const handleNewRequest = async () => {
-    if (!form.description.trim()) { setFormError("Please provide a description"); return; }
-    setSubmitting(true);
-    setFormError(null);
-    try {
-      await createEss({
-        type: form.type,
-        description: form.description,
-        status: "Pending",
-      });
-      setShowModal(false);
-      setForm({ type: "Leave", description: "" });
-      setSuccess("Your request has been submitted successfully! It is under process and will be reviewed by the admin.");
-      setTimeout(() => setSuccess(null), 5000);
-      const data = await getEss();
-      if (mounted.current) setRequests(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setFormError(err?.message || "Failed to submit request");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const filtered = useMemo(
-    () => (activeTab === "All" ? requests : requests.filter((r) => r.status === activeTab)),
-    [requests, activeTab]
+  const filtered = courses.filter(c =>
+    !search || (c.title || c.name || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const completedCount = courses.filter(c => c.completion_status === "completed").length;
+
+  const handleStartQuiz = (course, assessments) => {
+    setQuizCourse(course);
+    setQuizAssessments(assessments);
+  };
 
   if (loading) {
     return (
-      <HRPage title="My Requests" subtitle="Track all your submitted requests and their approval status.">
-        <div className="flex justify-center items-center py-20">
-          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        </div>
-      </HRPage>
-    );
-  }
-
-  if (error) {
-    return (
-      <HRPage title="My Requests" subtitle="Track all your submitted requests and their approval status.">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-medium">
-          {error}
+      <HRPage title="Learning" subtitle="Access your courses, take quizzes, and earn badges.">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+          <span className="ml-3 text-sm text-gray-500 font-medium">Loading learning modules...</span>
         </div>
       </HRPage>
     );
   }
 
   return (
-    <HRPage title="My Requests" subtitle="Track all your submitted requests and their approval status.">
-      {success && (
-        <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-semibold">
-          <CheckCircle size={16} /> {success}
+    <HRPage title="Learning" subtitle="Access your courses, take quizzes, and earn badges.">
+      {error && (
+        <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-semibold">
+          <AlertCircle size={16} /> {error}
         </div>
       )}
 
-      <div className="flex justify-between items-start mb-7">
-        <div />
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors"
-        >
-          + New Request
-        </button>
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">New Request</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Submit a new request for approval</p>
-              </div>
-              <button onClick={() => { setShowModal(false); setFormError(null); }} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition">
-                <X size={18} />
-              </button>
+      <div className="space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-indigo-50">
+              <BookOpen className="w-5 h-5 text-indigo-600" />
             </div>
-
-            {formError && (
-              <div className="mx-6 mt-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-semibold">
-                <AlertCircle size={14} /> {formError}
-              </div>
-            )}
-
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Request Type</label>
-                <select
-                  value={form.type}
-                  onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 focus:bg-white transition"
-                >
-                  {REQUEST_TYPES.map((t) => <option key={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Description</label>
-                <textarea
-                  rows={4}
-                  value={form.description}
-                  onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                  placeholder="Describe your request in detail..."
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 focus:bg-white transition resize-none"
-                />
-              </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
+              <p className="text-xs text-gray-500">Courses</p>
             </div>
-
-            <div className="p-6 pt-0 flex gap-3">
-              <button onClick={() => { setShowModal(false); setFormError(null); }} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
-                Cancel
-              </button>
-              <button
-                onClick={handleNewRequest}
-                disabled={submitting}
-                className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-semibold transition shadow-sm shadow-indigo-200 flex items-center justify-center gap-2"
-              >
-                {submitting ? <><Loader2 size={14} className="animate-spin" /> Submitting...</> : "Submit Request"}
-              </button>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-emerald-50">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{completedCount}</p>
+              <p className="text-xs text-gray-500">Completed</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-amber-50">
+              <Award className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{Object.values(attemptsMap).flat().filter(a => a.status === "passed").length}</p>
+              <p className="text-xs text-gray-500">Badges Earned</p>
             </div>
           </div>
         </div>
-      )}
 
-      <div className="flex gap-2 mb-5">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
-              activeTab === t
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+        {/* Training Programs */}
+        {programs.length > 0 && (
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <BookOpen size={15} className="text-indigo-500" />
+              Training Programs
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {programs.map(p => (
+                <div key={p.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-indigo-50">
+                      <BookOpen className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{p.name}</p>
+                      {p.department && <p className="text-xs text-gray-400 capitalize">{p.department}</p>}
+                    </div>
+                  </div>
+                  {p.description && (
+                    <p className="text-xs text-gray-500 mb-3 line-clamp-2">{p.description}</p>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
+                    {p.start_date && <span>Start: {p.start_date}</span>}
+                    {p.status && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        p.status === "active" ? "bg-green-50 text-green-700" :
+                        p.status === "completed" ? "bg-blue-50 text-blue-700" :
+                        p.status === "planned" ? "bg-yellow-50 text-yellow-700" :
+                        "bg-red-50 text-red-700"
+                      }`}>
+                        {p.status}
+                      </span>
+                    )}
+                  </div>
+                  {p.resource_link && (
+                    <a href={p.resource_link} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                      Open Resource &rarr;
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Search */}
+        <div className="relative max-w-sm">
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-4 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+          />
+        </div>
+
+        {employeeDept && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Department:</span>
+            <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold capitalize">{employeeDept}</span>
+          </div>
+        )}
+
+        {/* Course Grid */}
+        {filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-base font-semibold text-gray-700 mb-1">
+              {search ? "No courses match your search" : "No courses available yet"}
+            </p>
+            <p className="text-sm text-gray-400">
+              {search ? "Try a different search term." : "Courses assigned to your department will appear here."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map(course => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                assessments={assessmentsMap[course.id] || []}
+                attempts={attemptsMap}
+                onStartQuiz={handleStartQuiz}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <p className="text-lg font-medium">No {activeTab === "All" ? "" : activeTab.toLowerCase() + " "}requests found</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((r) => (
-            <div
-              key={r.id || r.requestId}
-              className="p-5 rounded-xl bg-white border border-gray-200 flex justify-between items-center"
-            >
-              <div>
-                <div className="flex items-center gap-2.5 mb-1">
-                  <span className="text-xs font-bold text-gray-500">{r.id || r.requestId || r.reference}</span>
-                  <span className="text-xs font-bold text-gray-900">{r.type || r.requestType || r.leave_type}</span>
-                </div>
-                <p className="text-xs text-gray-500 mb-1">{r.description || r.reason || r.purpose}</p>
-                <p className="text-xs text-gray-400">Raised on {r.raised || r.createdAt || r.created_at ? new Date(r.raised || r.createdAt || r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "-"}</p>
-              </div>
-              <span
-                className="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap"
-                style={{
-                  color: statusColor[r.status]?.color || "#6B7280",
-                  background: statusColor[r.status]?.bg || "#F3F4F6",
-                }}
-              >
-                {r.status}
-              </span>
-            </div>
-          ))}
-        </div>
+      {quizCourse && (
+        <QuizModal
+          course={quizCourse}
+          assessments={quizAssessments}
+          onClose={() => { setQuizCourse(null); setQuizAssessments([]); }}
+        />
       )}
     </HRPage>
   );

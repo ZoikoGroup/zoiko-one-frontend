@@ -153,6 +153,18 @@ export const deleteEss = (id) => api.delete(`/hr/ess/${id}`);
 export const getMyProfile = () => api.get("/hr/employees/me");
 export const updateMyProfile = (payload) => api.put("/hr/employees/me", payload);
 
+export const getHolidays = (params = {}) => api.get("/hr/attendance/holidays", { params });
+export const getCourses = (params = {}) => api.get("/hr/learning/courses", { params });
+export const getTrainingPrograms = (params = {}) => api.get("/hr/learning/programs", { params });
+export const getAssessments = (courseId) => api.get(`/hr/learning/assessments${courseId ? `?course_id=${courseId}` : ''}`);
+export const getQuizAttempts = (assessmentId, employeeId) => {
+  let url = `/hr/learning/assessments/${assessmentId}/attempts`;
+  const params = [];
+  if (employeeId) params.push(`employee_id=${employeeId}`);
+  if (params.length) url += `?${params.join("&")}`;
+  return api.get(url);
+};
+
 // ════════════════════════════════════════════════════════════════════════════
 // EMPLOYEE SELF-SERVICE — ATTENDANCE
 // ════════════════════════════════════════════════════════════════════════════

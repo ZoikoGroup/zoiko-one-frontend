@@ -43,7 +43,7 @@ export default function CompanyDocuments() {
     setLoading(true);
     setError(null);
     getDocuments({ category: "company" })
-      .then(res => setDocs(Array.isArray(res?.data) ? res.data : []))
+      .then(res => { const raw = res?.data; setDocs(Array.isArray(raw) ? raw : (raw?.items || raw?.data || [])); })
       .catch(() => setError("Could not fetch company documents. Please try again."))
       .finally(() => setLoading(false));
   };

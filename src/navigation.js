@@ -237,7 +237,7 @@ const products = {
               { label: "Leave Management",   href: "/zoiko-hr/ess/leave",             icon: Calendar },
               { label: "Attendance",         href: "/zoiko-hr/ess/attendance",        icon: Clock },
               { label: "My Documents",       href: "/zoiko-hr/ess/my-documents",      icon: FileText },
-              { label: "Requests",           href: "/zoiko-hr/ess/requests",          icon: ClipboardList },
+              { label: "Learning",           href: "/zoiko-hr/ess/requests",          icon: BookOpen },
               { label: "Settings",           href: "/zoiko-hr/ess/settings",          icon: SlidersHorizontal },
             ]},
             { label: "Employee Documents", icon: FolderOpen, children: [
@@ -392,7 +392,7 @@ const employeeWorkspace = {
       children: [
         { label: "Dashboard",   href: "/employee/ess",            icon: LayoutDashboard },
         { label: "Attendance",  href: "/employee/ess/attendance", icon: Clock },
-        { label: "Requests",    href: "/employee/ess/requests",   icon: ClipboardList },
+        { label: "Learning",    href: "/employee/ess/requests",   icon: BookOpen },
         { label: "Settings",    href: "/employee/ess/settings",   icon: SlidersHorizontal },
       ],
     },
@@ -406,7 +406,6 @@ const employeeWorkspace = {
         { label: "Apply Leave",     href: "/employee/leaves/apply",    icon: Plus },
         { label: "Leave Calendar",  href: "/employee/leaves/calendar", icon: CalendarDays },
         { label: "Leave History",   href: "/employee/leaves/history",  icon: History },
-        { label: "Leave Types",     href: "/employee/leaves/types",    icon: ListFilter },
       ],
     },
 

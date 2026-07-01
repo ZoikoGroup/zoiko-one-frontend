@@ -25,7 +25,7 @@ export default function Payslips() {
       setError(null);
       try {
         const res = await getDocuments({ category: "payslip" });
-        const data = res?.data || res?.items || [];
+        const data = res?.data || res?.items || res?.data?.items || [];
         if (mounted) setRawDocs(Array.isArray(data) ? data : []);
       } catch (e) {
         if (!mounted) return;

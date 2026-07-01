@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import HRPage from "../../../../components/HRPage";
 import { getDocuments, uploadDocument } from "../../../../service/employee";
+import { useAuth } from "../../../../context/AuthContext";
 
 const statusColor = {
   Uploaded: { color: "text-emerald-700", bg: "bg-emerald-50" },
@@ -26,6 +27,7 @@ function normalizeStatus(s) {
 }
 
 export default function UploadRequest() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
@@ -37,23 +39,25 @@ export default function UploadRequest() {
 
   useEffect(() => {
     let mounted = true;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getDocuments({ category: "employee" });
-        const data = res?.data || res?.items || [];
-        if (mounted) setHistory(Array.isArray(data) ? data : []);
-      } catch (e) {
-        if (!mounted) return;
-        setError(e?.message || "Failed to load upload history");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    load();
+    loadDocuments(mounted);
     return () => { mounted = false; };
   }, []);
+
+  async function loadDocuments(mounted = { current: true }) {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getDocuments({ category: "employee" });
+      const raw = res?.data;
+      const data = Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+      if (mounted?.current !== false) setHistory(Array.isArray(data) ? data : []);
+    } catch (e) {
+      if (mounted?.current === false) return;
+      setError(e?.message || "Failed to load upload history");
+    } finally {
+      if (mounted?.current !== false) setLoading(false);
+    }
+  }
 
   const historyItems = useMemo(() => {
     return history.map((d) => {
@@ -81,8 +85,10 @@ export default function UploadRequest() {
       if (form.note.trim()) fd.append("note", form.note);
       fd.append("category", "employee");
       if (form.file) fd.append("file", form.file);
+      if (user?.id) fd.append("employee_id", user.id);
       await uploadDocument(fd);
       setSubmitted(true);
+      loadDocuments();
     } catch (e) {
       setSubmitError(e?.message || "Upload failed. Please try again.");
     } finally {

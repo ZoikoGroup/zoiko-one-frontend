@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import { BookOpen, CheckCircle, Clock, Award, Search, Loader2, AlertCircle } from "lucide-react";
 import HRPage from "../../../components/HRPage";
+import { getCourses } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/ess" },
@@ -8,7 +10,7 @@ const NAV_ITEMS = [
   { label: "Leave Management", href: "/zoiko-hr/ess/leave" },
   { label: "Attendance", href: "/zoiko-hr/ess/attendance" },
   { label: "My Documents", href: "/zoiko-hr/ess/my-documents" },
-  { label: "Requests", href: "/zoiko-hr/ess/requests" },
+  { label: "Learning", href: "/zoiko-hr/ess/requests" },
   { label: "Settings", href: "/zoiko-hr/ess/settings" },
 ];
 
@@ -35,214 +37,130 @@ function SubNav() {
   );
 }
 
-const mockRequestsData = [
-  { id: 1, category: "IT", subject: "Laptop Repair", description: "My laptop is not working properly", priority: "high", status: "pending", createdOn: "2025-04-01" },
-  { id: 2, category: "HR", subject: "Leave Request", description: "Request for annual leave", priority: "medium", status: "approved", createdOn: "2025-03-28" },
-  { id: 3, category: "Facilities", subject: "Office Maintenance", description: "AC not working in office", priority: "urgent", status: "pending", createdOn: "2025-04-02" },
-  { id: 4, category: "Admin", subject: "ID Card", description: "Need new employee ID card", priority: "low", status: "completed", createdOn: "2025-03-25" },
-  { id: 5, category: "IT", subject: "Software Installation", description: "Need Adobe Photoshop", priority: "medium", status: "pending", createdOn: "2025-04-03" },
-  { id: 6, category: "HR", subject: "Training", description: "Request for training program", priority: "high", status: "pending", createdOn: "2025-04-04" },
-  { id: 7, category: "Facilities", subject: "Parking", description: "Need parking space", priority: "low", status: "rejected", createdOn: "2025-03-30" },
-];
-
-export default function EssRequests() {
-  const [requests] = useState(mockRequestsData);
+export default function EssLearning() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState(null);
-  const [form, setForm] = useState({ category: "IT", subject: "", description: "", priority: "medium" });
 
-  const filtered = requests.filter((r) => {
-    if (search && !r.subject.toLowerCase().includes(search.toLowerCase()) && !r.description.toLowerCase().includes(search.toLowerCase()) && !r.category.toLowerCase().includes(search.toLowerCase())) return false;
-    if (statusFilter && r.status !== statusFilter) return false;
-    if (categoryFilter && r.category !== categoryFilter) return false;
-    return true;
-  });
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    getCourses()
+      .then(res => {
+        const data = Array.isArray(res) ? res : res?.data || res?.items || [];
+        setCourses(data);
+      })
+      .catch(err => setError(err?.message || "Failed to load courses"))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleFilterChange = (key, value) => {
-    if (key === "status") setStatusFilter(value);
-    if (key === "category") setCategoryFilter(value);
-  };
+  const filtered = courses.filter(c =>
+    !search || (c.title || c.name || "").toLowerCase().includes(search.toLowerCase())
+  );
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!form.subject.trim()) {
-      setFormError("Subject is required");
-      return;
-    }
-    setSubmitting(true);
-    setFormError(null);
-    try {
-      setShowModal(false);
-      setForm({ category: "IT", subject: "", description: "", priority: "medium" });
-    } catch (err) {
-      setFormError(err.message || "Failed to create request");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const REQUEST_CATEGORIES = ["IT", "HR", "Facilities", "Admin"];
-  const PRIORITIES = [
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "urgent", label: "Urgent" },
-  ];
-
-  const columns = [
-    { key: "category", label: "Category", render: (v) => (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-        {v}
-      </span>
-    )},
-    { key: "subject", label: "Subject", render: (v) => <span className="font-medium text-gray-900">{v}</span> },
-    { key: "description", label: "Description", render: (v) => <span className="text-gray-500 truncate max-w-[200px] block">{v}</span> },
-    { key: "priority", label: "Priority", render: (v) => (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
-        v === "urgent" ? "bg-red-100 text-red-800" : v === "high" ? "bg-orange-100 text-orange-800" : v === "medium" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
-      }`}>{v}</span>
-    )},
-    { key: "status", label: "Status", render: (v) => (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
-        v === "pending" ? "bg-yellow-100 text-yellow-800" : v === "approved" ? "bg-green-100 text-green-800" : v === "rejected" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
-      }`}>{v}</span>
-    )},
-    { key: "createdOn", label: "Created", render: (v) => <span className="text-gray-400 text-xs">{v}</span> },
-  ];
+  const total = courses.length;
+  const completed = courses.filter(c => c.completion_status === "completed").length;
 
   return (
-    <HRPage title="Employee Self Service" subtitle="Submit and track IT, HR, Facilities, and Admin requests">
+    <HRPage title="Employee Self Service" subtitle="Access learning courses and track progress">
       <SubNav />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">ESS Requests</h1>
-            <p className="text-sm text-gray-500 mt-1">Submit and track IT, HR, Facilities, and Admin requests</p>
+            <h1 className="text-2xl font-bold text-gray-900">Learning</h1>
+            <p className="text-sm text-gray-500 mt-1">Browse courses and track your learning progress</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            New Request
-          </button>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Requests</h2>
-            <span className="text-sm text-gray-500">{filtered.length} requests</span>
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-indigo-50">
+              <BookOpen className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{total}</p>
+              <p className="text-xs text-gray-500">Total Courses</p>
+            </div>
           </div>
-          <div className="space-y-3">
-            {filtered.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                      {r.category}
-                    </span>
-                    <span className="text-sm font-medium text-gray-900">{r.subject}</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
-                      r.status === "pending" ? "bg-yellow-100 text-yellow-800" : r.status === "approved" ? "bg-green-100 text-green-800" : r.status === "rejected" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
-                    }`}>{r.status}</span>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-emerald-50">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{completed}</p>
+              <p className="text-xs text-gray-500">Completed</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-amber-50">
+              <Award className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{total - completed}</p>
+              <p className="text-xs text-gray-500">In Progress</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          />
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+            <span className="text-sm font-medium">Loading courses...</span>
+          </div>
+        ) : error ? (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-semibold">
+            <AlertCircle size={16} /> {error}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-base font-semibold text-gray-700 mb-1">
+              {search ? "No results found" : "No courses available"}
+            </p>
+            <p className="text-sm text-gray-400">
+              {search ? "Try a different search term." : "Courses will appear here once they are published."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map(course => (
+              <div key={course.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all p-5">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className={`p-2.5 rounded-lg ${course.completion_status === "completed" ? "bg-emerald-50" : "bg-indigo-50"}`}>
+                    <BookOpen className={`w-5 h-5 ${course.completion_status === "completed" ? "text-emerald-600" : "text-indigo-600"}`} />
                   </div>
-                  <div className="text-sm text-gray-500 mt-1 truncate max-w-[400px]">{r.description}</div>
-                  <div className="text-xs text-gray-400 mt-1">Priority: {r.priority}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{course.title || course.name}</p>
+                    {course.department && (
+                      <p className="text-xs text-gray-400 mt-0.5 capitalize">{course.department}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">Created on</div>
-                  <div className="text-sm font-medium text-gray-700">{r.createdOn}</div>
+                {course.description && (
+                  <p className="text-xs text-gray-500 mb-3 line-clamp-2">{course.description}</p>
+                )}
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  {course.duration && <span>{course.duration}</span>}
+                  {course.modules_count && <span>· {course.modules_count} modules</span>}
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">New ESS Request</h2>
-                <button
-                  onClick={() => { setShowModal(false); setFormError(null); }}
-                  className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-                >
-                  &times;
-                </button>
-              </div>
-              <form onSubmit={handleCreate} className="p-6 space-y-4">
-                {formError && <div className="text-red-500 text-sm">{formError}</div>}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {REQUEST_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                  <select
-                    value={form.priority}
-                    onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {PRIORITIES.map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
-                  <input
-                    type="text"
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    rows={4}
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => { setShowModal(false); setFormError(null); }}
-                    className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
-                  >
-                    {submitting ? "Submitting..." : "Submit Request"}
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
         )}
       </div>

@@ -47,6 +47,7 @@ const initialForm = {
   phone: "",
   role: "employee",
   job_title: "",
+  organization_id: "",
 };
 
 function ConfirmDialog({ open, title, message, confirmLabel, danger, onConfirm, onCancel }) {
@@ -199,6 +200,12 @@ export default function UserManagementPage() {
   const openCreate = () => {
     resetForm();
     setCreatedPassword(null);
+    if (isSuperAdmin) {
+      const defaultRole = getDefaultRole();
+      if (defaultRole !== "employee") {
+        setFormData(prev => ({ ...prev, role: defaultRole }));
+      }
+    }
     setShowModal(true);
   };
 
@@ -212,10 +219,47 @@ export default function UserManagementPage() {
       phone: user.phone || "",
       role: user.role || "employee",
       job_title: user.job_title || "",
+      organization_id: user.organization_id || "",
     });
     setFormErrors({});
     setShowModal(true);
   };
+
+  const fetchOrganizations = async () => {
+    try {
+      const data = await superAdminService.getOrganizations();
+      return data.organizations || [];
+    } catch (err) {
+      setToast({ message: "Failed to fetch organizations", type: "error" });
+      return [];
+    }
+  };
+
+  const [organizations, setOrganizations] = useState([]);
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      fetchOrganizations().then(setOrganizations);
+    }
+  }, [isSuperAdmin]);
+
+  const getDefaultRole = () => {
+    if (allowedRoles.length > 0) {
+      const firstAllowed = allowedRoles[0];
+      const roleOption = ALL_ROLE_OPTIONS.find(r => r.value === firstAllowed);
+      if (roleOption) return roleOption.value;
+    }
+    return "employee";
+  };
+
+  useEffect(() => {
+    if (isSuperAdmin && formData.role === "employee") {
+      const defaultRole = getDefaultRole();
+      if (defaultRole !== "employee") {
+        setFormData(prev => ({ ...prev, role: defaultRole }));
+      }
+    }
+  }, [isSuperAdmin, allowedRoles]);
 
   const validate = () => {
     const errors = {};
@@ -224,6 +268,7 @@ export default function UserManagementPage() {
     if (!formData.first_name.trim()) errors.first_name = "First name is required";
     if (!formData.last_name.trim()) errors.last_name = "Last name is required";
     if (!formData.role) errors.role = "Role is required";
+    if (isSuperAdmin && !formData.organization_id) errors.organization_id = "Organization is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -240,6 +285,7 @@ export default function UserManagementPage() {
         phone: formData.phone.trim() || null,
         role: formData.role,
         job_title: formData.job_title.trim() || null,
+        organization_id: isSuperAdmin ? parseInt(formData.organization_id) : undefined,
       };
       if (editId) {
         await updateUser(editId, payload);
@@ -616,6 +662,23 @@ export default function UserManagementPage() {
                       placeholder="+1-555-0100" />
                   </div>
                 </div>
+                {isSuperAdmin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Organization <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select value={formData.organization_id} onChange={(e) => setFormData({ ...formData, organization_id: e.target.value })}
+                        className={`w-full border ${formErrors.organization_id ? "border-red-300 ring-1 ring-red-200" : "border-gray-200"} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none pr-8`}
+                      disabled={!organizations.length}>
+                        <option value="">Select an organization</option>
+                        {organizations.map((org) => (
+                          <option key={org.id} value={org.id}>{org.name}</option>
+                        ))}
+                      </select>
+                      <Building2 className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+                    {formErrors.organization_id && <p className="text-xs text-red-500 mt-1">{formErrors.organization_id}</p>}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
                   <input type="text" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}

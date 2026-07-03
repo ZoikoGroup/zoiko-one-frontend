@@ -66,12 +66,9 @@ import ZoikoHRModule from "./modules/zoiko-hr/HrDashBoard.jsx";
 
 // Sub-module imports
 import ZoikoHRLeaveDashboard from "./modules/zoiko-hr/leave/dashboard.jsx";
-import ZoikoHRLeaveMyLeave from "./modules/zoiko-hr/leave/my-leave.jsx";
 import ZoikoHRLeaveRequests from "./modules/zoiko-hr/leave/leave-requests.jsx";
 import ZoikoHRLeaveCalendar from "./modules/zoiko-hr/leave/leave-calendar.jsx";
-import ZoikoHRLeaveLeaveTypes from "./modules/zoiko-hr/leave/leave-types.jsx";
 import ZoikoHRLeaveReports from "./modules/zoiko-hr/leave/reports.jsx";
-import ZoikoHRLeaveSettings from "./modules/zoiko-hr/leave/settings.jsx";
 
 import ZoikoHRDepartmentsDashboard from "./modules/zoiko-hr/departments/dashboard.jsx";
 import ZoikoHRDepartmentsDepartmentList from "./modules/zoiko-hr/departments/department-list.jsx";
@@ -376,12 +373,9 @@ const routeOverrides = {
   "/zoiko-hr/designations/settings": <ZoikoHRDesignationSettings />,
   // Leave
   "/zoiko-hr/leave": <ZoikoHRLeaveDashboard />,
-  "/zoiko-hr/leave/my-leave": <ZoikoHRLeaveMyLeave />,
   "/zoiko-hr/leave/requests": <ZoikoHRLeaveRequests />,
   "/zoiko-hr/leave/calendar": <ZoikoHRLeaveCalendar />,
-  "/zoiko-hr/leave/leave-types": <ZoikoHRLeaveLeaveTypes />,
   "/zoiko-hr/leave/reports": <ZoikoHRLeaveReports />,
-  "/zoiko-hr/leave/settings": <ZoikoHRLeaveSettings />,
   // Attendance
   "/zoiko-hr/attendance": <ZoikoHRAttendanceDashboard />,
   "/zoiko-hr/attendance/daily": <ZoikoHRAttendanceDailyRecords />,
@@ -666,10 +660,6 @@ const routeOverrides = {
   "/employee/travel/approvals": <EmployeeTravelApprovals />,
   "/employee/travel/expenses":  <EmployeeTravelExpenses />,
   "/employee/travel/settings":  <EmployeeTravelSettings />,
-
-  // Assets
-  "/employee/assets":           <EmployeeAssetDetails />,
-  "/employee/assets/request":   <EmployeeAssetDetails />,
 };
 
 function ScrollToTop() {

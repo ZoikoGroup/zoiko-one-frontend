@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { Loader2, AlertCircle, CheckCircle, Calendar, FileText } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, Calendar, FileText, Check, X } from "lucide-react";
 import HRPage from "../../../components/HRPage";
 import { getLeaveRequests, createLeaveRequest } from "../../../service/hrService";
 import { useAuth } from "../../../context/AuthContext";
@@ -48,9 +48,9 @@ const LEAVE_TYPES = [
 ];
 
 const STATUS_META = {
-  pending: { label: "Pending", bg: "bg-amber-50", text: "text-amber-700" },
-  approved: { label: "Approved", bg: "bg-emerald-50", text: "text-emerald-700" },
-  rejected: { label: "Rejected", bg: "bg-rose-50", text: "text-rose-700" },
+  pending: { label: "Pending", bg: "bg-amber-50", text: "text-amber-700", icon: null },
+  approved: { label: "Approved", bg: "bg-green-100", text: "text-green-800", icon: Check },
+  rejected: { label: "Rejected", bg: "bg-red-100", text: "text-red-700", icon: X },
 };
 
 export default function EssLeaveManagement() {
@@ -135,8 +135,14 @@ export default function EssLeaveManagement() {
   };
 
   const getStatusBadge = (status) => {
-    const m = STATUS_META[status] || { label: status, bg: "bg-gray-50", text: "text-gray-700" };
-    return <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${m.bg} ${m.text}`}>{m.label}</span>;
+    const m = STATUS_META[status] || { label: status, bg: "bg-gray-50", text: "text-gray-700", icon: null };
+    const Icon = m.icon;
+    return (
+      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${m.bg} ${m.text}`}>
+        {Icon && <Icon className="w-3.5 h-3.5" />}
+        {m.label}
+      </span>
+    );
   };
 
   return (
@@ -161,7 +167,7 @@ export default function EssLeaveManagement() {
         </div>
 
         {success && (
-          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-semibold">
+          <div className="flex items-center gap-2 bg-green-100 border border-green-200 rounded-xl px-4 py-3 text-green-800 text-sm font-semibold">
             <CheckCircle size={16} /> {success}
           </div>
         )}

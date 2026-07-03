@@ -148,10 +148,6 @@ export const ROLE_ALLOWED_PREFIXES = {
     "/employee/travel/approvals",
     "/employee/travel/expenses",
     "/employee/travel/settings",
-
-    // ── Assets ───────────────────────────────────────────────
-    "/employee/assets",
-    "/employee/assets/request",
   ],
 };
 

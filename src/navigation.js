@@ -161,12 +161,9 @@ const products = {
             ]},
             { label: "Leave",              icon: Calendar, children: [
               { label: "Dashboard",            href: "/zoiko-hr/leave",                    icon: LayoutDashboard },
-              { label: "My Leave",             href: "/zoiko-hr/leave/my-leave",            icon: User },
               { label: "Leave Requests",       href: "/zoiko-hr/leave/requests",            icon: ClipboardCheck },
               { label: "Calendar",             href: "/zoiko-hr/leave/calendar",            icon: Calendar },
-              { label: "Leave Types",          href: "/zoiko-hr/leave/leave-types",         icon: Tags },
               { label: "Reports",              href: "/zoiko-hr/leave/reports",             icon: FileText },
-              { label: "Settings",             href: "/zoiko-hr/leave/settings",            icon: SlidersHorizontal },
             ]},
             { label: "Attendance", icon: Clock, children: [
               { label: "Dashboard",              href: "/zoiko-hr/attendance",             icon: LayoutDashboard },

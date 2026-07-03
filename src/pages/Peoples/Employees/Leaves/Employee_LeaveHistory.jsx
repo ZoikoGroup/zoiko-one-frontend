@@ -4,7 +4,7 @@ import { getLeaveRequests } from "../../../../service/employee";
 import { getStoredUser } from "../../../../service/api";
 
 const statusColor = {
-  Approved: { color: "#059669", bg: "#ECFDF5" },
+  Approved: { color: "#166534", bg: "#DCFCE7" },
   Rejected: { color: "#DC2626", bg: "#FEF2F2" },
   Pending: { color: "#D97706", bg: "#FFFBEB" },
 };

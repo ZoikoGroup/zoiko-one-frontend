@@ -6,12 +6,9 @@ import { getLeaveStatistics } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
-  { label: "My Leave", href: "/zoiko-hr/leave/my-leave" },
   { label: "Requests", href: "/zoiko-hr/leave/requests" },
   { label: "Calendar", href: "/zoiko-hr/leave/calendar" },
-  { label: "Leave Types", href: "/zoiko-hr/leave/leave-types" },
   { label: "Reports", href: "/zoiko-hr/leave/reports" },
-  { label: "Settings", href: "/zoiko-hr/leave/settings" },
 ];
 
 const typeColors = {

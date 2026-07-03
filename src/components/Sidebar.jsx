@@ -28,6 +28,8 @@ function MenuItem({ item, pathname }) {
     }
   }, [hasActiveChild, pathname]);
 
+  if (item.sidebar === false) return null;
+
   if (item.children) {
     const active = hasActiveChild;
     return (

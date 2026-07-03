@@ -1,17 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import { Calendar, Clock, CheckCircle, XCircle, Search, Users } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, Search, Users, Trash2 } from "lucide-react";
 import HRPage from "../../../components/HRPage";
-import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard, getDepartments, getHrEmployees } from "../../../service/hrService";
+import { getLeaveRequests, reviewLeaveRequest, getLeaveDashboard, getHrEmployees, deleteLeaveRequest } from "../../../service/hrService";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/zoiko-hr/leave" },
-  { label: "My Leave", href: "/zoiko-hr/leave/my-leave" },
   { label: "Requests", href: "/zoiko-hr/leave/requests" },
   { label: "Calendar", href: "/zoiko-hr/leave/calendar" },
-  { label: "Leave Types", href: "/zoiko-hr/leave/leave-types" },
   { label: "Reports", href: "/zoiko-hr/leave/reports" },
-  { label: "Settings", href: "/zoiko-hr/leave/settings" },
 ];
 
 const STATUS_COLORS = {
@@ -76,10 +73,6 @@ export default function LeaveRequests() {
   const [statusFilter, setStatusFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [approverFilter, setApproverFilter] = useState("");
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewStatus, setReviewStatus] = useState("");
-  const [reviewComments, setReviewComments] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -153,29 +146,31 @@ export default function LeaveRequests() {
   const safePage = Math.min(currentPage, totalPages);
   const paginated = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
-  const handleRowClick = (row) => {
-    setSelectedRequest(row);
-    setReviewStatus("");
-    setReviewComments("");
-    setShowReviewModal(true);
-  };
-
-  const handleReview = async (e) => {
-    e.preventDefault();
-    if (!reviewStatus || !selectedRequest) return;
+  const handleReview = async (id, status) => {
     setSubmitting(true);
     setMessage(null);
     try {
-      await reviewLeaveRequest(selectedRequest.id, { status: reviewStatus, reason: reviewComments || undefined });
-      setMessage(`Request ${reviewStatus} successfully`);
-      setShowReviewModal(false);
-      setSelectedRequest(null);
+      await reviewLeaveRequest(id, { status });
+      setMessage(`Request ${status} successfully`);
       const data = await getLeaveRequests();
       setRecords(Array.isArray(data) ? data : []);
     } catch {
-      setMessage("Failed to review request");
+      setMessage(`Failed to ${status} request`);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this leave request permanently?")) return;
+    setMessage(null);
+    try {
+      await deleteLeaveRequest(id);
+      setMessage("Leave request deleted");
+      const data = await getLeaveRequests();
+      setRecords(Array.isArray(data) ? data : []);
+    } catch {
+      setMessage("Failed to delete request");
     }
   };
 
@@ -255,36 +250,47 @@ export default function LeaveRequests() {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approved By</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval Comments</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Start</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">End</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Days</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Approved By</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {paginated.map((row, i) => (
-                  <tr key={row.id ?? i} className="hover:bg-teal-50/50 transition-colors cursor-pointer" onClick={() => handleRowClick(row)}>
+                  <tr key={row.id ?? i} className="hover:bg-teal-50/50 transition-colors">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.employee_name || row.employee}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">{row.employee_code || "-"}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{row.department}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{row.approved_by || "-"}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{formatDate(row.approval_date)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{row.approval_comments || "-"}</td>
                     <td className="px-4 py-3 text-sm capitalize text-gray-700">{row.leave_type || row.type}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{formatDate(row.start_date)}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{formatDate(row.end_date)}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{row.days || "-"}</td>
                     <td className="px-4 py-3 text-sm"><StatusBadge status={row.status} /></td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {row.status === "pending" ? "-" : <span className="whitespace-nowrap">{row.approved_by || "-"}<br /><span className="text-xs">{formatDate(row.approval_date)}</span></span>}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {row.status === "pending" ? (
+                        <div className="flex items-center gap-1.5">
+                          <button onClick={() => handleReview(row.id, "approved")} disabled={submitting}
+                            className="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors disabled:opacity-50">Approve</button>
+                          <button onClick={() => handleReview(row.id, "rejected")} disabled={submitting}
+                            className="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50">Reject</button>
+                          <button onClick={() => handleDelete(row.id)}
+                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {paginated.length === 0 && (
                   <tr>
-                    <td colSpan={11} className="px-4 py-12 text-center text-gray-400 text-sm">No requests found</td>
+                    <td colSpan={9} className="px-4 py-12 text-center text-gray-400 text-sm">No requests found</td>
                   </tr>
                 )}
               </tbody>
@@ -303,58 +309,7 @@ export default function LeaveRequests() {
           )}
         </div>
 
-        {showReviewModal && selectedRequest && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-800">Review Leave Request</h2>
-                <button onClick={() => setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><p className="text-gray-500">Employee</p><p className="font-medium text-gray-900">{selectedRequest.employee_name || selectedRequest.employee}</p></div>
-                  <div><p className="text-gray-500">Employee ID</p><p className="font-medium text-gray-900">{selectedRequest.employee_code || "-"}</p></div>
-                  <div><p className="text-gray-500">Department</p><p className="font-medium text-gray-900">{selectedRequest.department}</p></div>
-                  <div><p className="text-gray-500">Approved By</p><p className="font-medium text-gray-900">{selectedRequest.approved_by || "-"}</p></div>
-                  <div><p className="text-gray-500">Approval Date</p><p className="font-medium text-gray-900">{formatDate(selectedRequest.approval_date)}</p></div>
-                  <div><p className="text-gray-500">Approval Comments</p><p className="font-medium text-gray-900">{selectedRequest.approval_comments || "-"}</p></div>
-                  <div><p className="text-gray-500">Leave Type</p><p className="font-medium text-gray-900 capitalize">{selectedRequest.leave_type || selectedRequest.type}</p></div>
-                  <div><p className="text-gray-500">Duration</p><p className="font-medium text-gray-900">{selectedRequest.days} days</p></div>
-                  <div><p className="text-gray-500">Start Date</p><p className="font-medium text-gray-900">{formatDate(selectedRequest.start_date)}</p></div>
-                  <div><p className="text-gray-500">End Date</p><p className="font-medium text-gray-900">{formatDate(selectedRequest.end_date)}</p></div>
-                  <div className="col-span-2"><p className="text-gray-500">Status</p><StatusBadge status={selectedRequest.status} /></div>
-                </div>
-                <div><p className="text-sm text-gray-500 mb-1">Reason</p><p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">{selectedRequest.reason || "-"}</p></div>
-                {selectedRequest.comments && (
-                  <div><p className="text-sm text-gray-500 mb-1">Previous Comments</p><p className="text-sm text-gray-700 bg-yellow-50 p-2 rounded">{selectedRequest.comments}</p></div>
-                )}
-                <form onSubmit={handleReview} className="space-y-4 pt-2 border-t border-gray-100">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Decision *</label>
-                    <select value={reviewStatus} onChange={(e) => setReviewStatus(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
-                      <option value="">Select decision</option>
-                      <option value="approved">Approve</option>
-                      <option value="rejected">Reject</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Comments</label>
-                    <textarea rows={2} value={reviewComments} onChange={(e) => setReviewComments(e.target.value)}
-                      placeholder="Add comments for the employee..."
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
-                  </div>
-                  <div className="flex justify-end gap-3">
-                    <button type="button" onClick={() => setShowReviewModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                    <button type="submit" disabled={submitting || !reviewStatus} className="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 text-white rounded-lg font-medium transition-colors">
-                      {submitting ? "Processing..." : "Submit Review"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </HRPage>
   );

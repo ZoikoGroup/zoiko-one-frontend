@@ -4,7 +4,7 @@ import { getLeaveCalendar, getLeaveRequests, getHolidays } from "../../../../ser
 import { getStoredUser } from "../../../../service/api";
 
 const statusColor = {
-  Approved: { color: "#059669", bg: "#ECFDF5" },
+  Approved: { color: "#166534", bg: "#DCFCE7" },
   Pending: { color: "#D97706", bg: "#FFFBEB" },
 };
 

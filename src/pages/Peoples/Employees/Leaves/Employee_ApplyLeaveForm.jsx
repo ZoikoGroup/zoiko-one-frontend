@@ -57,7 +57,7 @@ export default function ApplyLeaveForm() {
     <HRPage title="Apply Leave" subtitle="Submit a new leave request for approval.">
       <div className="max-w-lg">
         {success && (
-          <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-semibold">
+          <div className="mb-6 flex items-center gap-3 bg-green-100 border border-green-200 rounded-xl px-4 py-3 text-green-800 text-sm font-semibold">
             <CheckCircle size={16} /> {success}
           </div>
         )}

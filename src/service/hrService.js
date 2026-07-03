@@ -508,6 +508,7 @@ export const initLeaveBalances = (employeeId, year) =>
   api.post(`/hr/leaves/balance/init?employee_id=${employeeId}&year=${year}`);
 export const getLeaveSettings = () => api.get("/hr/leaves/settings");
 export const updateLeaveSettings = (payload) => api.put("/hr/leaves/settings", payload);
+export const resetLeaveSettings = () => api.delete("/hr/leaves/settings");
 
 // ── WORKFORCE PLANNING SPECIFIC ─────────────────────────────────────────────
 export const getWorkforcePlans = () => api.get("/hr/workforce-planning");

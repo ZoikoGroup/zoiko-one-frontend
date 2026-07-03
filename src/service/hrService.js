@@ -112,7 +112,19 @@ export const withdrawOffer = (id) => api.put(`/hr/recruitment/offers/${id}/withd
 // TRAVEL MODULE
 // ════════════════════════════════════════════════════════════════════════════
 
-export const getHrEmployees = (params = {}) => api.get("/hr/employees", { params });
+export const getHrEmployees = async (params = {}) => {
+  try {
+    return await api.get("/hr/employees", { params });
+  } catch (e) {
+    console.warn("/hr/employees failed, trying fallback:", e.message);
+    try {
+      const fallback = await api.get("/hr/employee-management/employees", { params });
+      return fallback;
+    } catch (e2) {
+      throw new Error(`${e.message}; fallback also failed: ${e2.message}`);
+    }
+  }
+};
 export const getTravel = (employeeId) => api.get(`/hr/travel${employeeId ? `?employee_id=${employeeId}` : ''}`);
 export const getTravelById = (id) => api.get(`/hr/travel/${id}`);
 export const createTravel = (payload) => api.post("/hr/travel", payload);

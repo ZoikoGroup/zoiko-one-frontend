@@ -432,15 +432,6 @@ const employeeWorkspace = {
       ],
     },
 
-    // ── Assets ───────────────────────────────────────────────────────────────
-    {
-      label: "Assets",
-      icon: Package,
-      children: [
-        { label: "My Assets",     href: "/employee/assets",           icon: Package },
-        { label: "Request Asset",  href: "/employee/assets/request",   icon: Plus },
-      ],
-    },
   ],
 };
 

@@ -15,6 +15,23 @@ const iconMap = {
   Webcam: Monitor, "Docking Station": Monitor,
 };
 
+const conditionConfig = {
+  new: "bg-green-50 text-green-700 border border-green-200",
+  good: "bg-blue-50 text-blue-700 border border-blue-200",
+  fair: "bg-amber-50 text-amber-700 border border-amber-200",
+  poor: "bg-orange-50 text-orange-700 border border-orange-200",
+  damaged: "bg-red-50 text-red-700 border border-red-200",
+};
+
+const statusColors = {
+  assigned: "bg-emerald-50 text-emerald-600",
+  available: "bg-slate-100 text-slate-600",
+  maintenance: "bg-amber-50 text-amber-600",
+  retired: "bg-red-50 text-red-600",
+  lost: "bg-red-50 text-red-600",
+  broken: "bg-red-50 text-red-600",
+};
+
 const colorMap = {
   indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
   violet: "bg-violet-50 text-violet-600 border-violet-100",
@@ -23,15 +40,16 @@ const colorMap = {
 };
 
 const statusConfig = {
-  Approved: { icon: CheckCircle, class: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-  Rejected: { icon: XCircle, class: "bg-red-50 text-red-700 border border-red-200" },
-  Pending: { icon: Clock, class: "bg-amber-50 text-amber-700 border border-amber-200" },
+  pending: { icon: Clock, class: "bg-amber-50 text-amber-700 border border-amber-200" },
+  approved: { icon: CheckCircle, class: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  rejected: { icon: XCircle, class: "bg-red-50 text-red-700 border border-red-200" },
+  fulfilled: { icon: CheckCircle, class: "bg-blue-50 text-blue-700 border border-blue-200" },
 };
 
 const priorityConfig = {
-  Low: "bg-slate-100 text-slate-600",
-  Medium: "bg-blue-50 text-blue-600",
-  High: "bg-red-50 text-red-600",
+  low: "bg-slate-100 text-slate-600",
+  medium: "bg-blue-50 text-blue-600",
+  high: "bg-red-50 text-red-600",
 };
 
 const emptyForm = { assetType: "", reason: "", priority: "Medium" };
@@ -64,7 +82,7 @@ export default function AssetDetails() {
         setEmployeeId(eid);
         return Promise.all([
           getMyAssets(eid).catch(() => []),
-          getAssetRequests().catch(() => ({ data: [] })),
+          getAssetRequests({ employee_id: eid }).catch(() => ({ data: [] })),
         ]);
       })
       .then(([assetsRes, reqsRes]) => {
@@ -107,11 +125,11 @@ export default function AssetDetails() {
         if (!mounted.current) return;
         const newReq = res?.data || {
           id: Date.now(),
-          asset: form.assetType,
+          asset_type: form.assetType,
           reason: form.reason,
-          priority: form.priority,
-          status: "Pending",
-          date: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+          priority: form.priority.toLowerCase(),
+          status: "pending",
+          requested_on: new Date().toISOString().split("T")[0],
         };
         setRequests((prev) => [newReq, ...prev]);
         setForm(emptyForm);
@@ -176,18 +194,39 @@ export default function AssetDetails() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {assignedAssets.map((asset, idx) => {
-                const Icon = iconMap[asset.type || asset.assetType] || Monitor;
+                const Icon = iconMap[asset.category] || Monitor;
                 return (
-                  <div key={asset.id || idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition">
-                    <div className={`inline-flex p-2.5 rounded-xl border ${colorMap[assetColors[idx % 4]]} mb-4`}>
-                      <Icon size={20} />
+                  <div key={asset.id || idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition flex flex-col">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`inline-flex p-2.5 rounded-xl border ${colorMap[assetColors[idx % 4]]}`}>
+                        <Icon size={20} />
+                      </div>
+                      {asset.status && (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[asset.status] || statusColors.available}`}>
+                          {asset.status ? asset.status.charAt(0).toUpperCase() + asset.status.slice(1) : "Available"}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide">{asset.type || asset.assetType}</p>
-                    <p className="text-sm font-bold text-slate-800 mt-0.5">{asset.name || asset.assetName}</p>
-                    <p className="text-xs text-slate-400 font-mono mt-2 bg-slate-50 px-2 py-1 rounded-lg">{asset.serial || asset.serialNumber || "—"}</p>
-                    <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
-                      <Clock size={11} /> Since {asset.assignedOn ? new Date(asset.assignedOn).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                    </p>
+                    <p className="text-sm font-bold text-slate-800">{asset.name}</p>
+                    {asset.category && <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mt-0.5">{asset.category}</p>}
+                    <div className="mt-2 space-y-1 flex-1">
+                      {asset.asset_tag && <p className="text-xs text-slate-400 font-mono">Tag: {asset.asset_tag}</p>}
+                      {asset.serial_number && <p className="text-xs text-slate-400 font-mono">SN: {asset.serial_number}</p>}
+                      {asset.department && <p className="text-xs text-slate-400">{asset.department}</p>}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      {asset.condition && (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${conditionConfig[asset.condition] || conditionConfig.good}`}>
+                          {asset.condition ? asset.condition.charAt(0).toUpperCase() + asset.condition.slice(1) : "Good"}
+                        </span>
+                      )}
+                      {asset.assigned_date && (
+                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                          <Clock size={11} /> {new Date(asset.assigned_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                        </span>
+                      )}
+                    </div>
+                    {asset.notes && <p className="text-xs text-slate-400 mt-2 italic leading-relaxed line-clamp-2">{asset.notes}</p>}
                   </div>
                 );
               })}
@@ -218,17 +257,17 @@ export default function AssetDetails() {
                       const StatusIcon = statusConfig[req.status]?.icon || Clock;
                       return (
                         <tr key={req.id || req._id} className="border-b border-slate-50 hover:bg-slate-50/60 transition">
-                          <td className="px-5 py-3.5 font-semibold text-slate-800">{req.asset || req.assetType}</td>
+                          <td className="px-5 py-3.5 font-semibold text-slate-800">{req.asset_type}</td>
                           <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate">{req.reason}</td>
                           <td className="px-5 py-3.5">
-                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${priorityConfig[req.priority] || priorityConfig.Medium}`}>
-                              {req.priority}
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${priorityConfig[req.priority] || priorityConfig.medium}`}>
+                              {req.priority.charAt(0).toUpperCase() + req.priority.slice(1)}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 text-slate-400 text-xs">{req.date ? new Date(req.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</td>
+                          <td className="px-5 py-3.5 text-slate-400 text-xs">{req.requested_on ? new Date(req.requested_on).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</td>
                           <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig[req.status]?.class || statusConfig.Pending.class}`}>
-                              <StatusIcon size={12} /> {req.status || "Pending"}
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig[req.status]?.class || statusConfig.pending.class}`}>
+                              <StatusIcon size={12} /> {req.status ? req.status.charAt(0).toUpperCase() + req.status.slice(1) : "Pending"}
                             </span>
                           </td>
                         </tr>

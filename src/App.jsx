@@ -578,10 +578,6 @@ const routeOverrides = {
   "/employee/travel/approvals": <EmployeeTravelApprovals />,
   "/employee/travel/expenses":  <EmployeeTravelExpenses />,
   "/employee/travel/settings":  <EmployeeTravelSettings />,
-
-  // Assets
-  "/employee/assets":           <EmployeeAssetDetails />,
-  "/employee/assets/request":   <EmployeeAssetDetails />,
 };
 
 function ScrollToTop() {

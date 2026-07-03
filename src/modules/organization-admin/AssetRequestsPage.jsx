@@ -154,6 +154,7 @@ export default function OrgAdminAssetRequestsPage() {
                   <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Priority</th>
                   <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Reason</th>
                   <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Approved By</th>
                   <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Requested</th>
                   <th className="px-5 py-3.5 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
                 </tr>
@@ -169,7 +170,7 @@ export default function OrgAdminAssetRequestsPage() {
                       <td className="px-5 py-3.5 text-sm text-slate-600">{r.quantity || 1}</td>
                       <td className="px-5 py-3.5">
                         <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${PRIORITY_COLORS[priority] || "bg-gray-100 text-gray-700"}`}>
-                          {priority}
+                          {priority.charAt(0).toUpperCase() + priority.slice(1)}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-sm text-slate-500 max-w-[200px] truncate" title={r.reason}>{r.reason || "-"}</td>
@@ -178,9 +179,10 @@ export default function OrgAdminAssetRequestsPage() {
                           {status === "pending" && <Clock size={12} />}
                           {status === "approved" && <CheckCircle size={12} />}
                           {status === "rejected" && <XCircle size={12} />}
-                          {status}
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
                       </td>
+                      <td className="px-5 py-3.5 text-sm text-slate-600">{r.approved_by_name || "-"}</td>
                       <td className="px-5 py-3.5 text-sm text-slate-400">
                         {r.requested_on || r.created_at
                           ? new Date(r.requested_on || r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })

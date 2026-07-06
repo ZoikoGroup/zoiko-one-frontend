@@ -244,7 +244,7 @@ export default function LandingHeader() {
   return (
     <>
       <style>{dropdownStyles}</style>
-      <header className="sticky top-0 z-50 bg-gradient-to-b from-[#F1EEFC] to-white border-b border-[#E2E4EF] rounded-b-full">
+      <header className="sticky top-0 z-50 mx-4 bg-gradient-to-b from-[#F1EEFC] to-white border border-[#E2E4EF] rounded-full shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
           <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
             <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />

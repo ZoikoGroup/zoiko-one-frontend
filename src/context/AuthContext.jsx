@@ -8,15 +8,12 @@ import {
   isAuthenticated,
 } from "../service/authService";
 
-import { ROLE_ALLOWED_PREFIXES, ROLE_DEFAULT_REDIRECT, VALID_ROLES } from "../config/roles";
-
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getCachedUser());
   const [loading, setLoading] = useState(isAuthenticated());
   const [error, setError] = useState(null);
-
 
   useEffect(() => {
     let active = true;
@@ -74,42 +71,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const role = user?.role && VALID_ROLES.includes(user.role) ? user.role : null;
-
-  const hasRole = (roles) => {
-    if (!role) return false;
-    if (!Array.isArray(roles)) {
-      return role === roles;
-    }
-    return roles.includes(role);
-  };
-
-  const canAccess = (pathname) => {
-    if (!role) return false;
-    const prefixes = ROLE_ALLOWED_PREFIXES[role] ?? [];
-    return prefixes.some((prefix) => {
-      if (!pathname) return false;
-      if (prefix === "/") return pathname === "/";
-      return pathname === prefix || pathname.startsWith(prefix);
-    });
-  };
-
-  const defaultRedirect = role ? ROLE_DEFAULT_REDIRECT[role] : "/dashboard";
-
   const value = {
     user,
-    role,
     isAuthenticated: Boolean(user) || isAuthenticated(),
     loading,
     error,
     login,
     register,
     logout,
-    hasRole,
-    canAccess,
-    defaultRedirect,
+    defaultRedirect: "/",
   };
-
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

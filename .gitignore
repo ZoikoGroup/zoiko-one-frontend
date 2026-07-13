@@ -2,3 +2,11 @@ node_modules/
 dist/
 TODO.md
 .env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Python
+__pycache__/
+*.py[cod]

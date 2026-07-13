@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
+import { submitDemoRequest } from "../../service/demoService";
 import {
   Crown,
   DollarSign,
@@ -158,7 +159,7 @@ const demoFitItems = [
   },
 ];
 
-function Field({ label, required, placeholder, type = "text", colSpan }) {
+function Field({ label, required, placeholder, type = "text", colSpan, value, onChange, name }) {
   return (
     <div style={{ gridColumn: colSpan ? "1 / -1" : "auto" }}>
       <label
@@ -174,8 +175,11 @@ function Field({ label, required, placeholder, type = "text", colSpan }) {
         {required && <span style={{ color: ORANGE }}> *</span>}
       </label>
       <input
+        name={name}
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
         style={{
           width: "100%",
           boxSizing: "border-box",
@@ -218,7 +222,39 @@ function Pill({ children, active, onClick }) {
 
 export default function ZoikoDemoPage() {
   const [selected, setSelected] = useState("Platform overview");
+  const [form, setForm] = useState({
+    email: "",
+    company: "",
+    first_name: "",
+    last_name: "",
+    job_title: "",
+    company_size: "",
+    business_type: "",
+    country: "",
+    challenge: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
   const formRef = useRef(null);
+
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      await submitDemoRequest({ ...form, demo_focus: selected });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -358,106 +394,174 @@ export default function ZoikoDemoPage() {
               demo.
             </p>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
-                marginBottom: 18,
-              }}
-            >
-              <Field label="Work email" required placeholder="you@company.com" type="email" />
-              <Field label="Company" required placeholder="Company" />
-              <Field label="First name" required placeholder="First" />
-              <Field label="Last name" required placeholder="Last" />
-              <Field label="Job title" required placeholder="Your role" />
-              <Field label="Company size" required placeholder="1–10" />
-              <Field label="Business type" required placeholder="Services" />
-              <Field label="Country / region" required placeholder="Country" />
-            </div>
-
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 10 }}>
-                What would you like to see?
+            {submitted ? (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    background: "#E8F5E9",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 18px",
+                  }}
+                >
+                  <CheckCircle2 size={28} color="#2E7D32" />
+                </div>
+                <h4 style={{ fontSize: 20, fontWeight: 800, margin: "0 0 8px 0", color: NAVY }}>
+                  Request submitted!
+                </h4>
+                <p style={{ fontSize: 14, color: BODY, lineHeight: 1.6, margin: "0 0 20px 0" }}>
+                  Check your inbox at <strong>{form.email}</strong> for next steps.
+                  Our team will reach out within 24 hours.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setForm({ email: "", company: "", first_name: "", last_name: "", job_title: "", company_size: "", business_type: "", country: "", challenge: "" });
+                    setSelected("Platform overview");
+                  }}
+                  style={{
+                    background: "#fff",
+                    color: NAVY,
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: 999,
+                    padding: "10px 24px",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Submit Another Request
+                </button>
               </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {["Platform overview", "A product", "A workflow", "Governance", "Insights"].map(
-                  (opt) => (
-                    <Pill key={opt} active={selected === opt} onClick={() => setSelected(opt)}>
-                      {opt}
-                    </Pill>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 22 }}>
-              <label
+            ) : (
+            <form onSubmit={handleSubmit}>
+              {error && (
+                <div
+                  style={{
+                    background: "#FEE2E2",
+                    border: "1px solid #FECACA",
+                    borderRadius: 10,
+                    padding: "10px 14px",
+                    marginBottom: 16,
+                    fontSize: 13,
+                    color: "#B91C1C",
+                    fontWeight: 600,
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+              <div
                 style={{
-                  display: "block",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: NAVY,
-                  marginBottom: 6,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                  marginBottom: 18,
                 }}
               >
-                Primary business challenge
-              </label>
-              <input
-                placeholder="What problem should the demo focus on?"
+                <Field label="Work email" required placeholder="you@company.com" type="email" name="email" value={form.email} onChange={handleChange} />
+                <Field label="Company" required placeholder="Company" name="company" value={form.company} onChange={handleChange} />
+                <Field label="First name" required placeholder="First" name="first_name" value={form.first_name} onChange={handleChange} />
+                <Field label="Last name" required placeholder="Last" name="last_name" value={form.last_name} onChange={handleChange} />
+                <Field label="Job title" required placeholder="Your role" name="job_title" value={form.job_title} onChange={handleChange} />
+                <Field label="Company size" required placeholder="1–10" name="company_size" value={form.company_size} onChange={handleChange} />
+                <Field label="Business type" required placeholder="Services" name="business_type" value={form.business_type} onChange={handleChange} />
+                <Field label="Country / region" required placeholder="Country" name="country" value={form.country} onChange={handleChange} />
+              </div>
+
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 10 }}>
+                  What would you like to see?
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {["Platform overview", "A product", "A workflow", "Governance", "Insights"].map(
+                    (opt) => (
+                      <Pill key={opt} active={selected === opt} onClick={() => setSelected(opt)}>
+                        {opt}
+                      </Pill>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 22 }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: NAVY,
+                    marginBottom: 6,
+                  }}
+                >
+                  Primary business challenge
+                </label>
+                <input
+                  placeholder="What problem should the demo focus on?"
+                  name="challenge"
+                  value={form.challenge}
+                  onChange={handleChange}
+                  style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    fontSize: 14,
+                    outline: "none",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = ORANGE)}
+                  onBlur={(e) => (e.target.style.borderColor = BORDER)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
                 style={{
                   width: "100%",
-                  boxSizing: "border-box",
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: 10,
-                  padding: "10px 12px",
-                  fontSize: 14,
-                  outline: "none",
+                  background: submitting ? "#C0C4CC" : `linear-gradient(135deg, ${ORANGE}, ${ORANGE_DARK})`,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "14px 0",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  marginBottom: 12,
                 }}
-                onFocus={(e) => (e.target.style.borderColor = ORANGE)}
-                onBlur={(e) => (e.target.style.borderColor = BORDER)}
-              />
-            </div>
+              >
+                {submitting ? "Submitting..." : <>Request My Demo <span style={{ fontSize: 16 }}>→</span></>}
+              </button>
 
-            <button
-              type="button"
-              style={{
-                width: "100%",
-                background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_DARK})`,
-                color: "#fff",
-                border: "none",
-                borderRadius: 999,
-                padding: "14px 0",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                marginBottom: 12,
-              }}
-            >
-              Request My Demo <span style={{ fontSize: 16 }}>→</span>
-            </button>
-
-            <button
-              type="button"
-              style={{
-                width: "100%",
-                background: "#fff",
-                color: NAVY,
-                border: `1px solid ${BORDER}`,
-                borderRadius: 999,
-                padding: "13px 0",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-                marginBottom: 18,
-              }}
-            >
-              View Pricing Options
-            </button>
+              <button
+                type="button"
+                style={{
+                  width: "100%",
+                  background: "#fff",
+                  color: NAVY,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 999,
+                  padding: "13px 0",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  marginBottom: 18,
+                }}
+              >
+                View Pricing Options
+              </button>
+            </form>
+            )}
 
             <p style={{ fontSize: 11.5, color: "#9298A4", lineHeight: 1.5, margin: "0 0 14px 0" }}>
               By submitting this form, you agree that Zoiko One may contact

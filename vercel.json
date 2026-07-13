@@ -1,5 +1,13 @@
 {
+  "builds": [
+    {
+      "src": "backend/api/demo_request.py",
+      "use": "@vercel/python"
+    }
+  ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/demo-request", "destination": "/backend/api/demo_request.py" },
+    { "source": "/api/demo-request/(.*)", "destination": "/backend/api/demo_request.py" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }

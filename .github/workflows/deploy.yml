@@ -29,7 +29,7 @@ jobs:
       - name: Rsync backend
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avzr --delete --exclude=.env
+          switches: -avzr --delete --exclude=.env --exclude=venv
           path: backend/
           remote_path: /opt/zoiko-one/backend/
           remote_host: ${{ secrets.SSH_HOST }}

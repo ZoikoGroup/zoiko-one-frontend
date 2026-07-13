@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 # ---------------------------------------------------------------------------
 DATABASE_URL = os.environ.get("NEON_DATABASE_URL", "")
 print(f"DEBUG: DATABASE_URL loaded = {DATABASE_URL[:40]}...")
-engine = create_async_engine(DATABASE_URL, echo=False, connect_args={"ssl": "require"})
+engine = create_async_engine(DATABASE_URL, echo=False, pool_pre_ping=True, pool_recycle=300, connect_args={"ssl": "require"})
 async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 

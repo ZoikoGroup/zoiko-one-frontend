@@ -1,6 +1,14 @@
 {
   "builds": [
     {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "command": "npm run build",
+        "output": "dist"
+      }
+    },
+    {
       "src": "backend/api/demo_request.py",
       "use": "@vercel/python"
     }
@@ -8,6 +16,6 @@
   "rewrites": [
     { "source": "/api/demo-request", "destination": "/backend/api/demo_request.py" },
     { "source": "/api/demo-request/(.*)", "destination": "/backend/api/demo_request.py" },
-    { "source": "/(.*)", "destination": "/frontend/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/frontend/dist/$1" }
   ]
 }

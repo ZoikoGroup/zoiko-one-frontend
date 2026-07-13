@@ -5,3 +5,4 @@ resend
 pydantic
 uvicorn
 python-dotenv
+email-validator

@@ -36,6 +36,16 @@ jobs:
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Rsync nginx config
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avzr --delete
+          path: nginx/
+          remote_path: /opt/zoiko-one/nginx/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Install deps & restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -44,6 +54,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             /opt/zoiko-one/backend/venv/bin/pip install -r /opt/zoiko-one/backend/api/requirements.txt
+            sudo cp /opt/zoiko-one/nginx/zoiko-one.conf /etc/nginx/sites-available/zoiko-one.conf
+            sudo ln -sf /etc/nginx/sites-available/zoiko-one.conf /etc/nginx/sites-enabled/zoiko-one.conf
             sudo systemctl restart zoiko-backend
             sudo systemctl reload nginx
             sudo systemctl status zoiko-backend --no-pager

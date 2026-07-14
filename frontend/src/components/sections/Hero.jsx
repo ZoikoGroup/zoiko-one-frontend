@@ -101,19 +101,39 @@ function CaretDown({ color = "#64748B", size = 8 }) {
 export default function Hero() {
   const navigate = useNavigate();
   return (
-    <section className="max-w-[1440px] mx-auto px-6 lg:px-10 pt-4 pb-8 lg:pt-6 lg:pb-10 min-h-[calc(100vh-64px)] flex items-center overflow-x-auto">
+    <section
+      className="w-full px-6 lg:px-10 pt-4 pb-8 lg:pt-6 lg:pb-10 h-[calc(100vh-64px)] flex items-center overflow-hidden"
+      style={{
+        position: "relative",
+        backgroundColor: "#f5f4f2",
+        background: "linear-gradient(120deg, rgba(255,195,130,0.45) 0%, rgba(250,248,245,0.98) 38%, rgba(250,248,245,0.98) 62%, rgba(170,205,240,0.45) 100%)",
+      }}
+    >
       <div
-        className="grid xl:grid-cols-[1fr_820px] gap-10 items-center"
-        style={{ minWidth: 0 }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse at 12% 55%, rgba(255,175,90,0.25) 0%, transparent 42%), radial-gradient(ellipse at 88% 45%, rgba(140,190,235,0.28) 0%, transparent 42%), radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.7) 0%, transparent 55%)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        className="grid xl:grid-cols-[1fr_800px] gap-10 items-center"
+        style={{ minWidth: 0, position: "relative", zIndex: 1 }}
       >
         {/* LEFT COLUMN */}
         <div>
             <div
-              className="inline-flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full mb-6"
-              style={{ background: COLORS.indigoLight }}
+              className="inline-flex items-center gap-2 rounded-full mb-6 mt-12"
+              style={{ background: "rgba(255,255,255,0.92)", padding: "6px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
             >
-              <img src={zoikoLogo} alt="Zoiko One" style={{ width: 24, height: 24, objectFit: "contain", borderRadius: 6 }} />
-              <span className="text-[13px] font-semibold" style={{ color: COLORS.navy }}>
+              <span
+                className="text-[12px] font-bold"
+                style={{ background: "#3B5BDB", color: "#fff", borderRadius: 999, padding: "2px 10px" }}
+              >
+                Platform
+              </span>
+              <span className="text-[13px] font-medium" style={{ color: "#555" }}>
                 Nine core products + Docs Pro
               </span>
             </div>
@@ -185,13 +205,13 @@ export default function Hero() {
         </div>
 
         {/* RIGHT VISUAL */}
-        <div className="hidden xl:block" style={{ width: 820, flexShrink: 0 }}>
-          <div style={{ position: "relative", width: 820, height: 630, overflow: "visible" }}>
+        <div className="hidden xl:block" style={{ width: 800, flexShrink: 0 }}>
+          <div style={{ position: "relative", width: 800, height: 630, overflow: "visible" }}>
             {/* Central dashboard mockup */}
             <div
               style={{
                 position: "absolute",
-                left: 205,
+                left: 175,
                 top: 113,
                 width: 450,
                 height: 382,

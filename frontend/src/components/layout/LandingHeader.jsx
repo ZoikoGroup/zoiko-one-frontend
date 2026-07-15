@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import ProductsMegaMenu from "./ProductsMegaMenu";
 import PlatformMegaMenu from "./PlatformMegaMenu";
+import SolutionsMegaMenu from "./SolutionsMegaMenu";
+import ResourcesMegaMenu from "./ResourcesMegaMenu";
 
 const navLinks = ["Home", "Platform", "Products", "Solutions", "Pricing", "Resources", "About"];
 
@@ -149,13 +151,117 @@ export default function LandingHeader() {
                 );
               }
               if (l === "Solutions") {
-                return <Link key={l} to="/solutions" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                return (
+                  <div
+                    key={l}
+                    style={{ position: "relative" }}
+                    onMouseEnter={() => openMenu("solutions")}
+                    onMouseLeave={startClose}
+                  >
+                    <button
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: activeMenu === "solutions" ? "#4F46E5" : "#2A2F55",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "6px 2px",
+                        userSelect: "none",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      Solutions
+                      <span
+                        style={{
+                          fontSize: 11,
+                          transition: "transform 0.2s",
+                          display: "inline-block",
+                          transform: activeMenu === "solutions" ? "rotate(180deg)" : "rotate(0deg)",
+                        }}
+                      >
+                        &#8964;
+                      </span>
+                    </button>
+
+                    {activeMenu === "solutions" && (
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: 64,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          zIndex: 200,
+                        }}
+                        onMouseEnter={cancelClose}
+                        onMouseLeave={startClose}
+                      >
+                        <SolutionsMegaMenu />
+                      </div>
+                    )}
+                  </div>
+                );
               }
               if (l === "Pricing") {
                 return <Link key={l} to="/pricing" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
               }
               if (l === "Resources") {
-                return <Link key={l} to="/resources" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;
+                return (
+                  <div
+                    key={l}
+                    style={{ position: "relative" }}
+                    onMouseEnter={() => openMenu("resources")}
+                    onMouseLeave={startClose}
+                  >
+                    <button
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: activeMenu === "resources" ? "#4F46E5" : "#2A2F55",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "6px 2px",
+                        userSelect: "none",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      Resources
+                      <span
+                        style={{
+                          fontSize: 11,
+                          transition: "transform 0.2s",
+                          display: "inline-block",
+                          transform: activeMenu === "resources" ? "rotate(180deg)" : "rotate(0deg)",
+                        }}
+                      >
+                        &#8964;
+                      </span>
+                    </button>
+
+                    {activeMenu === "resources" && (
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: 64,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          zIndex: 200,
+                        }}
+                        onMouseEnter={cancelClose}
+                        onMouseLeave={startClose}
+                      >
+                        <ResourcesMegaMenu />
+                      </div>
+                    )}
+                  </div>
+                );
               }
               if (l === "About") {
                 return <Link key={l} to="/about" className="hover:text-[#4F46E5] transition-colors no-underline">{l}</Link>;

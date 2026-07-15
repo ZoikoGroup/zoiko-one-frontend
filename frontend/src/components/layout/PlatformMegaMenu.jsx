@@ -43,41 +43,41 @@ const columns = [
     title: "Platform Foundations",
     color: COLORS.blue,
     items: [
-      { icon: Box, name: "Architecture", desc: "Cloud-native, multi-tenant and highly scalable.", chevron: true, href: "/platform" },
-      { icon: ShieldCheck, name: "Security & Trust", desc: "Enterprise-grade security, privacy and compliance.", chevron: true, href: "/security" },
-      { icon: Cloud, name: "Reliability", desc: "High availability, resilience and business continuity.", chevron: true, href: "/trust-center" },
-      { icon: Zap, name: "Performance", desc: "Optimised for speed, scale and efficiency.", chevron: true, href: "/platform" },
+      { icon: Box, name: "Architecture", desc: "Cloud-native, multi-tenant and highly scalable.", chevron: true, href: "/platform", iconBg: COLORS.blueBg, iconColor: COLORS.blue },
+      { icon: ShieldCheck, name: "Security & Trust", desc: "Enterprise-grade security, privacy and compliance.", chevron: true, href: "/security", iconBg: COLORS.blueBg, iconColor: COLORS.blue },
+      { icon: Cloud, name: "Reliability", desc: "High availability, resilience and business continuity.", chevron: true, href: "/trust-center", iconBg: COLORS.blueBg, iconColor: COLORS.blue },
+      { icon: Zap, name: "Performance", desc: "Optimised for speed, scale and efficiency.", chevron: true, href: "/platform", iconBg: COLORS.blueBg, iconColor: COLORS.blue },
     ],
   },
   {
     title: "Platform Services",
     color: COLORS.green,
     items: [
-      { icon: Fingerprint, name: "ZoikoID", desc: "Unified identity, SSO, MFA and access management.", chevron: true, href: "/platform" },
-      { icon: Workflow, name: "Zoiko Workflow", desc: "No-code automation, approvals and orchestration.", chevron: true, href: "/platform" },
-      { icon: Grid3x3, name: "Zoiko Hub", desc: "Centralised configuration, admin and monitoring.", chevron: true, href: "/platform" },
-      { icon: Plug, name: "Zoiko Connect", desc: "APIs, integrations and ecosystem connectivity.", chevron: true, href: "/platform" },
-      { icon: Sparkles, name: "AI Assistance", desc: "Intelligent automation, insights and copilots.", chevron: true, href: "/platform" },
+      { icon: Fingerprint, name: "ZoikoID", desc: "Unified identity, SSO, MFA and access management.", chevron: true, href: "/platform", iconBg: COLORS.greenBg, iconColor: COLORS.green },
+      { icon: Workflow, name: "Zoiko Workflow", desc: "No-code automation, approvals and orchestration.", chevron: true, href: "/platform", iconBg: COLORS.greenBg, iconColor: COLORS.green },
+      { icon: Grid3x3, name: "Zoiko Hub", desc: "Centralised configuration, admin and monitoring.", chevron: true, href: "/platform", iconBg: COLORS.greenBg, iconColor: COLORS.green },
+      { icon: Plug, name: "Zoiko Connect", desc: "APIs, integrations and ecosystem connectivity.", chevron: true, href: "/platform", iconBg: COLORS.greenBg, iconColor: COLORS.green },
+      { icon: Sparkles, name: "AI Assistance", desc: "Intelligent automation, insights and copilots.", chevron: true, href: "/platform", iconBg: COLORS.greenBg, iconColor: COLORS.green },
     ],
   },
   {
     title: "Data & Intelligence",
     color: COLORS.purple,
     items: [
-      { icon: Database, name: "Unified Data Model", desc: "Consistent data across all products and pillars.", chevron: true, href: "/platform" },
-      { icon: ShieldCheck, name: "Data Governance", desc: "Data quality, policies, classification and lineage.", chevron: true, href: "/platform" },
-      { icon: BarChart3, name: "Analytics Engine", desc: "Real-time analytics, KPIs and custom metrics.", chevron: true, href: "/platform" },
-      { icon: LayoutDashboard, name: "Insights & Reporting", desc: "Dashboards, reports and self-service analytics.", chevron: true, href: "/platform" },
+      { icon: Database, name: "Unified Data Model", desc: "Consistent data across all products and pillars.", chevron: true, href: "/platform", iconBg: COLORS.purpleBg, iconColor: COLORS.purple },
+      { icon: ShieldCheck, name: "Data Governance", desc: "Data quality, policies, classification and lineage.", chevron: true, href: "/platform", iconBg: COLORS.purpleBg, iconColor: COLORS.purple },
+      { icon: BarChart3, name: "Analytics Engine", desc: "Real-time analytics, KPIs and custom metrics.", chevron: true, href: "/platform", iconBg: COLORS.purpleBg, iconColor: COLORS.purple },
+      { icon: LayoutDashboard, name: "Insights & Reporting", desc: "Dashboards, reports and self-service analytics.", chevron: true, href: "/platform", iconBg: COLORS.purpleBg, iconColor: COLORS.purple },
     ],
   },
   {
     title: "Developer & Extensibility",
     color: COLORS.orange,
     items: [
-      { icon: CodeXml, name: "Developer Portal", desc: "APIs, SDKs, docs and code samples.", chevron: true, href: "/api-documentation" },
-      { icon: ShoppingBag, name: "Marketplace", desc: "Extensions, apps and partner solutions.", chevron: true, href: "/platform" },
-      { icon: Puzzle, name: "Extensibility", desc: "Custom apps, plugins and low-code development.", chevron: true, href: "/platform" },
-      { icon: ServerCog, name: "Environment Management", desc: "Dev, test, staging and production management.", chevron: true, href: "/system-status" },
+      { icon: CodeXml, name: "Developer Portal", desc: "APIs, SDKs, docs and code samples.", chevron: true, href: "/api-documentation", iconBg: COLORS.orangeBg, iconColor: COLORS.orange },
+      { icon: ShoppingBag, name: "Marketplace", desc: "Extensions, apps and partner solutions.", chevron: true, href: "/platform", iconBg: COLORS.orangeBg, iconColor: COLORS.orange },
+      { icon: Puzzle, name: "Extensibility", desc: "Custom apps, plugins and low-code development.", chevron: true, href: "/platform", iconBg: COLORS.orangeBg, iconColor: COLORS.orange },
+      { icon: ServerCog, name: "Environment Management", desc: "Dev, test, staging and production management.", chevron: true, href: "/system-status", iconBg: COLORS.orangeBg, iconColor: COLORS.orange },
     ],
   },
 ];
@@ -106,24 +106,38 @@ function Row({ item }) {
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 12,
+        gap: 10,
         padding: "6px 8px",
         borderRadius: 10,
         textDecoration: "none",
         color: "inherit",
       }}
     >
-      <Icon size={16} strokeWidth={2} color={item.iconColor || "#4A4D5C"} style={{ marginTop: 2, flexShrink: 0 }} />
+      <span
+        style={{
+          flexShrink: 0,
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: item.iconBg || "#EAF0FF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: item.iconColor || "#4A4D5C",
+        }}
+      >
+        <Icon size={16} strokeWidth={2} />
+      </span>
       <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 14.5, fontWeight: 600, color: "#12142B", marginBottom: 2 }}>
+        <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "#12142B", marginBottom: 1 }}>
           {item.name}
         </span>
-        <span style={{ display: "block", fontSize: 12.5, lineHeight: 1.4, color: "#6B7280" }}>
+        <span style={{ display: "block", fontSize: 11.5, lineHeight: 1.4, color: "#6B7280" }}>
           {item.desc}
         </span>
       </span>
       {item.chevron && (
-        <ChevronRight size={16} color="#B0B4C0" style={{ marginTop: 8, flexShrink: 0 }} />
+        <ChevronRight size={14} color="#B0B4C0" style={{ marginTop: 6, flexShrink: 0 }} />
       )}
     </Link>
   );
@@ -146,25 +160,25 @@ export default function PlatformMegaMenu() {
       }}
     >
       {/* ---------- Body ---------- */}
-      <div style={{ padding: "20px 32px 0" }}>
+      <div style={{ padding: "20px 28px 0" }}>
         {/* Header row */}
         <div
           style={{
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            marginBottom: 18,
-            gap: 24,
+            marginBottom: 14,
+            gap: 20,
           }}
         >
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#8A8D99", marginBottom: 6 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: "#8A8D99", marginBottom: 4 }}>
               The Zoiko One Platform
             </div>
-            <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0, marginBottom: 6, color: "#12142B" }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 4, color: "#12142B" }}>
               Engineered for connection, built for scale.
             </h1>
-            <p style={{ fontSize: 14.5, color: "#6B7280", margin: 0, maxWidth: 420 }}>
+            <p style={{ fontSize: 13, color: "#6B7280", margin: 0, maxWidth: 380 }}>
               A unified foundation that powers every product, workflow and intelligent experience.
             </p>
           </div>
@@ -177,9 +191,9 @@ export default function PlatformMegaMenu() {
               background: "#F5F7FF",
               border: "1px solid #E3E8FF",
               borderRadius: 12,
-              padding: "16px 18px",
-              minWidth: 380,
-              maxWidth: 440,
+              padding: "12px 14px",
+              minWidth: 340,
+              maxWidth: 400,
               flexShrink: 0,
             }}
           >
@@ -199,13 +213,13 @@ export default function PlatformMegaMenu() {
               <Box size={17} />
             </span>
             <div>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: "#12142B" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: "#12142B" }}>
                 One platform. Infinite possibilities.
               </div>
-              <div style={{ fontSize: 12.5, color: "#6B7280", margin: "2px 0 4px", lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11.5, color: "#6B7280", margin: "2px 0 4px", lineHeight: 1.4 }}>
                 Secure. Scalable. Intelligent. Built for your business.
               </div>
-              <Link to="/platform" style={{ fontSize: 12.5, fontWeight: 600, color: "#3B5BFF", textDecoration: "none" }}>
+              <Link to="/platform" style={{ fontSize: 11.5, fontWeight: 600, color: "#3B5BFF", textDecoration: "none" }}>
                 Explore Platform Overview →
               </Link>
             </div>
@@ -213,15 +227,15 @@ export default function PlatformMegaMenu() {
         </div>
 
         {/* Four columns */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32, paddingBottom: 18 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, paddingBottom: 16 }}>
           {columns.map((col) => (
             <div key={col.title}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 0.5, color: col.color, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.5, color: col.color, textTransform: "uppercase", marginBottom: 8 }}>
                 {col.title}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {col.items.map((item) => (
-                  <Row key={item.name} item={{ ...item, iconColor: col.color }} />
+                  <Row key={item.name} item={item} />
                 ))}
               </div>
             </div>
@@ -229,7 +243,7 @@ export default function PlatformMegaMenu() {
         </div>
 
         {/* Trust badges row */}
-        <div style={{ borderTop: "1px solid #EEF0F5", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, padding: "14px 0" }}>
+        <div style={{ borderTop: "1px solid #EEF0F5", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, padding: "10px 0" }}>
           {trustBadges.map((b) => {
             const Icon = b.icon;
             return (
@@ -250,10 +264,10 @@ export default function PlatformMegaMenu() {
                   <Icon size={13} />
                 </span>
                 <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: b.linkColor ? COLORS.blue : "#12142B" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: b.linkColor ? COLORS.blue : "#12142B" }}>
                     {b.title}
                   </div>
-                  <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.4, marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: "#6B7280", lineHeight: 1.4, marginTop: 1 }}>
                     {b.desc}
                   </div>
                 </div>
@@ -268,10 +282,10 @@ export default function PlatformMegaMenu() {
         style={{
           borderTop: "1px solid #EEF0F5",
           background: "#FAFBFF",
-          padding: "18px 32px",
+          padding: "14px 28px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <span
             style={{
               flexShrink: 0,
@@ -288,20 +302,20 @@ export default function PlatformMegaMenu() {
             <Zap size={15} />
           </span>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#12142B" }}>New to Zoiko One?</div>
-            <div style={{ fontSize: 11.5, color: "#6B7280" }}>See how our platform can transform the way you work.</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#12142B" }}>New to Zoiko One?</div>
+            <div style={{ fontSize: 11, color: "#6B7280" }}>See how our platform can transform the way you work.</div>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
           {bottomLinks.map((l) => {
             const Icon = l.icon;
             return (
-              <Link key={l.label} to={l.href} style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
-                <Icon size={15} color={l.color} />
+              <Link key={l.label} to={l.href} style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none", color: "inherit" }}>
+                <Icon size={14} color={l.color} />
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "#3B5BFF" }}>{l.label}</div>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>{l.desc}</div>
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: "#3B5BFF" }}>{l.label}</div>
+                  <div style={{ fontSize: 10.5, color: "#6B7280" }}>{l.desc}</div>
                 </div>
               </Link>
             );

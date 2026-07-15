@@ -118,7 +118,7 @@ export default function Hero() {
         }}
       />
       <div
-        className="grid xl:grid-cols-[1fr_800px] gap-10 items-center"
+        className="grid xl:grid-cols-[1fr_680px] gap-0 items-center"
         style={{ minWidth: 0, position: "relative", zIndex: 1 }}
       >
         {/* LEFT COLUMN */}
@@ -138,13 +138,13 @@ export default function Hero() {
               </span>
             </div>
 
-          <h1 className="text-[44px] sm:text-[52px] leading-[1.08] font-extrabold tracking-tight mb-6" style={{ color: COLORS.navy }}>
+          <h1 className="text-[40px] sm:text-[48px] leading-[1.1] font-extrabold tracking-tight mb-5" style={{ color: COLORS.navy }}>
             Run people, payroll, billing, projects, compliance and insights — in one{" "}
             <span style={{ color: COLORS.indigo }}>connected</span>{" "}
             <span style={{ color: COLORS.orange }}>platform.</span>
           </h1>
 
-          <p className="text-[17px] leading-relaxed mb-8 max-w-[520px]" style={{ color: COLORS.grayText }}>
+          <p className="text-[15px] leading-relaxed mb-8 max-w-[480px]" style={{ color: COLORS.grayText }}>
             Zoiko One connects the work behind every employee, payment, invoice, project and executive
             decision. Start with one product, activate a pillar, or scale into the full platform.
           </p>
@@ -205,7 +205,7 @@ export default function Hero() {
         </div>
 
         {/* RIGHT VISUAL */}
-        <div className="hidden xl:block" style={{ width: 800, flexShrink: 0 }}>
+        <div className="hidden xl:block" style={{ width: 800, flexShrink: 0, marginLeft: -160 }}>
           <div style={{ position: "relative", width: 800, height: 630, overflow: "visible" }}>
             {/* Central dashboard mockup */}
             <div

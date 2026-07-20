@@ -3,7 +3,7 @@ import HomePage from "./pages/public/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ZoikoProductsPage from "./pages/public/ZoikoProductsPage";
-import PlatformPage from "./pages/public/PlatformPage";
+import PlatformPage from "./pages/responsive/PlatformPage";
 import SolutionsPage from "./pages/public/SolutionsPage";
 import PricingPage from "./pages/public/PricingPage";
 import ContactPage from "./pages/public/ContactPage";

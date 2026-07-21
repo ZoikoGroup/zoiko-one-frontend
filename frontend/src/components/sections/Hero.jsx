@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from "react";
 import zoikoLogo from "../../assets/ZoikoOne_Icon.svg";
 import zoikoFullLogo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
@@ -100,6 +101,19 @@ function CaretDown({ color = "#64748B", size = 8 }) {
 
 export default function Hero() {
   const navigate = useNavigate();
+  const visualRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = visualRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setScale(entry.contentRect.width / 800);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <section
       className="w-full px-6 lg:px-10 pt-4 pb-8 lg:pt-6 lg:pb-10 min-h-[calc(100vh-64px)] xl:h-[calc(100vh-64px)] xl:overflow-hidden flex items-center"
@@ -118,9 +132,19 @@ export default function Hero() {
         }}
       />
       <div
-        className="grid xl:grid-cols-[1fr_680px] gap-0 items-center"
-        style={{ minWidth: 0, position: "relative", zIndex: 1 }}
+        className="hero-grid grid gap-0 items-center"
+        style={{
+          minWidth: 0,
+          position: "relative",
+          zIndex: 1,
+          gridTemplateColumns: "1fr",
+        }}
       >
+        <style>{`
+          @media (min-width: 1280px) {
+            .hero-grid { grid-template-columns: 1fr clamp(600px, 50vw, 900px) !important; }
+          }
+        `}</style>
         {/* LEFT COLUMN */}
         <div>
             <div
@@ -205,8 +229,8 @@ export default function Hero() {
         </div>
 
         {/* RIGHT VISUAL */}
-        <div className="hidden xl:block" style={{ width: 800, flexShrink: 0, marginLeft: -160 }}>
-          <div style={{ position: "relative", width: 800, height: 630, overflow: "visible" }}>
+        <div className="hidden xl:block" ref={visualRef} style={{ width: "100%", position: "relative", flexShrink: 0, height: 630 * scale }}>
+          <div style={{ position: "relative", width: 800, height: 630, overflow: "visible", transformOrigin: "top left", transform: `scale(${scale})` }}>
             {/* Central dashboard mockup */}
             <div
               style={{

@@ -518,14 +518,14 @@ export default function Hero() {
                 <path d="M630,80 L605,80 L605,113" fill="none" stroke={COLORS.green} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowGreen)" />
                 <circle cx="630" cy="80" r="3" fill={COLORS.green} />
                 {/* Invoices Collected -> dashboard (blue) */}
-                <path d="M190,170 L205,170" fill="none" stroke={COLORS.blue} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowBlue)" />
-                <circle cx="190" cy="170" r="3" fill={COLORS.blue} />
+                <path d="M165,170 L205,170" fill="none" stroke={COLORS.blue} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowBlue)" />
+                <circle cx="165" cy="170" r="3" fill={COLORS.blue} />
                 {/* Billing -> dashboard (blue) */}
                 <path d="M663,233 L655,233" fill="none" stroke={COLORS.blue} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowBlue)" />
                 <circle cx="663" cy="233" r="3" fill={COLORS.blue} />
                 {/* Active Projects -> dashboard (purple) */}
-                <path d="M178,423 L205,423" fill="none" stroke={COLORS.purple} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowPurple)" />
-                <circle cx="178" cy="423" r="3" fill={COLORS.purple} />
+                <path d="M160,423 L205,423" fill="none" stroke={COLORS.purple} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowPurple)" />
+                <circle cx="160" cy="423" r="3" fill={COLORS.purple} />
                 {/* Projects -> dashboard (orange) */}
                 <path d="M670,373 L655,373" fill="none" stroke={COLORS.orange} strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#arrowOrange)" />
                 <circle cx="670" cy="373" r="3" fill={COLORS.orange} />
@@ -570,7 +570,7 @@ export default function Hero() {
             </FloatCard>
 
             {/* Invoices Collected small card */}
-            <FloatCard style={{ left: 40, top: 143, width: 150, height: 55 }} padding="10px">
+            <FloatCard style={{ left: 15, top: 143, width: 150, height: 55 }} padding="10px">
               <div className="flex items-center gap-2">
                 <IconBadge bg={COLORS.blue}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -619,7 +619,7 @@ export default function Hero() {
             </FloatCard>
 
             {/* Active Projects small card */}
-            <FloatCard style={{ left: 53, top: 393, width: 125, height: 60 }} padding="10px">
+            <FloatCard style={{ left: 35, top: 393, width: 125, height: 60 }} padding="10px">
               <div className="flex items-center gap-2">
                 <IconBadge bg={COLORS.purple}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">

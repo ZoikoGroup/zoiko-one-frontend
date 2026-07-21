@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Menu, X as CloseIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import ProductsMegaMenu from "./ProductsMegaMenu";
@@ -9,9 +9,20 @@ import ResourcesMegaMenu from "./ResourcesMegaMenu";
 
 const navLinks = ["Home", "Platform", "Products", "Solutions", "Pricing", "Resources", "About"];
 
+const mobileNavLinks = [
+  { label: "Home", href: "/" },
+  { label: "Platform", href: "/platform" },
+  { label: "Products", href: "/products" },
+  { label: "Solutions", href: "/solutions" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Resources", href: "/resources" },
+  { label: "About", href: "/about" },
+];
+
 export default function LandingHeader() {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef(null);
 
   const startClose = useCallback(() => {
@@ -29,10 +40,10 @@ export default function LandingHeader() {
 
   return (
     <>
-      <header className="fixed top-0 z-50 left-4 right-4 bg-white border border-[#E2E4EF] rounded-full shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+      <header className="fixed top-0 z-50 left-2 right-2 sm:left-4 sm:right-4 bg-white border border-[#E2E4EF] rounded-full shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-14 sm:h-16">
           <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
-            <img src={logo} alt="Zoiko One" style={{ height: "36px", width: "auto", objectFit: "contain" }} />
+            <img src={logo} alt="Zoiko One" className="h-7 sm:h-9 w-auto object-contain" />
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[#2A2F55] overflow-visible">
@@ -270,7 +281,7 @@ export default function LandingHeader() {
             })}
           </div>
 
-          <div className="flex items-center gap-4 text-sm font-semibold">
+          <div className="hidden md:flex items-center gap-4 text-sm font-semibold">
             <Link to="/login" className="text-[#1E1B4B] no-underline">
               Sign In
             </Link>
@@ -278,7 +289,50 @@ export default function LandingHeader() {
               Get a Demo <ArrowRight size={15} />
             </button>
           </div>
+
+          <button
+            aria-label="Toggle menu"
+            onClick={() => setMobileOpen((o) => !o)}
+            className="md:hidden inline-flex items-center justify-center w-9 h-9 text-[#1E1B4B]"
+          >
+            {mobileOpen ? <CloseIcon size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+
+        {mobileOpen && (
+          <div className="md:hidden border-t border-[#E2E4EF] bg-white px-4 pb-4 rounded-b-3xl">
+            <nav className="flex flex-col gap-1 pt-2">
+              {mobileNavLinks.map((l) => (
+                <Link
+                  key={l.label}
+                  to={l.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="py-2.5 text-sm font-medium text-[#2A2F55] no-underline border-b border-gray-100 last:border-0"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+            <div className="flex flex-col gap-3 mt-4">
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="text-center text-sm font-semibold text-[#1E1B4B] no-underline py-2"
+              >
+                Sign In
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  navigate("/get-demo");
+                }}
+                className="inline-flex items-center justify-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-3 shadow-md shadow-orange-200 transition-colors font-semibold text-sm"
+              >
+                Get a Demo <ArrowRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
       </header>
     </>
   );

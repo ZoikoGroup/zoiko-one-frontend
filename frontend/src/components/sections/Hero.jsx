@@ -102,7 +102,7 @@ export default function Hero() {
   const navigate = useNavigate();
   return (
     <section
-      className="w-full px-6 lg:px-10 pt-4 pb-8 lg:pt-6 lg:pb-10 h-[calc(100vh-64px)] flex items-center overflow-hidden"
+      className="w-full px-6 lg:px-10 pt-4 pb-8 lg:pt-6 lg:pb-10 min-h-[calc(100vh-64px)] xl:h-[calc(100vh-64px)] xl:overflow-hidden flex items-center"
       style={{
         position: "relative",
         backgroundColor: "#f5f4f2",

@@ -163,47 +163,56 @@ function EcoFooterCard({ card }) {
 
 export default function Footer() {
   return (
-    <footer style={styles.root}>
+    <footer className="bg-[#110d2e] text-white w-full" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
       {/* CTA Banner */}
-      <div style={styles.ctaBannerWrap}>
-        <div style={styles.ctaBanner}>
-          <div>
-            <h2 style={styles.ctaTitle}>
-              Everything your business runs on —<br />connected in one.
+      <div className="px-5 sm:px-7 pt-7">
+        <div
+          className="mx-auto max-w-[1100px] rounded-2xl px-5 py-7 sm:px-12 sm:py-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 sm:gap-8"
+          style={{ background: "linear-gradient(135deg, #3a2caa 0%, #4a6fd8 60%, #4a99e8 100%)" }}
+        >
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-[26px] font-bold text-white leading-tight mb-2.5">
+              Everything your business runs on —<br className="hidden sm:block" />connected in one.
             </h2>
-            <p style={styles.ctaSub}>
+            <p className="text-[13.5px] text-white/88 mb-2 max-w-[480px] leading-relaxed">
               Run people, money, work, supply, compliance, business intelligence and
               document workflows through one connected business-operations platform.
             </p>
-            <p style={styles.ctaNote}>
+            <p className="text-xs text-white/60">
               Start with one product, one pillar or the full Zoiko One platform.
             </p>
           </div>
-          <div style={styles.ctaActions}>
-            <button style={styles.btnDemo}>Get a Demo &nbsp;→</button>
-            <button style={styles.btnExplore}>Explore Products</button>
-            <button style={styles.btnPricing}>Pricing</button>
+          <div className="flex flex-wrap items-center gap-3.5 shrink-0">
+            <button className="text-white border-none rounded-full px-7 py-3.5 text-[15px] font-semibold cursor-pointer whitespace-nowrap" style={{ background: "linear-gradient(135deg, #f97316, #fb923c)" }}>
+              Get a Demo →
+            </button>
+            <button className="text-white border-[1.5px] border-white/35 rounded-full px-7 py-3 text-[15px] font-semibold cursor-pointer whitespace-nowrap" style={{ background: "rgba(255,255,255,0.15)" }}>
+              Explore Products
+            </button>
+            <button className="text-white border-none text-sm font-semibold cursor-pointer whitespace-underline whitespace-nowrap bg-transparent">
+              Pricing
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Nav Grid */}
-      <div style={styles.footerMain}>
+      <div className="mx-auto max-w-[1100px] px-5 sm:px-7 pt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[200px_repeat(6,1fr)] gap-6">
         {/* Brand Column */}
-        <div style={styles.brandCol}>
-          <div style={styles.logoWrap}>
-            <div style={styles.logoIcon}>1</div>
-            <span style={styles.logoText}>
-              ZoikoOne<sup style={styles.logoTm}>™</sup>
+        <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+          <div className="flex items-center gap-2.5 mb-3.5">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-lg font-bold italic" style={{ background: "linear-gradient(135deg, #f97316 40%, #3b82f6 100%)" }}>1</div>
+            <span className="text-base font-bold text-white">
+              ZoikoOne<sup className="text-[10px] font-normal">™</sup>
             </span>
           </div>
-          <p style={styles.brandDesc}>
+          <p className="text-[12.5px] text-white/55 leading-relaxed mb-4.5">
             The connected business-operations platform for people, money, work,
             supply and control.
           </p>
-          <div style={styles.socialIcons}>
+          <div className="flex gap-2.5">
             {["in", "𝕏", "⌥"].map((icon, i) => (
-              <button key={i} style={styles.socialBtn} aria-label={`Social ${i}`}>
+              <button key={i} className="w-[34px] h-[34px] rounded-full border-[1.5px] border-white/20 bg-transparent text-white/70 flex items-center justify-center text-sm cursor-pointer" aria-label={`Social ${i}`}>
                 {icon}
               </button>
             ))}
@@ -212,15 +221,17 @@ export default function Footer() {
 
         {/* Nav Columns */}
         {Object.values(navData).map((col) => (
-          <div key={col.title} style={styles.navCol}>
-            <div style={styles.navColTitle}>{col.title}</div>
-            <ul style={styles.navList}>
+          <div key={col.title}>
+            <div className="text-[11.5px] font-bold text-[#f97316] uppercase tracking-widest mb-3.5">
+              {col.title}
+            </div>
+            <ul className="list-none p-0 m-0">
               {col.links.map((link) => (
-                <li key={typeof link === "string" ? link : link.label} style={styles.navItem}>
+                <li key={typeof link === "string" ? link : link.label} className="mb-2.5">
                   {typeof link === "string" ? (
-                    <a href="#" style={styles.navLink}>{link}</a>
+                    <a href="#" className="text-white/72 no-underline text-[13px] leading-snug block">{link}</a>
                   ) : (
-                    <Link to={link.href} style={styles.navLink}>{link.label}</Link>
+                    <Link to={link.href} className="text-white/72 no-underline text-[13px] leading-snug block">{link.label}</Link>
                   )}
                 </li>
               ))}
@@ -230,11 +241,11 @@ export default function Footer() {
       </div>
 
       {/* Get Started */}
-      <div style={styles.getStartedSection}>
-        <div style={styles.sectionLabel}>Get Started</div>
-        <div style={styles.getStartedLinks}>
+      <div className="border-t border-white/10 mt-10 px-5 sm:px-7 py-9 text-center max-w-[1100px] mx-auto">
+        <div className="text-[11.5px] font-bold text-[#f97316] uppercase tracking-widest mb-4.5">Get Started</div>
+        <div className="flex justify-center gap-8 flex-wrap">
           {getStartedLinks.map((link) => (
-            <Link key={link.label} to={link.href} style={styles.getStartedLink}>
+            <Link key={link.label} to={link.href} className="text-white/72 no-underline text-sm">
               {link.label}
             </Link>
           ))}
@@ -242,13 +253,13 @@ export default function Footer() {
       </div>
 
       {/* Ecosystem */}
-      <div style={styles.ecosystemSection}>
-        <div style={styles.sectionLabel}>The Zoiko Business Ecosystem</div>
-        <p style={styles.ecosystemDesc}>
+      <div className="border-t border-white/10 px-5 sm:px-7 py-9 max-w-[1100px] mx-auto text-center">
+        <div className="text-[11.5px] font-bold text-[#f97316] uppercase tracking-widest mb-4.5">The Zoiko Business Ecosystem</div>
+        <p className="text-[13px] text-white/55 mb-6">
           Zoiko One runs business operations. The platforms below are ecosystem siblings
           they are not Zoiko One products.
         </p>
-        <div style={styles.ecosystemCards}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {ecosystemCards.map((card) => (
             <EcoFooterCard key={card.name} card={card} />
           ))}
@@ -256,18 +267,18 @@ export default function Footer() {
       </div>
 
       {/* Legal */}
-      <div style={styles.footerLegal}>
-        <div style={styles.legalLinks}>
+      <div className="border-t border-white/10 max-w-[1100px] mx-auto px-5 sm:px-7 pt-5 pb-7">
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mb-3">
           {legalLinks.map((link) => (
             typeof link === "string" ? (
-              <a key={link} href="#" style={styles.legalLink}>{link}</a>
+              <a key={link} href="#" className="text-[12px] text-white/50 no-underline">{link}</a>
             ) : (
-              <Link key={link.label} to={link.href} style={styles.legalLink}>{link.label}</Link>
+              <Link key={link.label} to={link.href} className="text-[12px] text-white/50 no-underline">{link.label}</Link>
             )
           ))}
-          <button style={styles.langBtn}>🌐 EN · Global</button>
+          <button className="flex items-center gap-1.5 text-white/50 text-xs bg-transparent border-none cursor-pointer">🌐 EN · Global</button>
         </div>
-        <div style={styles.legalBottom}>
+        <div className="flex justify-center items-center text-xs text-white/40 text-center">
           © 2026 Zoiko Group. All rights reserved. · ZoikoOne™ · Nine core products
           plus Zoiko Docs Pro (Premium Capability).
         </div>
@@ -276,281 +287,4 @@ export default function Footer() {
   );
 }
 
-const styles = {
-  root: {
-    backgroundColor: "#110d2e",
-    color: "#ffffff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    width: "100%",
-  },
 
-  /* CTA Banner */
-  ctaBannerWrap: {
-    padding: "28px 28px 0",
-  },
-  ctaBanner: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    background: "linear-gradient(135deg, #3a2caa 0%, #4a6fd8 60%, #4a99e8 100%)",
-    borderRadius: "18px",
-    padding: "36px 48px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "32px",
-  },
-  ctaTitle: {
-    fontSize: "26px",
-    fontWeight: "700",
-    color: "#ffffff",
-    lineHeight: "1.2",
-    marginBottom: "10px",
-  },
-  ctaSub: {
-    fontSize: "13.5px",
-    color: "rgba(255,255,255,0.88)",
-    marginBottom: "8px",
-    maxWidth: "480px",
-    lineHeight: "1.5",
-  },
-  ctaNote: {
-    fontSize: "12px",
-    color: "rgba(255,255,255,0.6)",
-  },
-  ctaActions: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    flexShrink: "0",
-  },
-  btnDemo: {
-    background: "linear-gradient(135deg, #f97316, #fb923c)",
-    color: "#ffffff",
-    border: "none",
-    borderRadius: "50px",
-    padding: "13px 28px",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  },
-  btnExplore: {
-    background: "rgba(255,255,255,0.15)",
-    color: "#ffffff",
-    border: "1.5px solid rgba(255,255,255,0.35)",
-    borderRadius: "50px",
-    padding: "12px 26px",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  },
-  btnPricing: {
-    background: "transparent",
-    color: "#ffffff",
-    border: "none",
-    fontSize: "14px",
-    fontWeight: "600",
-    cursor: "pointer",
-    textDecoration: "underline",
-    whiteSpace: "nowrap",
-  },
-
-  /* Nav Grid */
-  footerMain: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "40px 28px 0",
-    display: "grid",
-    gridTemplateColumns: "200px repeat(6, 1fr)",
-    gap: "24px",
-  },
-  brandCol: {},
-  logoWrap: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "14px",
-  },
-  logoIcon: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "8px",
-    background: "linear-gradient(135deg, #f97316 40%, #3b82f6 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "18px",
-    color: "#ffffff",
-    fontWeight: "700",
-    fontStyle: "italic",
-  },
-  logoText: {
-    fontSize: "16px",
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  logoTm: {
-    fontSize: "10px",
-    fontWeight: "400",
-  },
-  brandDesc: {
-    fontSize: "12.5px",
-    color: "rgba(255,255,255,0.55)",
-    lineHeight: "1.5",
-    marginBottom: "18px",
-  },
-  socialIcons: {
-    display: "flex",
-    gap: "10px",
-  },
-  socialBtn: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    border: "1.5px solid rgba(255,255,255,0.2)",
-    background: "transparent",
-    color: "rgba(255,255,255,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "14px",
-    cursor: "pointer",
-  },
-  navCol: {},
-  navColTitle: {
-    fontSize: "11.5px",
-    fontWeight: "700",
-    color: "#f97316",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    marginBottom: "14px",
-  },
-  navList: {
-    listStyle: "none",
-    padding: "0",
-    margin: "0",
-  },
-  navItem: {
-    marginBottom: "10px",
-  },
-  navLink: {
-    color: "rgba(255,255,255,0.72)",
-    textDecoration: "none",
-    fontSize: "13px",
-    lineHeight: "1.4",
-    display: "block",
-  },
-
-  /* Get Started */
-  getStartedSection: {
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    marginTop: "40px",
-    padding: "36px 28px",
-    textAlign: "center",
-    maxWidth: "1100px",
-    marginLeft: "auto",
-    marginRight: "auto",
-  },
-  sectionLabel: {
-    fontSize: "11.5px",
-    fontWeight: "700",
-    color: "#f97316",
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
-    marginBottom: "18px",
-  },
-  getStartedLinks: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "32px",
-    flexWrap: "wrap",
-  },
-  getStartedLink: {
-    color: "rgba(255,255,255,0.72)",
-    textDecoration: "none",
-    fontSize: "14px",
-  },
-
-  /* Ecosystem */
-  ecosystemSection: {
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    padding: "36px 28px",
-    maxWidth: "1100px",
-    margin: "0 auto",
-    textAlign: "center",
-  },
-  ecosystemDesc: {
-    fontSize: "13px",
-    color: "rgba(255,255,255,0.55)",
-    marginBottom: "24px",
-  },
-  ecosystemCards: {
-    display: "grid",
-    gridTemplateColumns: "repeat(6, 1fr)",
-    gap: "12px",
-  },
-  ecoCard: {
-    border: "1.5px solid rgba(255,255,255,0.15)",
-    borderRadius: "10px",
-    padding: "14px",
-    textAlign: "left",
-    background: "transparent",
-  },
-  ecoCardActive: {
-    background: "#f97316",
-    borderColor: "#f97316",
-  },
-  ecoCardName: {
-    fontSize: "13px",
-    fontWeight: "700",
-    color: "#ffffff",
-    marginBottom: "5px",
-  },
-  ecoCardDesc: {
-    fontSize: "11px",
-    color: "rgba(255,255,255,0.65)",
-    lineHeight: "1.35",
-  },
-  ecoCardDescActive: {
-    color: "rgba(255,255,255,0.85)",
-  },
-
-  /* Legal */
-  footerLegal: {
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "20px 28px 28px",
-  },
-  legalLinks: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "6px 20px",
-    marginBottom: "12px",
-  },
-  legalLink: {
-    fontSize: "12px",
-    color: "rgba(255,255,255,0.5)",
-    textDecoration: "none",
-  },
-  langBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-    color: "rgba(255,255,255,0.5)",
-    fontSize: "12px",
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-  },
-  legalBottom: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontSize: "12px",
-    color: "rgba(255,255,255,0.4)",
-    textAlign: "center",
-  },
-};

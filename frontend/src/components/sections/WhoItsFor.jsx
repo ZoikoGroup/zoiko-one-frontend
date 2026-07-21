@@ -84,31 +84,37 @@ export default function WhoItsFor() {
   const active = tabs.find((t) => t.id === activeTab);
 
   return (
-    <section style={styles.section}>
+    <section className="bg-[#F7F7F9] py-20 px-6 text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Eyebrow */}
-      <p style={styles.eyebrow}>SOLUTIONS BY BUYER</p>
+      <p className="text-[11px] font-semibold tracking-widest text-[#F97316] uppercase mb-4">
+        SOLUTIONS BY BUYER
+      </p>
 
       {/* Heading */}
-      <h2 style={styles.heading}>
+      <h2
+        className="font-bold text-[#0F0F1A] leading-tight max-w-[640px] mx-auto mb-4"
+        style={{ fontSize: "clamp(28px, 4vw, 44px)" }}
+      >
         Built for the teams that run the business.
       </h2>
 
       {/* Subheading */}
-      <p style={styles.subheading}>
+      <p className="text-base text-[#5A5A72] max-w-[520px] mx-auto mb-12 leading-relaxed">
         Every role sees the products and outcomes that matter to them — and the
         next logical step.
       </p>
 
       {/* Tabs */}
-      <div style={styles.tabRow}>
+      <div className="flex justify-center gap-2 flex-wrap mb-12">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              ...styles.tab,
-              ...(activeTab === tab.id ? styles.tabActive : styles.tabInactive),
-            }}
+            className={`px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer border-none transition-all ${
+              activeTab === tab.id
+                ? "bg-[#1A2560] text-white"
+                : "bg-transparent text-[#3D3D55]"
+            }`}
           >
             {tab.label}
           </button>
@@ -116,24 +122,34 @@ export default function WhoItsFor() {
       </div>
 
       {/* Content Panel */}
-      <div style={styles.panel}>
+      <div className="grid md:grid-cols-2 gap-8 md:gap-12 max-w-[1200px] mx-auto text-left items-start">
         {/* Left */}
-        <div style={styles.left}>
-          <h3 style={styles.panelHeading}>{active.headline}</h3>
-          <p style={styles.panelDesc}>{active.description}</p>
+        <div>
+          <h3
+            className="font-bold text-[#0F0F1A] mb-3.5 leading-snug"
+            style={{ fontSize: "clamp(20px, 2.5vw, 28px)" }}
+          >
+            {active.headline}
+          </h3>
+          <p className="text-[15px] text-[#5A5A72] leading-relaxed mb-6">
+            {active.description}
+          </p>
 
-          <ul style={styles.bulletList}>
+          <ul className="list-none p-0 m-0 flex flex-col gap-2.5 mb-7">
             {active.bullets.map((b) => (
-              <li key={b} style={styles.bulletItem}>
-                <span style={styles.checkIcon}>✓</span>
+              <li key={b} className="flex items-center gap-2.5 text-sm text-[#3D3D55] font-medium">
+                <span className="text-[#F97316] font-bold text-[13px]">✓</span>
                 {b}
               </li>
             ))}
           </ul>
 
-          <div style={styles.tagRow}>
+          <div className="flex gap-2 flex-wrap">
             {active.tags.map((tag) => (
-              <span key={tag} style={styles.tag}>
+              <span
+                key={tag}
+                className="px-3 py-1 bg-[#EBEBF5] rounded-full text-xs font-semibold text-[#3D3D55]"
+              >
                 {tag}
               </span>
             ))}
@@ -141,20 +157,17 @@ export default function WhoItsFor() {
         </div>
 
         {/* Right — Metrics Card */}
-        <div style={styles.right}>
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{ boxShadow: "0 2px 20px rgba(0,0,0,0.06)" }}>
           {active.metrics.map((m, i) => (
             <div
               key={m.label}
+              className="flex justify-between items-center px-7 py-5.5"
               style={{
-                ...styles.metricRow,
-                borderBottom:
-                  i < active.metrics.length - 1
-                    ? "1px solid #E8E8EE"
-                    : "none",
+                borderBottom: i < active.metrics.length - 1 ? "1px solid #E8E8EE" : "none",
               }}
             >
-              <span style={styles.metricLabel}>{m.label}</span>
-              <span style={{ ...styles.metricValue, color: m.color }}>
+              <span className="text-sm text-[#8888A4] font-normal">{m.label}</span>
+              <span className="text-xl font-bold" style={{ color: m.color }}>
                 {m.value}
               </span>
             </div>
@@ -165,137 +178,3 @@ export default function WhoItsFor() {
   );
 }
 
-const styles = {
-  section: {
-    backgroundColor: "#F7F7F9",
-    padding: "96px 24px",
-    textAlign: "center",
-    fontFamily: "'Inter', sans-serif",
-  },
-  eyebrow: {
-    fontSize: "11px",
-    fontWeight: 600,
-    letterSpacing: "0.12em",
-    color: "#F97316",
-    textTransform: "uppercase",
-    marginBottom: "16px",
-  },
-  heading: {
-    fontSize: "clamp(28px, 4vw, 44px)",
-    fontWeight: 700,
-    color: "#0F0F1A",
-    lineHeight: 1.2,
-    maxWidth: "640px",
-    margin: "0 auto 16px",
-  },
-  subheading: {
-    fontSize: "16px",
-    color: "#5A5A72",
-    maxWidth: "520px",
-    margin: "0 auto 48px",
-    lineHeight: 1.6,
-  },
-  tabRow: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "8px",
-    flexWrap: "wrap",
-    marginBottom: "48px",
-  },
-  tab: {
-    padding: "10px 22px",
-    borderRadius: "999px",
-    fontSize: "14px",
-    fontWeight: 500,
-    cursor: "pointer",
-    border: "none",
-    transition: "all 0.2s ease",
-  },
-  tabActive: {
-    backgroundColor: "#1A2560",
-    color: "#FFFFFF",
-  },
-  tabInactive: {
-    backgroundColor: "transparent",
-    color: "#3D3D55",
-  },
-  panel: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "48px",
-    maxWidth: "1200px",
-    margin: "0 auto",
-    textAlign: "left",
-    alignItems: "start",
-  },
-  left: {},
-  panelHeading: {
-    fontSize: "clamp(20px, 2.5vw, 28px)",
-    fontWeight: 700,
-    color: "#0F0F1A",
-    marginBottom: "14px",
-    lineHeight: 1.3,
-  },
-  panelDesc: {
-    fontSize: "15px",
-    color: "#5A5A72",
-    lineHeight: 1.65,
-    marginBottom: "24px",
-  },
-  bulletList: {
-    listStyle: "none",
-    padding: 0,
-    margin: "0 0 28px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  bulletItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    color: "#3D3D55",
-    fontWeight: 500,
-  },
-  checkIcon: {
-    color: "#F97316",
-    fontWeight: 700,
-    fontSize: "13px",
-  },
-  tagRow: {
-    display: "flex",
-    gap: "8px",
-    flexWrap: "wrap",
-  },
-  tag: {
-    padding: "4px 12px",
-    backgroundColor: "#EBEBF5",
-    borderRadius: "999px",
-    fontSize: "12px",
-    fontWeight: 600,
-    color: "#3D3D55",
-  },
-  right: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: "16px",
-    boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
-    padding: "8px 0",
-    overflow: "hidden",
-  },
-  metricRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "22px 28px",
-  },
-  metricLabel: {
-    fontSize: "14px",
-    color: "#8888A4",
-    fontWeight: 400,
-  },
-  metricValue: {
-    fontSize: "20px",
-    fontWeight: 700,
-  },
-};

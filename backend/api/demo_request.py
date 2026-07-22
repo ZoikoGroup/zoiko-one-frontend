@@ -90,6 +90,7 @@ app.add_middleware(
         "http://localhost:3000",
         "https://zoikoone.com",
         "https://www.zoikoone.com",
+        "https://zoiko-one-platform.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

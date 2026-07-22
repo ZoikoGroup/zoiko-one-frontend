@@ -282,9 +282,9 @@ export default function LandingHeader() {
           </div>
 
           <div className="hidden md:flex items-center gap-4 text-sm font-semibold">
-            <Link to="/login" className="text-[#1E1B4B] no-underline">
+            <a href="https://zoiko-one-platform-4wjm.vercel.app/login" className="text-[#1E1B4B] no-underline">
               Sign In
-            </Link>
+            </a>
             <button onClick={() => navigate("/get-demo")} className="inline-flex items-center gap-1 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-all duration-200">
               Get a Demo <ArrowRight size={15} />
             </button>
@@ -314,13 +314,13 @@ export default function LandingHeader() {
               ))}
             </nav>
             <div className="flex flex-col gap-3 mt-4">
-              <Link
-                to="/login"
+              <a
+                href="https://zoiko-one-platform-4wjm.vercel.app/login"
                 onClick={() => setMobileOpen(false)}
                 className="text-center text-sm font-semibold text-[#1E1B4B] no-underline py-2"
               >
                 Sign In
-              </Link>
+              </a>
               <button
                 onClick={() => {
                   setMobileOpen(false);

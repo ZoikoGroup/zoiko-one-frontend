@@ -106,7 +106,7 @@ const getStartedLinks = [
   { label: "Request Pricing", href: "/pricing" },
   { label: "Explore Products", href: "/products" },
   { label: "Contact Sales", href: "/contact" },
-  { label: "Sign In", href: "/login" },
+  { label: "Sign In", href: "https://zoiko-one-platform-4wjm.vercel.app/login" },
 ];
 
 function EcoFooterCard({ card }) {
@@ -246,11 +246,17 @@ export default function Footer() {
       <div className="border-t border-white/10 mt-10 px-5 sm:px-7 py-9 text-center max-w-[1100px] mx-auto">
         <div className="text-[11.5px] font-bold text-[#f97316] uppercase tracking-widest mb-4.5">Get Started</div>
         <div className="flex justify-center gap-8 flex-wrap">
-          {getStartedLinks.map((link) => (
-            <Link key={link.label} to={link.href} className="text-white/72 no-underline text-sm">
-              {link.label}
-            </Link>
-          ))}
+          {getStartedLinks.map((link) =>
+            link.href.startsWith("http") ? (
+              <a key={link.label} href={link.href} className="text-white/72 no-underline text-sm">
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.label} to={link.href} className="text-white/72 no-underline text-sm">
+                {link.label}
+              </Link>
+            )
+          )}
         </div>
       </div>
 

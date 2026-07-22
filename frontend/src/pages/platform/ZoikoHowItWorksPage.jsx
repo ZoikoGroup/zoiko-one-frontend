@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
 
@@ -360,6 +361,7 @@ const S = {
    COMPONENT
 ───────────────────────────────────────── */
 export default function ZoikoHowItWorksPage() {
+  const navigate = useNavigate();
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
@@ -384,7 +386,7 @@ export default function ZoikoHowItWorksPage() {
             insights and governed AI assistance.
           </p>
           <div style={S.heroActions}>
-            <button style={S.btnOrange}>Get a Demo &nbsp;→</button>
+            <button style={S.btnOrange} onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button style={S.btnOutline}>Explore Platform</button>
           </div>
         </div>

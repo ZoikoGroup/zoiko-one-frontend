@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
 
@@ -518,6 +519,7 @@ const faqs = [
    COMPONENT
 ════════════════════════════════════════════════════════════ */
 export default function AboutPage() {
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState(null);
 
   return (
@@ -546,7 +548,7 @@ export default function AboutPage() {
           Enterprise-ready when your business demands more.
         </div>
         <div className="hero-ctas">
-          <button className="btn-primary">Get a Demo &nbsp;→</button>
+          <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
           <button className="btn-outline">Explore Products</button>
         </div>
       </section>
@@ -810,7 +812,7 @@ export default function AboutPage() {
         </div>
         <div className="cta-btns" style={{ marginTop: 30 }}>
           <button className="btn-outline">Compare Products</button>
-          <button className="btn-primary">Get a Demo &nbsp;→</button>
+          <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
         </div>
       </section>
 
@@ -830,7 +832,7 @@ export default function AboutPage() {
         </div>
         <div className="cta-btns">
           <button className="btn-outline">Find Your Solution</button>
-          <button className="btn-dark">Get a Demo</button>
+          <button className="btn-dark" onClick={() => navigate("/get-demo")}>Get a Demo</button>
         </div>
       </section>
 
@@ -870,7 +872,7 @@ export default function AboutPage() {
           ))}
         </div>
         <div className="cta-btns">
-          <button className="btn-primary">Get a Demo &nbsp;→</button>
+          <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
           <button className="btn-outline">Visit Trust Center</button>
         </div>
       </section>
@@ -885,7 +887,7 @@ export default function AboutPage() {
             complete enterprise platform — with global reach and the confidence to scale.
           </p>
           <div className="cta-btns">
-            <button className="btn-primary">Get a Demo &nbsp;→</button>
+          <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button className="btn-ghost">Explore Products</button>
             <button className="btn-ghost">View Pricing</button>
           </div>

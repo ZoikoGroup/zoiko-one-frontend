@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
 
@@ -288,6 +289,7 @@ const S = {
 
 /* ─── PAGE ─── */
 export default function ZoikoSecurityPage() {
+  const navigate = useNavigate();
   useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <div style={S.page}>
@@ -313,7 +315,7 @@ export default function ZoikoSecurityPage() {
           </p>
           <div style={S.heroActions}>
             <button style={S.btnOrange}>Visit Trust Center &nbsp;→</button>
-            <button style={S.btnOutline}>Get a Demo</button>
+            <button style={S.btnOutline} onClick={() => navigate("/get-demo")}>Get a Demo</button>
           </div>
         </div>
       </section>
@@ -375,7 +377,7 @@ export default function ZoikoSecurityPage() {
           <p style={S.ctaSub}>Start a vendor review or talk to our security team.</p>
           <div style={S.ctaActions}>
             <button style={S.btnCtaOrange}>Visit Trust Center</button>
-            <button style={S.btnCtaGhost}>Get a Demo</button>
+            <button style={S.btnCtaGhost} onClick={() => navigate("/get-demo")}>Get a Demo</button>
             <button style={S.btnCtaGhost}>Contact Security</button>
           </div>
         </div>

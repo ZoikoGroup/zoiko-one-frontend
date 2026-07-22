@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../../components/layout/LandingHeader";
 import Footer from "../../../components/layout/Footer";
 
@@ -309,6 +310,7 @@ const problemCards = [
 ];
 
 export default function ZoikoPeoplePage() {
+  const navigate = useNavigate();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -335,7 +337,7 @@ export default function ZoikoPeoplePage() {
             Zoiko Payroll.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary">Get a Demo &nbsp;→</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button className="btn-outline">Explore People Products</button>
           </div>
         </div>
@@ -423,7 +425,7 @@ export default function ZoikoPeoplePage() {
           <h2>One flow from hire to pay.</h2>
           <p>Connect HR, time and payroll on one governed people foundation.</p>
           <div className="cta-btns">
-            <button className="btn-primary">Get a Demo</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo</button>
             <button className="btn-ghost">Request People Pricing</button>
             <button className="btn-ghost">All Products</button>
           </div>

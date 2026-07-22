@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
 
@@ -346,6 +347,7 @@ const S = {
    PAGE
 ───────────────────────────────────────── */
 export default function ZoikoTrustCenterPage() {
+  const navigate = useNavigate();
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
@@ -440,7 +442,7 @@ export default function ZoikoTrustCenterPage() {
           </p>
           <div style={S.ctaActions}>
             <button style={S.btnCtaOrange}>Start Vendor Review</button>
-            <button style={S.btnCtaGhost}>Get a Demo</button>
+            <button style={S.btnCtaGhost} onClick={() => navigate("/get-demo")}>Get a Demo</button>
             <button style={S.btnCtaGhost}>Check System Status</button>
           </div>
         </div>

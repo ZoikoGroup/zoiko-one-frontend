@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../../components/layout/LandingHeader";
 import Footer from "../../../components/layout/Footer";
 
@@ -275,6 +276,7 @@ const problemCards = [
 ];
 
 export default function ZoikoControl() {
+  const navigate = useNavigate();
   useEffect(() => { window.scrollTo(0,0); }, []);
 
   return (
@@ -298,7 +300,7 @@ export default function ZoikoControl() {
             trends, risk signals and business health through Zoiko Comply and Zoiko Insights.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary">Get a Demo &nbsp;→</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button className="btn-outline">Explore Control Products</button>
           </div>
         </div>
@@ -377,7 +379,7 @@ export default function ZoikoControl() {
           <h2>Govern as you grow.</h2>
           <p>Turn everyday work into evidence and clear, permission-aware visibility.</p>
           <div className="cta-btns">
-            <button className="btn-primary">Get a Demo</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo</button>
             <button className="btn-ghost">Request Control Pricing</button>
             <button className="btn-ghost">All Products</button>
           </div>

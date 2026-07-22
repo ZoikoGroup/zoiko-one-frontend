@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../../components/layout/LandingHeader";
 import Footer from "../../../components/layout/Footer";
 
@@ -276,6 +277,7 @@ const workflowRow1 = ["Customer / vendor record", "Billing or purchase event", "
 const workflowRow2 = ["Payment preparation", "Evidence", "Money insight"];
 
 export default function ZoikoMoneyPage() {
+  const navigate = useNavigate();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -302,7 +304,7 @@ export default function ZoikoMoneyPage() {
             Billing and Zoiko Spend.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary">Get a Demo &nbsp;→</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button className="btn-outline">Explore Money Products</button>
           </div>
         </div>
@@ -383,7 +385,7 @@ export default function ZoikoMoneyPage() {
           <h2>Control money in and money out.</h2>
           <p>Connect billing and spend into one governed money-operations workflow.</p>
           <div className="cta-btns">
-            <button className="btn-primary">Get a Demo</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo</button>
             <button className="btn-ghost">Request Money Pricing</button>
             <button className="btn-ghost">All Products</button>
           </div>

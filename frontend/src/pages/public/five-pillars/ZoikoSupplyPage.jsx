@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../../components/layout/LandingHeader";
 import Footer from "../../../components/layout/Footer";
 
@@ -270,6 +271,7 @@ const connectedCards = [
 const sharedLayers = ["ZoikoID", "Workflow", "Hub", "Connect", "Documents", "Approvals", "AI Assistance", "Zoiko Insights"];
 
 export default function ZoikoSupplyPage() {
+  const navigate = useNavigate();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -296,7 +298,7 @@ export default function ZoikoSupplyPage() {
             through Zoiko Inventory.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary">Get a Demo &nbsp;→</button>
+            <button className="btn-primary" onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button className="btn-outline">Explore Zoiko Inventory</button>
           </div>
         </div>

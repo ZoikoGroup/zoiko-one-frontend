@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import LandingHeader from "../../../components/layout/LandingHeader";
 import Footer from "../../../components/layout/Footer";
 
@@ -303,6 +304,7 @@ function EcoCard({ s, onClick }) {
    PAGE
 ───────────────────────────────────────── */
 export default function ZoikoEcosystemPage() {
+  const navigate = useNavigate();
   const heroRef = useRef(null);
 
   const scrollToHero = () => {
@@ -336,7 +338,7 @@ export default function ZoikoEcosystemPage() {
           </p>
           <div style={S.heroActions}>
             <button style={S.btnOrange}>Explore Zoiko One &nbsp;→</button>
-            <button style={S.btnOutline}>Get a Demo</button>
+            <button style={S.btnOutline} onClick={() => navigate("/get-demo")}>Get a Demo</button>
           </div>
         </div>
       </section>

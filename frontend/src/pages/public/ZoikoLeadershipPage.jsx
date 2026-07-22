@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
 
@@ -246,6 +246,7 @@ const S = {
 };
 
 export default function ZoikoLeadershipPage() {
+  const navigate = useNavigate();
   const { hash } = useLocation();
 
   useEffect(() => {
@@ -278,7 +279,7 @@ export default function ZoikoLeadershipPage() {
             and governance.
           </p>
           <div style={S.heroActions}>
-            <button style={S.btnOrange}>Get a Demo &nbsp;→</button>
+            <button style={S.btnOrange} onClick={() => navigate("/get-demo")}>Get a Demo &nbsp;→</button>
             <button style={S.btnOutline}>Contact Sales</button>
           </div>
         </div>
@@ -325,7 +326,7 @@ export default function ZoikoLeadershipPage() {
           <h2 style={S.ctaH2}>See what the team is building.</h2>
           <p style={S.ctaSub}>Explore the platform, or talk to our team about your business.</p>
           <div style={S.ctaActions}>
-            <button style={S.btnCtaOrange}>Get a Demo</button>
+            <button style={S.btnCtaOrange} onClick={() => navigate("/get-demo")}>Get a Demo</button>
             <button style={S.btnCtaGhost}>About Zoiko One</button>
             <button style={S.btnCtaGhost}>Careers</button>
           </div>

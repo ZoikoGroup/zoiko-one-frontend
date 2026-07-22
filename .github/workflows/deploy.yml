@@ -1,21 +1,17 @@
 name: Deploy to GCE
-
 on:
   push:
     branches: [main]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build frontend
         working-directory: frontend
         run: |
           npm ci
           npm run build
-
       - name: Rsync frontend build
         uses: burnett01/rsync-deployments@7.0.1
         with:
@@ -25,7 +21,6 @@ jobs:
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Rsync backend
         uses: burnett01/rsync-deployments@7.0.1
         with:
@@ -35,7 +30,6 @@ jobs:
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Rsync nginx config
         uses: burnett01/rsync-deployments@7.0.1
         with:
@@ -45,7 +39,6 @@ jobs:
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Deploy nginx config safely & restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -54,23 +47,23 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             /opt/zoiko-one/backend/venv/bin/pip install -r /opt/zoiko-one/backend/api/requirements.txt
-
+            # Stage the new nginx config without touching the live one yet
             sudo cp /opt/zoiko-one/nginx/zoiko-one.conf /etc/nginx/sites-available/zoiko-one.conf.new
+            # Swap staged config into place temporarily to validate it
             sudo mv /etc/nginx/sites-available/zoiko-one.conf /etc/nginx/sites-available/zoiko-one.conf.bak
             sudo mv /etc/nginx/sites-available/zoiko-one.conf.new /etc/nginx/sites-available/zoiko-one.conf
-
             if sudo nginx -t; then
               echo "nginx config valid — reloading"
               sudo rm -f /etc/nginx/sites-available/zoiko-one.conf.bak
+              # reload if running, restart if it had crashed previously
               sudo systemctl is-active --quiet nginx && sudo systemctl reload nginx || sudo systemctl restart nginx
             else
-              echo "ERROR: new nginx config failed validation — rolling back"
+              echo "ERROR: new nginx config failed validation — rolling back to previous working config"
               sudo mv /etc/nginx/sites-available/zoiko-one.conf /etc/nginx/sites-available/zoiko-one.conf.broken
               sudo mv /etc/nginx/sites-available/zoiko-one.conf.bak /etc/nginx/sites-available/zoiko-one.conf
               sudo systemctl is-active --quiet nginx || sudo systemctl restart nginx
               exit 1
             fi
-
             sudo systemctl restart zoiko-backend
             sudo systemctl status zoiko-backend --no-pager
             sudo systemctl status nginx --no-pager

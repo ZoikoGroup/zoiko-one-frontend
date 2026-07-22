@@ -364,6 +364,11 @@ export default function RegisterPage() {
             ← Back to homepage
           </Link>
         </p>
+        <p style={{ textAlign: "center", marginTop: "12px" }}>
+          <Link to="/get-demo" style={{ fontSize: "13px", color: "#F97316", textDecoration: "none", fontWeight: 600 }}>
+            Get a Demo →
+          </Link>
+        </p>
       </div>
       </div>
 

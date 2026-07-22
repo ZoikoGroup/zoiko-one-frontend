@@ -374,6 +374,7 @@ export default function ZoikoCareersPage() {
           </p>
           <div style={S.ctaActions}>
             <button style={S.btnCtaOrange}>View Open Roles</button>
+            <a href="/get-demo" style={{ ...S.btnCtaGhost, textDecoration: "none" }}>Get a Demo</a>
             <button style={S.btnCtaGhost}>Join Talent Community</button>
             <button style={S.btnCtaGhost}>About Zoiko One</button>
           </div>

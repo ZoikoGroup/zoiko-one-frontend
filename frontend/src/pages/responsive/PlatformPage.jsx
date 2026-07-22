@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
-  Menu,
-  X as CloseIcon,
   ArrowRight,
   Check,
   X as XIcon,
@@ -23,22 +21,12 @@ import {
   ArrowUpRight,
   Diamond,
 } from "lucide-react";
-import logo from "../../assets/logo.png";
+import LandingHeader from "../../components/layout/LandingHeader";
 import Footer from "../../components/layout/Footer";
 
 /* ---------------------------------------------------------
    Data
 --------------------------------------------------------- */
-
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Platform", href: "/platform" },
-  { label: "Products", href: "/products" },
-  { label: "Solutions", href: "/solutions" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Resources", href: "/resources" },
-  { label: "About", href: "/about" },
-];
 
 const disconnectedStack = [
   "Manual exports between tools",
@@ -203,97 +191,6 @@ function OutlineButton({ children, to, className = "" }) {
     >
       {children}
     </Link>
-  );
-}
-
-/* ---------------------------------------------------------
-   Header
---------------------------------------------------------- */
-
-function ResponsiveHeader() {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-
-  return (
-    <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E2E4EF]">
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-          <Link to="/" className="flex items-center gap-2 shrink-0 no-underline">
-            <img src={logo} alt="Zoiko One" className="h-8 sm:h-9 w-auto object-contain" />
-          </Link>
-
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#2A2F55]">
-            {navLinks.map((l) => (
-              <Link
-                key={l.label}
-                to={l.href}
-                className="hover:text-accent transition-colors no-underline"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="hidden md:flex items-center gap-4 text-sm font-semibold">
-            <Link to="/login" className="text-primary-dark no-underline">
-              Sign In
-            </Link>
-            <button
-              onClick={() => navigate("/get-demo")}
-              className="inline-flex items-center gap-1 bg-accent hover:bg-accent-hover text-white rounded-full px-5 py-2.5 shadow-md shadow-orange-200 transition-colors"
-            >
-              Get a Demo <ArrowRight size={15} />
-            </button>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            aria-label="Toggle menu"
-            onClick={() => setOpen((o) => !o)}
-            className="md:hidden inline-flex items-center justify-center w-9 h-9 text-primary-dark"
-          >
-            {open ? <CloseIcon size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile menu panel */}
-        {open && (
-          <div className="md:hidden border-t border-[#E2E4EF] bg-white px-4 pb-4">
-            <nav className="flex flex-col gap-1 pt-2">
-              {navLinks.map((l) => (
-                <Link
-                  key={l.label}
-                  to={l.href}
-                  onClick={() => setOpen(false)}
-                  className="py-2.5 text-sm font-medium text-[#2A2F55] no-underline border-b border-gray-100 last:border-0"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="flex flex-col gap-3 mt-4">
-              <Link
-                to="/login"
-                onClick={() => setOpen(false)}
-                className="text-center text-sm font-semibold text-primary-dark no-underline py-2"
-              >
-                Sign In
-              </Link>
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/get-demo");
-                }}
-                className="inline-flex items-center justify-center gap-1 bg-accent hover:bg-accent-hover text-white rounded-full px-5 py-3 shadow-md shadow-orange-200 transition-colors font-semibold text-sm"
-              >
-                Get a Demo <ArrowRight size={15} />
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
-    </>
   );
 }
 
@@ -787,7 +684,7 @@ function CTABanner() {
 export default function PlatformPage() {
   return (
     <div className="bg-white">
-      <ResponsiveHeader />
+      <LandingHeader />
       <Hero />
       <PlatformProblem />
       <FivePillars />

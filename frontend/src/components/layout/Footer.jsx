@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import logo from "../../assets/logo.png";
 
 const navData = {
   platform: {
@@ -119,6 +120,9 @@ function EcoFooterCard({ card }) {
         borderRadius: "10px",
         padding: "14px",
         textAlign: "left",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
         background: linkable
           ? hovered
             ? "linear-gradient(135deg,#3b2fb0 0%,#4a3fc0 40%,#3a6fd8 100%)"
@@ -146,6 +150,7 @@ function EcoFooterCard({ card }) {
         color: linkable ? "rgba(255,255,255,0.85)" : hovered ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.65)",
         lineHeight: "1.35",
         transition: "color 0.2s",
+        flex: "1",
       }}>
         {card.desc}
       </div>
@@ -201,10 +206,7 @@ export default function Footer() {
         {/* Brand Column */}
         <div className="col-span-2 sm:col-span-3 lg:col-span-1">
           <div className="flex items-center gap-2.5 mb-3.5">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-lg font-bold italic" style={{ background: "linear-gradient(135deg, #f97316 40%, #3b82f6 100%)" }}>1</div>
-            <span className="text-base font-bold text-white">
-              ZoikoOne<sup className="text-[10px] font-normal">™</sup>
-            </span>
+            <img src={logo} alt="Zoiko One" className="h-9 w-auto object-contain" />
           </div>
           <p className="text-[12.5px] text-white/55 leading-relaxed mb-4.5">
             The connected business-operations platform for people, money, work,
@@ -259,7 +261,7 @@ export default function Footer() {
           Zoiko One runs business operations. The platforms below are ecosystem siblings
           they are not Zoiko One products.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style={{ gridAutoRows: "1fr" }}>
           {ecosystemCards.map((card) => (
             <EcoFooterCard key={card.name} card={card} />
           ))}

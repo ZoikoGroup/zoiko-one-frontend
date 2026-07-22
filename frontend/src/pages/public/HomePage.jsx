@@ -10,6 +10,7 @@ import BusinessCloud from "../../components/sections/BusinessCloud";
 import PricingTiers from "../../components/sections/PricingTiers";
 import ComparisonTable from "../../components/sections/ComparisonTable";
 import FAQ from "../../components/sections/FAQ";
+import FinalCTA from "../../components/sections/FinalCTA";
 import Footer from "../../components/layout/Footer";
 
 export default function HomePage() {
@@ -28,6 +29,7 @@ export default function HomePage() {
         <PricingTiers />
         <ComparisonTable />
         <FAQ />
+        <FinalCTA />
       </main>
       <Footer />
     </div>

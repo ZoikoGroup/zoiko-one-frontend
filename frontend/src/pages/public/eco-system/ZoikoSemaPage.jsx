@@ -123,6 +123,31 @@ const S = {
     padding: "14px 28px", fontSize: 15, fontWeight: 700, cursor: "pointer",
   },
 
+  /* ── CTA ── */
+  ctaSection: { padding: "60px 28px 80px", background: "#f5f5fb" },
+  ctaCard: {
+    maxWidth: 960, margin: "0 auto",
+    background: "linear-gradient(135deg,#5b2d8e 0%,#4a3fc0 35%,#3a6fd8 70%,#4ab0f5 100%)",
+    borderRadius: 22, padding: "64px 48px", textAlign: "center",
+  },
+  ctaH2: {
+    fontSize: "clamp(24px,4vw,38px)", fontWeight: 800,
+    color: "#fff", marginBottom: 12, lineHeight: 1.2,
+  },
+  ctaSub: { fontSize: 15, color: "rgba(255,255,255,0.78)", marginBottom: 32, lineHeight: 1.55 },
+  ctaActions: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" },
+  btnCtaOrange: {
+    background: "#f97316", color: "#fff", border: "none",
+    borderRadius: 50, padding: "14px 28px",
+    fontSize: 14.5, fontWeight: 700, cursor: "pointer",
+  },
+  btnCtaGhost: {
+    background: "rgba(255,255,255,0.15)", color: "#fff",
+    border: "1.5px solid rgba(255,255,255,0.28)",
+    borderRadius: 50, padding: "13px 24px",
+    fontSize: 14.5, fontWeight: 600, cursor: "pointer",
+  },
+
   /* ── WHAT IT DOES ── */
   featuresSection: {
     padding: "100px 24px 80px",
@@ -251,6 +276,20 @@ export default function ZoikoSemaPage() {
               Zoiko Sema supports communication and collaboration around operations.
               Workflows, approvals, records and business-data authority remain in Zoiko One.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section style={S.ctaSection}>
+        <div style={S.ctaCard}>
+          <h2 style={S.ctaH2}>Ready to get started?</h2>
+          <p style={S.ctaSub}>
+            See how Zoiko Sema connects with Zoiko One.
+          </p>
+          <div style={S.ctaActions}>
+            <a href="/get-demo" style={{ ...S.btnCtaOrange, textDecoration: "none" }}>Get a Demo</a>
+            <a href="/" style={{ ...S.btnCtaGhost, textDecoration: "none" }}>About Zoiko One</a>
           </div>
         </div>
       </section>

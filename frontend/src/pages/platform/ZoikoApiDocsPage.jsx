@@ -464,6 +464,7 @@ export default function ZoikoApiDocsPage() {
           </p>
           <div style={S.ctaActions}>
             <button style={S.btnCtaOrange}>View API Reference</button>
+            <a href="/get-demo" style={{ ...S.btnCtaGhost, textDecoration: "none" }}>Get a Demo</a>
             <button style={S.btnCtaGhost}>Explore Integrations</button>
             <button style={S.btnCtaGhost}>Talk to a Specialist</button>
           </div>

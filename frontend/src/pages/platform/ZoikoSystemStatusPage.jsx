@@ -290,6 +290,7 @@ export default function ZoikoSystemStatusPage() {
             </p>
             <div style={S.ctaActions}>
               <button style={S.btnCtaOrange}>Subscribe to Updates</button>
+              <a href="/get-demo" style={{ ...S.btnCtaGhost, textDecoration: "none" }}>Get a Demo</a>
               <button style={S.btnCtaGhost}>Contact Support</button>
               <button style={S.btnCtaGhost}>Trust Center</button>
             </div>

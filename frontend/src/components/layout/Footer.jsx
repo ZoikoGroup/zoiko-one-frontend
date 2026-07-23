@@ -106,7 +106,7 @@ const getStartedLinks = [
   { label: "Request Pricing", href: "/pricing" },
   { label: "Explore Products", href: "/products" },
   { label: "Contact Sales", href: "/contact" },
-  { label: "Sign In", href: "https://zoiko-one-platform-4wjm.vercel.app/login" },
+  { label: "Sign In", href: "https://zoiko-one-platform-4wjm.vercel.app/" },
 ];
 
 function EcoFooterCard({ card }) {

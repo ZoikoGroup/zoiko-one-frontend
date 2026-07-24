@@ -119,7 +119,7 @@ function Hero() {
           Whether you need HR, time, payroll, billing, spend, projects, inventory, compliance, insights or Docs Pro — there's a pricing path that scales.
         </p>
         <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button style={{
+          <button onClick={() => document.getElementById("quote-builder")?.scrollIntoView({ behavior: "smooth" })} style={{
             background: "linear-gradient(135deg, #E07B2A, #c9651a)",
             color: "#fff", border: "none", borderRadius: 999,
             padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
@@ -457,7 +457,7 @@ function QuoteBuilder() {
   };
 
   return (
-    <section style={{ ...wrap, paddingTop: "20px" }}>
+    <section id="quote-builder" style={{ ...wrap, paddingTop: "20px" }}>
       <div style={{
         display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px",
         alignItems: "start",
@@ -693,7 +693,7 @@ function BottomCTA() {
             Start with one product, one pillar or one workflow — and scale with control.
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button style={{
+            <button onClick={() => document.getElementById("quote-builder")?.scrollIntoView({ behavior: "smooth" })} style={{
               padding: "14px 28px", borderRadius: "50px", border: "none",
               background: ORANGE, color: "white", fontSize: "15px",
               fontWeight: "700", cursor: "pointer", fontFamily: FF,
@@ -711,7 +711,13 @@ function BottomCTA() {
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function PricingPage() {
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (window.location.hash === "#quote-builder") {
+      setTimeout(() => {
+        document.getElementById("quote-builder")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      window.scrollTo(0, 0);
+    }
   }, []);
 
   return (

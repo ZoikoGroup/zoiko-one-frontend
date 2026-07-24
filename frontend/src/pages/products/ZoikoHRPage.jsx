@@ -206,7 +206,7 @@ function Hero() {
               }}>
                 Get a Demo <ArrowRight size={17} />
               </button>
-              <button style={{
+              <button onClick={() => navigate("/pricing#quote-builder")} style={{
                 background: "rgba(255,255,255,0.75)", color: "#1a1a2e",
                 border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 999,
                 padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
@@ -214,7 +214,7 @@ function Hero() {
               }}>
                 Request HR Pricing
               </button>
-              <button style={{
+              <button onClick={() => navigate("/five-pillars/people")} style={{
                 background: "rgba(255,255,255,0.75)", color: "#1a1a2e",
                 border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 999,
                 padding: "14px 32px", fontSize: 16, fontWeight: 600, cursor: "pointer",
@@ -494,8 +494,8 @@ function BottomCTA() {
               fontWeight: "700", cursor: "pointer", fontFamily: FF,
               boxShadow: "0 6px 20px rgba(232,133,10,0.5)",
             }}>Get a Demo →</button>
-            <button style={ghostBtnWhite}>Request Pricing</button>
-            <button style={ghostBtnWhite}>See People Pillar</button>
+            <button onClick={() => navigate("/pricing#quote-builder")} style={ghostBtnWhite}>Request Pricing</button>
+            <button onClick={() => navigate("/five-pillars/people")} style={ghostBtnWhite}>See People Pillar</button>
           </div>
         </div>
       </div>
